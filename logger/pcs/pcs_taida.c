@@ -112,6 +112,7 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
     int index = 0;
     bool is_ok = 0;
     sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
     memcpy(pbuf, ptr, PCS_BUFF_LEN);
     float S_OUT;
     float PF_OUT;
@@ -163,8 +164,14 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
             {
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
-                index= Taida_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
-
+                if (single_mode == 1) // 单PCS主机模式
+                {
+                    index= Taida_5MW_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
+                }
+                else
+                {
+                    index= Taida_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
+                }
                 SET_HOLD(index, RegVal.D16);
               //LOG_INFO("台达：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
 
@@ -174,7 +181,14 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
         {
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
-                index= Taida_INPUT_INDEX(num+1,temp.D16);//按照对外协议点表
+                if (single_mode == 1) // 单PCS主机模式
+                {
+                    index= Taida_5MW_INPUT_INDEX(num+1,temp.D16);//按照对外协议点表
+                }
+                else
+                {
+                    index= Taida_INPUT_INDEX(num+1,temp.D16);//按照对外协议点表
+                }
                 SET_INPUT(index, RegVal.D16);
         }
         //处理主机可设置的寄存器
@@ -379,8 +393,14 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
             {
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
-              
-                index= Taida_INPUT_INDEX(num+1,temp.D16+i);//按照对外协议点表
+                if (single_mode == 1) // 单PCS主机模式
+                {
+                    index= Taida_5MW_INPUT_INDEX(num+1,temp.D16+i);//按照对外协议点表
+                }
+                else
+                {
+                    index= Taida_INPUT_INDEX(num+1,temp.D16+i);//按照对外协议点表
+                }
                 SET_INPUT(index, RegVal.D16);
 
              //   taida_pcs_versionbit6_process(num,temp.D16+i,RegVal.D16);

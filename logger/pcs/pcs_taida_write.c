@@ -2664,6 +2664,7 @@ void MV_Power_allocate1(void)
 {
     // 获取系统配置信息
     sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
     INT16U pcs_num=sys_cfg->pcsNum;
 
     INT16U PCS1_sys_state = (INT16U)GET_INPUT(17000 + 300 * 0 + 60);//group1,主机PCS的运行状态
@@ -3598,8 +3599,16 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =4;              /* '<Root>/module_num' */
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
-    mv_power                = GET_HOLD(1010);
-    mv_r_power              = 0;  
+    if (single_mode == 1)
+    {
+        mv_power            = GET_HOLD(1010);
+        mv_r_power          = GET_HOLD(1011);
+    }
+    else
+    {
+        mv_power            = GET_HOLD(1010);
+        mv_r_power          = GET_HOLD(1011);
+    }
     pcs1_rated_power        =   2782         ;                              
     pcs2_rated_power        =   2782       ;                             
     pcs3_rated_power        =   0         ;             

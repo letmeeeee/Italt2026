@@ -103,22 +103,22 @@ static void Hex_To_String(char *out, size_t out_size, const unsigned char *buf, 
 }
 uint16_t PCSnum_calculate(uint16_t address)
 {
-    if(((address >= 12000)&&(address <=(12000+33)))||((address >= 27000)&&(address <=(27000+220))))
+    if(((address >= 12000)&&(address <=(12000+33)))||((address >= 27000)&&(address <=(27000+220))) || ((address >= 15000)&&(address <=(15000+33))))
         {
             
             return 0;
         }
-        else if(((address >= 12000+300)&&(address <=(12000+33+300))))
+        else if(((address >= 12000+300)&&(address <=(12000+33+300))) || ((address >= 15000+300)&&(address <=(15000+33+300))))
         {
             
             return  1;
         }
-            else if(((address >= 12000+600)&&(address <=(12000+33+600)))||((address >= 27000+300)&&(address <=(27000+220+300))))
+            else if(((address >= 12000+600)&&(address <=(12000+33+600)))||((address >= 27000+300)&&(address <=(27000+220+300))) || ((address >= 15000+600)&&(address <=(15000+33+600))))
         {
             
             return  2;
         }
-        else if(((address >= 12000+900)&&(address <=(12000+33+900))))
+        else if(((address >= 12000+900)&&(address <=(12000+33+900))) || ((address >= 15000+900)&&(address <=(15000+33+900))))
         {
             
             return  3;
@@ -128,6 +128,20 @@ uint16_t PCSnum_calculate(uint16_t address)
             return -1;
         }
 }
+
+uint16_t BMSnum_calculate(uint16_t address)
+{
+    INT16U gapAddr = 200;
+    INT16U baseAddr = 38000;
+
+    if (address < baseAddr)
+    {
+        return -1;
+    }
+
+    return (address - baseAddr) / gapAddr;
+}
+
 static void EMS_Close_Client(int fd)
 {
     if (fd > 0)
@@ -187,7 +201,9 @@ static void* Server_Handle_Data(void *arg)
     int16_t EMS_Power_Input[4] = {0};
     struct timeval rec_timeout;
     sysPara* sys_cfg = SysConf_GetInfo();
+    INT8U single_mode  = sys_cfg->singlePcsMaster;
     INT16U pcsnum = 0;
+    INT16S bmsnum = 0;
     Set_EMS_Comm(0, IsNoFault, TRUE);    // EMS通讯正常,全部通信链接均判断正常
     rec_timeout.tv_sec = 0;
     rec_timeout.tv_usec = (5 * 1000);
@@ -328,12 +344,27 @@ static void* Server_Handle_Data(void *arg)
             case 0x04:
                 // 读输入寄存器
                 //Read input register
+                bmsnum = BMSnum_calculate(Temp.D16);
+                if ((bmsnum < 0) || (bmsnum >= 8))
+                {
+                 LOG_INFO("invalid address:%d", Temp.D16);
+                 continue; 
+                }
                 for (i = 0; (i < buffer[11]) && (MStar < TCP_SERVER_RECV_LEN) && (Temp.D16 < MAX_SYSTEM_TOTAL_DATA_NUM); i++)
                 {
                     if(dev_add==1)
                     {
+                        // 单主机PCS模式下,EMS下发的BMS2/3实际返回BMS4/5的数据
+                        if ((single_mode == 1) && ((bmsnum == 2) || (bmsnum == 3)))
+                        {
 
-                        RegVal.D16= GET_INPUT(Temp.D16);
+                            LC_EMS_Address = Temp.D16 + 200 * 2;
+                        }
+                        else
+                        {
+                            LC_EMS_Address = Temp.D16;
+                        }
+                        RegVal.D16= GET_INPUT(LC_EMS_Address);
                         //    LOG_INFO("address is[%d],value is %d",Temp.D16, RegVal.D16);
                     }
                     else if((dev_add>=2)&&(dev_add<(2+BANK_SIZE)))
@@ -832,10 +863,20 @@ static void* Server_Handle_Data(void *arg)
 
                         } 
                         //PCS参数设置   电网放电功率标定 k~从机1 控制启用         
-                        if((Temp.D16>=12000&&Temp.D16<=12032)) pcsnum = 0; // 主机1
-                        else if(Temp.D16>=12300&&Temp.D16<=12332) pcsnum = 1; // 从机1-1
-                        else if((Temp.D16>=12600&&Temp.D16<=12632)) pcsnum = 2; // 主机2
-                        else if(Temp.D16>=12900&&Temp.D16<=12932) pcsnum = 3; // 从机2-1
+                        if (single_mode == 1)
+                        {
+                            if((Temp.D16>=15000&&Temp.D16<=15032)) pcsnum = 0; // 主机1
+                            // else if(Temp.D16>=15300&&Temp.D16<=15332) pcsnum = 1; // 从机1-1
+                            else if((Temp.D16>=15600&&Temp.D16<=15632)) pcsnum = 2; // 主机2
+                            // else if(Temp.D16>=15900&&Temp.D16<=15932) pcsnum = 3; // 从机2-1
+                        }
+                        else
+                        {
+                            if((Temp.D16>=12000&&Temp.D16<=12032)) pcsnum = 0; // 主机1
+                            else if(Temp.D16>=12300&&Temp.D16<=12332) pcsnum = 1; // 从机1-1
+                            else if((Temp.D16>=12600&&Temp.D16<=12632)) pcsnum = 2; // 主机2
+                            else if(Temp.D16>=12900&&Temp.D16<=12932) pcsnum = 3; // 从机2-1
+                        }
 
                     }
 
