@@ -1,0 +1,1 @@
+var o=(U=>(U[U.U16=0]="U16",U[U.S16=1]="S16",U[U.U32=2]="U32",U[U.S32=3]="S32",U[U.FLOAT=4]="FLOAT",U[U.DOUBLE=5]="DOUBLE",U[U.BITU16=6]="BITU16",U[U.BITU32=7]="BITU32",U[U.KeyValue=8]="KeyValue",U[U.Position=9]="Position",U[U.RackPosition=10]="RackPosition",U))(o||{});export{o as D};

@@ -1,0 +1,1 @@
+new Array(25034).fill(0),new Array(20549).fill(0),new Array(20).fill(0);const r=8,t=10,l=1551;Array.from({length:r},()=>Array.from({length:t},()=>new Array(l).fill(0)));function I(n){return(n.toString().split(".")[1]||[]).length}export{I as c};
