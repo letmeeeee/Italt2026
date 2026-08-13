@@ -189,6 +189,7 @@ typedef struct {
     INT8U   lc_slave_addr;                            //LC在EMS中作为从设备，默认地址为1
     INT8U   subNum;                                   //子系统个数
     INT8U   subSysType;                               //子系统类型，例如PCS和BMS一对一子系统，或者一对二子系统
+    INT8U   singlePcsMaster;                          //单PCS主机模式:1=每系统仅主PCS(PCS0/PCS2)在线,0=每系统双PCS
     INT8U   pcsNum;                                   //PCS台数
     INT8U   bmsNum;                                   //BMS台数
     INT8U   sysNum;                                   //系统个数
