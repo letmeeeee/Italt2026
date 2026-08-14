@@ -1801,6 +1801,8 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         // 主机1BAT1分配比例
     INT32S total_out1 = Power_Result.P1_out + Power_Result.P2_out + Power_Result.P3_out + Power_Result.P4_out;
     INT32S total_out2 = Power_Result.P5_out + Power_Result.P6_out + Power_Result.P7_out + Power_Result.P8_out;
+    LOG_INFO("pcs_r_power1_2=%d,pcs_r_power3_4=%d",pcs_r_power1_2,pcs_r_power3_4);
+    LOG_INFO("total_out1=%d,total_out2=%d",total_out1,total_out2);
     if(total_out1!=0)
     {
     INT32S masterbat1_powerate = (Power_Result.P1_out * 1000 ) / (Power_Result.P1_out+Power_Result.P2_out+Power_Result.P3_out+Power_Result.P4_out);
@@ -3599,16 +3601,9 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =4;              /* '<Root>/module_num' */
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
-    if (single_mode == 1)
-    {
-        mv_power            = GET_HOLD(1010);
-        mv_r_power          = GET_HOLD(1011);
-    }
-    else
-    {
-        mv_power            = GET_HOLD(1010);
-        mv_r_power          = GET_HOLD(1011);
-    }
+    mv_power   = GET_HOLD(1010);
+    mv_r_power = single_mode ? GET_HOLD(1011) : 0;
+    // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
     pcs1_rated_power        =   2782         ;                              
     pcs2_rated_power        =   2782       ;                             
     pcs3_rated_power        =   0         ;             
