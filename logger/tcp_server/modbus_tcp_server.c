@@ -344,11 +344,14 @@ static void* Server_Handle_Data(void *arg)
             case 0x04:
                 // 读输入寄存器
                 //Read input register
-                bmsnum = BMSnum_calculate(Temp.D16);
-                if ((bmsnum < 0) || (bmsnum >= 8))
+                if (Temp.D16 >= 38000)
                 {
-                 LOG_INFO("invalid address:%d", Temp.D16);
-                 continue; 
+                    bmsnum = BMSnum_calculate(Temp.D16);
+                    if ((bmsnum < 0) || (bmsnum >= 8))
+                    {
+                     LOG_INFO("invalid address:%d", Temp.D16);
+                     continue; 
+                    }
                 }
                 for (i = 0; (i < buffer[11]) && (MStar < TCP_SERVER_RECV_LEN) && (Temp.D16 < MAX_SYSTEM_TOTAL_DATA_NUM); i++)
                 {

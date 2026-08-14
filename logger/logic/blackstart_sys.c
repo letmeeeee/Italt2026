@@ -615,7 +615,7 @@ static void Event_Fault_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_st
 static void check_pcs_limit(void)
 {
     sysPara *sys_cfg = SysConf_GetInfo();
-
+    INT8U single_mode = sys_cfg->singlePcsMaster; 
         static INT8S last_p2p_mode = -1;                  // -1 表示尚未初始化
         INT16U cur_p2p = GET_INPUT(P2P_mode);
 
@@ -729,6 +729,24 @@ static void check_pcs_limit(void)
         }
 
         s_prev_comm_fault[pcs] = (INT8S)curr_fault;
+    }
+    if (single_mode == 1)
+    {
+        INT16U State_value = GET_INPUT(STATUS_WORD1);
+        INT16U tmp = 0;
+        INT8U idx = 0;
+        for (int pcs = 0; pcs < sys_cfg->pcsNum && pcs < MAX_PCS; ++pcs) 
+        {
+            if (pcs == 0 || pcs == 2) 
+            {
+                if ((State_value >> pcs) & 1)
+                {
+                    tmp |= (1 << idx);
+                }
+                idx++;
+            }
+        }
+        SET_INPUT(STATUS_WORD11,tmp);
     }
 }
 /**
