@@ -590,6 +590,20 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
         SET_INPUT(STATUS_WORD2, measureval);
     }
 
+    /* EMS通信断联：更新EMS通讯状态 */
+    if (ems_comm_fault)
+    {
+        INT16U emsval = (INT16U)GET_INPUT(STATUS_WORD2);
+        emsval &= (INT16U)~(1u << 10);
+        SET_INPUT(STATUS_WORD2, emsval);
+    }
+    else
+    {
+        INT16U emsval = (INT16U)GET_INPUT(STATUS_WORD2);
+        emsval |= (INT16U)(1u << 10);
+        SET_INPUT(STATUS_WORD2, emsval);
+    }
+
     /* UPS 通信断联 */
     if (ups_comm_fault)
     {

@@ -662,7 +662,10 @@ void *nvme_log_monitor_thread(void *arg)
     }
     else if (sys_cfg->pcs_brand[i] == PCS_Taida)
     {
-
+    if ((sys_cfg->singlePcsMaster == 1) && ((i == 1) || (i == 3)))
+    {
+        continue; //如果是单PCS主机模式，则不创建PCS线程
+    }
     pthread_create(&thread_eth_PCS[i], &thread_attr, (void*)PCS_Taida_Task, (void *)&pthread_index[i]);
     usleep(10 * 1000);
     pthread_create(&thread_eth_PCS_write[i], &thread_attr, (void*)PCS_TAida_write_Task, (void *)&pthread_index[i]);

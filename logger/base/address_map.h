@@ -252,6 +252,21 @@ int CEM9000_HOLD(INT16S value);
   (address) == 40522-40001 ? 186+2600+300*(pcs_index-1) : /* certification  */\
   (address) == 30408-30001 ? 218+2600+300*(pcs_index-1) : -1 ))))))/*Controller Warning Word1  */\
   )
+#define Taida_5MW_INPUT_INDEX(pcs_index, address) ( \
+  ((address) >= 30185-30001 && (address) < 30211-30001 ? ((address) - (30185-30001) + 5000+0+300*(pcs_index-1)) : /*Module1 Battery Voltage～PCS Rated Capacity*/\
+  ((address) >= 30478-30001 && (address) < 30490-30001 ? ((address) - (30478-30001) + 5000+219+300*(pcs_index-1)) : /*Module1 FPGA Fault Word1~ Module1 Comm Fault Word1   */\
+  ((address) >= 30578-30001 && (address) < 30590-30001 ? ((address) - (30578-30001) + 5000+233+300*(pcs_index-1)) : /*Module2 FPGA Fault Word1 ~ Module2 Comm Fault Word1  */\
+  ((address) >= 30701-30001 && (address) < 30765-30001 ? ((address) - (30701-30001) + 5000+26+300*(pcs_index-1)) : /*模块1时放电量-高位  ~ 模块2统计时间-时 */\
+  ((address) >= 30765-30001 && (address) < 30821-30001 ? ((address) - (30765-30001) + 5000+90+300*(pcs_index-1)) : /*AC Hourly Disc Capacity High Byte  ~ AC Statistical Hour */\
+  ((address) >= 30011-30001 && (address) < 30045-30001 ? ((address) - (30011-30001) + 5000+152+300*(pcs_index-1)) : /*版本号 */\
+  (address) == 30404-30001 ? 217+5000+300*(pcs_index-1) : /* Controller Fault Word1  */\
+  (address) == 30492-30001 ? 231+5000+300*(pcs_index-1) : /* Module1 Warning Word1 */\
+  (address) == 30493-30001 ? 232+5000+300*(pcs_index-1) : /* Module1 Warning Word2  */\
+  (address) == 30592-30001 ? 245+5000+300*(pcs_index-1) : /* Module2 Warning Word1 */\
+  (address) == 30593-30001 ? 246+5000+300*(pcs_index-1) : /* Module2 Warning Word2  */\
+  (address) == 40522-40001 ? 186+5000+300*(pcs_index-1) : /* certification  */\
+  (address) == 30408-30001 ? 218+5000+300*(pcs_index-1) : -1 ))))))/*Controller Warning Word1  */\
+  )
 #define Master_Taida_INPUT_INDEX(pcs_index, address) ( \
   ((address) >= 30011-30001 && (address) < 30045-30001 ? ((address) - (30011-30001) + 17000+0+300*(pcs_index-1)) : /*master -Local Controller Version 1 ~ mJ2FPGA Version 3  */\
   ((address) >= 30100-30001 && (address) < 30122-30001 ? ((address) - (30100-30001)+ 17000+34+300*(pcs_index-1)) : /*master -Grid Volt RS ~ Battery Total Current  */\
@@ -270,6 +285,11 @@ int CEM9000_HOLD(INT16S value);
   ((address) >= 40201-40001 && (address) < 40225-40001 ? ((address) - (40201-40001) + 12000+0+300*(pcs_index-1)) : /*master&slave-Grid Discharge Power Calibration k ~POI Theta offset Calibration b*/\
   ((address) >= 40011-40001 && (address) < 40018-40001 ? ((address) - (40011-40001) + 12000+26+300*(pcs_index-1)) : /*master&slave-PCS Time Year ~ PCS Time mSec*/\
   ((address) >= 40241-40001 && (address) < 40243-40001 ? ((address) - (40241-40001) + 12000+24+300*(pcs_index-1)) : -1 ))))/*master&slave-Set PCS Master ~Slave1 Control Enable*/\
+
+#define Taida_5MW_HOLD_INDEX(pcs_index, address) ( \
+  ((address) >= 40201-40001 && (address) < 40225-40001 ? ((address) - (40201-40001) + 15000+0+300*(pcs_index-1)) : /*master&slave-Grid Discharge Power Calibration k ~POI Theta offset Calibration b*/\
+  ((address) >= 40011-40001 && (address) < 40018-40001 ? ((address) - (40011-40001) + 15000+26+300*(pcs_index-1)) : /*master&slave-PCS Time Year ~ PCS Time mSec*/\
+  ((address) >= 40241-40001 && (address) < 40243-40001 ? ((address) - (40241-40001) + 15000+24+300*(pcs_index-1)) : -1 ))))/*master&slave-Set PCS Master ~Slave1 Control Enable*/\
 
 
 #define Master_Taida_HOLD_INDEX(pcs_index, address) ( \

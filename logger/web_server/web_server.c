@@ -116,7 +116,7 @@ static void* Server_Handle_Data(void *arg)
     ////////////////设置接收超时////////////////
     struct timeval rec_timeout;
     sysPara* sys_cfg = SysConf_GetInfo();
-
+    INT8U single_mode  = sys_cfg->singlePcsMaster;
     // EMS通讯正常,全部通信链接均判断正常
 
     rec_timeout.tv_sec  = 0;
@@ -637,10 +637,20 @@ static void* Server_Handle_Data(void *arg)
 
                         } 
                         //PCS参数设置   电网放电功率标定 k~从机1 控制启用         
-                        if((Temp.D16>=12000&&Temp.D16<=12032)) pcsnum = 0; // 主机1
-                        else if(Temp.D16>=12300&&Temp.D16<=12332) pcsnum = 1; // 从机1-1
-                        else if((Temp.D16>=12600&&Temp.D16<=12632)) pcsnum = 2; // 主机2
-                        else if(Temp.D16>=12900&&Temp.D16<=12932) pcsnum = 3; // 从机2-1
+                        if (single_mode == 1)
+                        {
+                            if((Temp.D16>=15000&&Temp.D16<=15032)) pcsnum = 0; // 主机1
+                            // else if(Temp.D16>=15300&&Temp.D16<=15332) pcsnum = 1; // 从机1-1
+                            else if((Temp.D16>=15600&&Temp.D16<=15632)) pcsnum = 2; // 主机2
+                            // else if(Temp.D16>=15900&&Temp.D16<=15932) pcsnum = 3; // 从机2-1
+                        }
+                        else
+                        {
+                            if((Temp.D16>=12000&&Temp.D16<=12032)) pcsnum = 0; // 主机1
+                            else if(Temp.D16>=12300&&Temp.D16<=12332) pcsnum = 1; // 从机1-1
+                            else if((Temp.D16>=12600&&Temp.D16<=12632)) pcsnum = 2; // 主机2
+                            else if(Temp.D16>=12900&&Temp.D16<=12932) pcsnum = 3; // 从机2-1
+                        }
 
                     }
 

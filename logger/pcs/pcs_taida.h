@@ -129,6 +129,9 @@ void PCS_Taida_Task(const char *arg);
 #define PCS_INPUT_BASE2    17000
 #define PCS_HOLD_BASE      12000
 #define PCS_ADDR_STEP      300
+#define PCS_5MW_INPUT_BASE1    5000
+#define PCS_5MW_HOLD_BASE      15000
+#define PCS_5MW_ADDR_STEP      600
 // #define sys_status      1003
 void Update_Pcs_Diff_Status(uint8_t pcs_total_num);
 #endif

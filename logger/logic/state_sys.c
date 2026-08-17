@@ -300,7 +300,7 @@ static void EMS_Rebuild_Enabled_Mask_From_Raw(void)
     INT8U pcs;
     uint16_t bms;
  
-    switch (g_topo_src) 
+    switch (g_topo_src)
     {
     case TOPO_FROM_PCS:
         if(pcs_raw==7)
@@ -1389,11 +1389,13 @@ static void Event_Start_Fault_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM r
 
     /* 从机故障：((slave_PCS_sys_state >> 1) & 1) == 1 */
     INT8U slave_fault = (INT8U)(((slave_PCS_sys_state >> 1) & 0x1u) == 1u);
+    /* 单PCS主机模式：每系统仅1台PCS(主)，主机故障即启动故障 */
+    INT8U single_mode  = (INT8U)(SysConf_GetInfo()->singlePcsMaster ? 1 : 0);
 
 
     clear_pending[sys_num] =0;
 
-    if ((((PCS_sys_state >> 4) & 0x1u) == 1u)&&(slave_fault==1))
+    if ((((PCS_sys_state >> 4) & 0x1u) == 1u)&&((slave_fault==1)||(single_mode==1)))
     {
         is_Fault = IsFault;
     }
@@ -1745,8 +1747,9 @@ static void Event_CMD_Stop_Check_PCS_Status(INT16U *eid, INT8U sys_num, SYS_Stat
     INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 62);
     INT8U  slave_fault = (INT8U)(((slave_PCS_sys_state >> 1) & 0x1u) == 1u);
     INT8U  slave_no_run = (INT8U)(((slave_PCS_sys_state >> 0) & 0x1u) == 1u);
-    if ((master_fault==1) && ((slave_fault==1)||(slave_no_run==1)||(slave_PCS_sys_state==0))
-) 
+    INT8U  single_mode  = (INT8U)(SysConf_GetInfo()->singlePcsMaster ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
+    if ((master_fault==1) && ((slave_fault==1)||(slave_no_run==1)||(slave_PCS_sys_state==0)||(single_mode==1))
+)
     {
 
         last_time[sys_num] = Timer_GetTick();
@@ -1765,8 +1768,9 @@ static void Event_CMD_Stop_Check_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
     INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 62);
     INT8U  slave_fault = (INT8U)(((slave_PCS_sys_state >> 1) & 0x1u) == 1u);
     INT8U  slave_no_run = (INT8U)(((slave_PCS_sys_state >> 0) & 0x1u) == 1u);
-    if (((master_fault==1)||(master_no_run!=1)) && ((slave_fault==1)||(slave_no_run==1)||(slave_PCS_sys_state==0))
-) 
+    INT8U  single_mode  = (INT8U)(SysConf_GetInfo()->singlePcsMaster ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
+    if (((master_fault==1)||(master_no_run!=1)) && ((slave_fault==1)||(slave_no_run==1)||(slave_PCS_sys_state==0)||(single_mode==1))
+)
     {
 
         last_time[sys_num] = Timer_GetTick();
@@ -2040,9 +2044,10 @@ static void Event_Stop_SUB_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 60); /* 主机PCS当前状态 */
     INT8U PCS_slave_state = GET_INPUT(17000 + 300 * sys_num + 62); /* 从机PCS当前状态 */
+    INT8U single_mode = (INT8U)(SysConf_GetInfo()->singlePcsMaster ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
 
    //LOG_INFO("warningflag[%d]:%d",sys_num,warningflag[sys_num]);
-   if ((((((PCS_sys_state >> 1 )&1u)== 1)&&(((PCS_sys_state >> 2 )&1u)!= 1)&&(((PCS_sys_state >> 3 )&1u)!= 1))|| (((PCS_sys_state >> 1 )&1u)== 0)|| (((PCS_sys_state >> 4 )&1u)== 1))&&((((PCS_slave_state >>0 )&1u)== 1)||(((PCS_slave_state >>1 )&1u)== 1)||(PCS_slave_state==0)) ) 
+   if ((((((PCS_sys_state >> 1 )&1u)== 1)&&(((PCS_sys_state >> 2 )&1u)!= 1)&&(((PCS_sys_state >> 3 )&1u)!= 1))|| (((PCS_sys_state >> 1 )&1u)== 0)|| (((PCS_sys_state >> 4 )&1u)== 1))&&((((PCS_slave_state >>0 )&1u)== 1)||(((PCS_slave_state >>1 )&1u)== 1)||(PCS_slave_state==0)||(single_mode==1)) )
    {
     // if (((PCS_sys_state == 2) || (PCS_sys_state == 0)) ) {    
         for (INT8U sub = 0; (sub < sys_cfg->subNum) && (sub < MAX_SUB_NUM); sub++) 
@@ -2552,6 +2557,7 @@ static void Event_Check_Sub_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM rea
 static void check_pcs_limit(void)
 {
     sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
 
         static INT8S last_p2p_mode = -1;                  // -1 表示尚未初始化
         INT16U cur_p2p = GET_INPUT(P2P_mode);
@@ -2624,6 +2630,56 @@ static void check_pcs_limit(void)
 
             INT16U statusword = (INT16U)GET_INPUT(STATUS_WORD1);
 
+    if (single_mode == 1) 
+    {
+    /* 单PCS主机模式：仅检查PCS0 */
+    for (int pcs = 0; pcs < sys_cfg->pcsNum && pcs < MAX_PCS; ++pcs) 
+    {
+        if ((pcs % 2) == 1) continue;  /* 跳过从机PCS */
+        int curr_fault = (Get_PCS_Comm(pcs) == 1);  /* 1=通信故障 */
+
+        /* 正常 -> 故障（上升沿） */
+        if (curr_fault && !s_prev_comm_fault[pcs]) 
+        {
+            /* 清在线位 */
+            statusword &= (INT16U)~(1u << pcs);
+            SET_INPUT(STATUS_WORD1, statusword);
+          
+           slave_pcs_clear_points_on_fault(pcs);
+
+            /* （3s 防抖：10ms tick => 300） */
+            if((pcs==0)||(pcs==2))//只有当主机1PCS或者主机2PCS断连的时候才告警并让状态机回到初始状态
+            {
+                uint64_t now = Timer_GetTick();
+
+
+                int sys_num = (pcs == 2) ? 1 : 0;
+
+                 /* 清一次点位（避免每周期清） */
+                 pcs_clear_points_on_fault(sys_num);
+
+                if (now - g_force_init_last_ts[sys_num] > 300) 
+                {
+                    g_force_init_last_ts[sys_num] = now;
+                    g_force_init_req[sys_num]     = 1;
+                    LOG_INFO("SYS-%d request FORCE-INIT due to PCS-%d comm lost.", sys_num, pcs);
+                }
+            }
+            LOG_INFO("PCS-%d communication FAULT (edge). Points cleared.", pcs);
+        }
+        /* 故障 -> 恢复（下降沿） */
+        else if (!curr_fault && s_prev_comm_fault[pcs]) 
+        {
+            statusword |= (INT16U)(1u << pcs);
+            SET_INPUT(STATUS_WORD1, statusword);
+            LOG_INFO("PCS-%d communication RECOVERED (edge).", pcs);
+        }
+
+        s_prev_comm_fault[pcs] = (INT8S)curr_fault;
+    }
+    } 
+    else 
+    {
     for (int pcs = 0; pcs < sys_cfg->pcsNum && pcs < MAX_PCS; ++pcs) 
     {
         int curr_fault = (Get_PCS_Comm(pcs) == 1);  /* 1=通信故障 */
@@ -2666,6 +2722,25 @@ static void check_pcs_limit(void)
         }
 
         s_prev_comm_fault[pcs] = (INT8S)curr_fault;
+    }
+    }
+    if (single_mode == 1)
+    {
+        INT16U State_value = GET_INPUT(STATUS_WORD1);
+        INT16U tmp = 0;
+        INT8U idx = 0;
+        for (int pcs = 0; pcs < sys_cfg->pcsNum && pcs < MAX_PCS; ++pcs) 
+        {
+            if (pcs == 0 || pcs == 2) 
+            {
+                if ((State_value >> pcs) & 1)
+                {
+                    tmp |= (1 << idx);
+                }
+                idx++;
+            }
+        }
+        SET_INPUT(STATUS_WORD11,tmp);
     }
     
 }

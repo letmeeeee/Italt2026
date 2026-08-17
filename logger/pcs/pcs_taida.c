@@ -112,6 +112,7 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
     int index = 0;
     bool is_ok = 0;
     sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
     memcpy(pbuf, ptr, PCS_BUFF_LEN);
     float S_OUT;
     float PF_OUT;
@@ -163,8 +164,14 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
             {
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
-                index= Taida_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
-
+                if (single_mode == 1) // 单PCS主机模式
+                {
+                    index= Taida_5MW_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
+                }
+                else
+                {
+                    index= Taida_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
+                }
                 SET_HOLD(index, RegVal.D16);
               //LOG_INFO("台达：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
 
@@ -174,7 +181,14 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
         {
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
-                index= Taida_INPUT_INDEX(num+1,temp.D16);//按照对外协议点表
+                if (single_mode == 1) // 单PCS主机模式
+                {
+                    index= Taida_5MW_INPUT_INDEX(num+1,temp.D16);//按照对外协议点表
+                }
+                else
+                {
+                    index= Taida_INPUT_INDEX(num+1,temp.D16);//按照对外协议点表
+                }
                 SET_INPUT(index, RegVal.D16);
         }
         //处理主机可设置的寄存器
@@ -379,8 +393,14 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
             {
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
-              
-                index= Taida_INPUT_INDEX(num+1,temp.D16+i);//按照对外协议点表
+                if (single_mode == 1) // 单PCS主机模式
+                {
+                    index= Taida_5MW_INPUT_INDEX(num+1,temp.D16+i);//按照对外协议点表
+                }
+                else
+                {
+                    index= Taida_INPUT_INDEX(num+1,temp.D16+i);//按照对外协议点表
+                }
                 SET_INPUT(index, RegVal.D16);
 
              //   taida_pcs_versionbit6_process(num,temp.D16+i,RegVal.D16);
@@ -850,13 +870,21 @@ void PCS_Taida_Task(const char *arg)
 static uint8_t Pcs_Is_Online(uint8_t pcs)
 {
     uint16_t online_flag;
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
 
     if ((pcs < 1) || (pcs > PCS_MAX_NUM))
     {
         return 0;
     }
-
-    online_flag = GET_INPUT(218);
+    if (single_mode == 1)
+    {
+        online_flag = GET_INPUT(228);
+    }
+    else
+    {
+        online_flag = GET_INPUT(218);
+    }
 
     if ((online_flag & (1U << (pcs - 1))) != 0)
     {
@@ -987,6 +1015,8 @@ static uint8_t Check_Pcs_Bus_Mode_Bit_Diff(uint8_t pcs_total_num)
     uint8_t ref_valid = 0;
     uint16_t ref_val = 0;
     uint16_t cur_val = 0;
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
 
    if (pcs_total_num <= 1)
     {
@@ -1006,7 +1036,7 @@ static uint8_t Check_Pcs_Bus_Mode_Bit_Diff(uint8_t pcs_total_num)
         cur_val = ((GET_INPUT(PCS_INPUT_BASE2 + PCS_ADDR_STEP * (pcs - 1) + 60)) >>9);//主机BUS模式
         ref_val = (GET_INPUT(PCS_INPUT_BASE2 + PCS_ADDR_STEP * (pcs - 1) + 62) >>14);//从机BUS模式
        // LOG_INFO("pcs %d, cur_val = %d, ref_val = %d ,pcs_total_num =%d \n", pcs, cur_val, ref_val,pcs_total_num);
-            if (cur_val != ref_val)
+            if ((cur_val != ref_val) && (single_mode == 0))
             {
                 return 1;
             }
@@ -1089,12 +1119,70 @@ static uint8_t Check_Pcs_Master_Slave_diff(uint8_t pcs_total_num)
     return 0;
 }
 
+static uint8_t Check_5MW_Pcs_Master_diff(uint8_t pcs_total_num)
+{
+    uint16_t pcs1_val;
+    uint16_t pcs2_val;
+    uint16_t pcs3_val;
+    uint16_t pcs4_val;
+
+    if (pcs_total_num > PCS_MAX_NUM)
+    {
+        pcs_total_num = PCS_MAX_NUM;
+    }
+
+    if (pcs_total_num <= 0)
+    {
+        return 0;
+    }
+
+    /*
+     * pcs_total_num=1、2,意味着只有一台主机PCS1：
+     * PCS1必须是主机
+     */
+    if ((pcs_total_num == 1) || (pcs_total_num == 2))
+    {
+        if (Pcs_Is_Online(1))
+        {
+            pcs1_val = GET_HOLD(PCS_5MW_HOLD_BASE + PCS_5MW_ADDR_STEP * 0 + 24);
+            // must be master
+            if (pcs1_val == 0)
+            {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    /*
+     * pcs_total_num=3、4,意味着有两台主机PCS1、PCS2,且必须同时在线：
+     * PCS1、PCS2都必须是主机
+     */
+    if ((pcs_total_num == 3) || (pcs_total_num == 4))
+    {
+        if ((Pcs_Is_Online(1)) && Pcs_Is_Online(2))
+        {
+            pcs1_val = GET_HOLD(PCS_5MW_HOLD_BASE + PCS_5MW_ADDR_STEP * 0 + 24);
+            pcs2_val = GET_HOLD(PCS_5MW_HOLD_BASE + PCS_5MW_ADDR_STEP * 1 + 24);
+            // must be master
+            if ((pcs1_val == 0) || (pcs2_val == 0))
+            {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    return 0;
+}
+
 void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
 {
     uint16_t input223 = 0;
     uint16_t input224 = 0;
     uint16_t input225 = 0;
     uint16_t sys_num = 0;
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
+
     if (pcs_total_num > PCS_MAX_NUM)
     {
         pcs_total_num = PCS_MAX_NUM;
@@ -1147,8 +1235,17 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
     if (Check_Pcs_Mode_Bit_Diff(sys_num, 64, 0x001F))
         input225 |= (1U << 2);
 
-    if (Check_Pcs_Master_Slave_diff(pcs_total_num))
-        input225 |= (1U << 3);
-
+    // 5MW一体机校验是否都为主机
+    if (single_mode == 1)
+    {
+        if (Check_5MW_Pcs_Master_diff(pcs_total_num))
+            input225 |= (1U << 3);
+    }
+    // 10MW一体机校验主从机
+    else
+    {
+        if (Check_Pcs_Master_Slave_diff(pcs_total_num))
+            input225 |= (1U << 3);
+    }
     SET_INPUT(225, input225);
 }
