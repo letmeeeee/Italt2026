@@ -457,7 +457,8 @@ static void Event_CMD_Stop_Check_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
     INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 62);
     INT8U  slave_fault = (INT8U)(((slave_PCS_sys_state >> 1) & 0x1u) == 1u);
     INT8U  slave_no_run = (INT8U)(((slave_PCS_sys_state >> 0) & 0x1u) == 1u);
-    if (((master_fault==1)||(master_no_run!=1)) && ((slave_fault==1)||(slave_no_run==1)||(slave_PCS_sys_state==0))
+    INT8U  single_mode  = (INT8U)(SysConf_GetInfo()->singlePcsMaster ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
+    if (((master_fault==1)||(master_no_run!=1)) && ((slave_fault==1)||(slave_no_run==1)||(slave_PCS_sys_state==0)||(single_mode==1))
 ) 
     {
 
