@@ -204,6 +204,7 @@ static void* Server_Handle_Data(void *arg)
     INT8U single_mode  = sys_cfg->singlePcsMaster;
     INT16U pcsnum = 0;
     INT16S bmsnum = 0;
+    INT16U bms_5mw_state = 0;
     Set_EMS_Comm(0, IsNoFault, TRUE);    // EMS通讯正常,全部通信链接均判断正常
     rec_timeout.tv_sec = 0;
     rec_timeout.tv_usec = (5 * 1000);
@@ -367,7 +368,16 @@ static void* Server_Handle_Data(void *arg)
                         {
                             LC_EMS_Address = Temp.D16;
                         }
-                        RegVal.D16= GET_INPUT(LC_EMS_Address);
+                        /* 针对单主机工况，需要把BMS5、6的通讯状态映射到BMS3、4 */
+                        if ((single_mode == 1) && (Temp.D16 == STATUS_WORD3))
+                        {
+                            bms_5mw_state = GET_INPUT(LC_EMS_Address);
+                            RegVal.D16 = (((bms_5mw_state >> 2) & (3 << 2)) | bms_5mw_state) & ~(3 << 4);
+                        }
+                        else
+                        {
+                            RegVal.D16= GET_INPUT(LC_EMS_Address);
+                        }
                         //    LOG_INFO("address is[%d],value is %d",Temp.D16, RegVal.D16);
                     }
                     else if((dev_add>=2)&&(dev_add<(2+BANK_SIZE)))
