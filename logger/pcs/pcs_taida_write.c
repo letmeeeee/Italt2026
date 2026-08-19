@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdint.h>           // 
 #include <pthread.h>
+#include <math.h>
 #include "time.h"
 #include "main.h"
 #include "pcs_taida_write.h"
@@ -87,6 +88,14 @@ volatile INT16U Control_Word3_Buf[4]={0};//台达PCS控制字3
 static void Write_Flags_to_Queue(int num);
 static void PCS_Taida_Write(int num);
 static void PCS_Taida_Write_DataProcess(unsigned char *ptr, int num);
+static float Single_Mode_Reactive_Capacity(INT32S active_power,
+    INT16U rated_apparent_power, INT16U reactive_rate_limit, bool online);
+static void Allocate_Single_Mode_Case7_Reactive(INT16S total_reactive_power,
+    INT32S system1_active_power, INT16U system1_rated_apparent_power,
+    bool system1_online, INT32S system2_active_power,
+    INT16U system2_rated_apparent_power, bool system2_online,
+    INT16U reactive_rate_limit, INT16S *system1_reactive_power,
+    INT16S *system2_reactive_power);
 
 extern void MCU_AI_step(void);
 extern void MCU_AI_step1(void);
@@ -102,6 +111,90 @@ static pthread_mutex_t g_mv_alloc_call_mtx = PTHREAD_MUTEX_INITIALIZER;//避免M
 static pthread_mutex_t g_mv_alloc_pf_mtx = PTHREAD_MUTEX_INITIALIZER;//避免MV分配逻辑被双线程并发重入
 
 struct timespec t1;
+
+/*
+ * 单 PCS 主机模式下的单机无功能力。该公式与 MCU_AI_step() 的无功
+ * 限幅核心一致：Q 同时受 sqrt(S^2-P^2) 和 reactive_rate * S 限制。
+ */
+static float Single_Mode_Reactive_Capacity(INT32S active_power,
+    INT16U rated_apparent_power, INT16U reactive_rate_limit, bool online)
+{
+    float p;
+    float s;
+    float rate;
+    float q_by_apparent_power;
+
+    if (!online || rated_apparent_power == 0U)
+    {
+        return 0.0F;
+    }
+
+    p = fabsf((float)active_power);
+    s = (float)rated_apparent_power;
+    rate = (reactive_rate_limit > 100U) ? 1.0F :
+        (float)reactive_rate_limit * 0.01F;
+    q_by_apparent_power = sqrtf(fmaxf(0.0F, s * s - p * p));
+    // LOG_INFO("active_power: %d, rated_apparent_power: %d, reactive_rate_limit: %d, q_by_apparent_power: %f, rate * s: %f",
+    //     active_power, rated_apparent_power, reactive_rate_limit, q_by_apparent_power, rate * s);
+
+    return fminf(q_by_apparent_power, rate * s);
+}
+
+/*
+ * mv_r_power 是系统总无功。按两台在线主机的剩余无功能力比例分配，
+ * 同时保证：|Q1| + |Q2| 不超过总指令，且每台均不超过自身能力。
+ */
+static void Allocate_Single_Mode_Case7_Reactive(INT16S total_reactive_power,
+    INT32S system1_active_power, INT16U system1_rated_apparent_power,
+    bool system1_online, INT32S system2_active_power,
+    INT16U system2_rated_apparent_power, bool system2_online,
+    INT16U reactive_rate_limit, INT16S *system1_reactive_power,
+    INT16S *system2_reactive_power)
+{
+    float q_cap1 = Single_Mode_Reactive_Capacity(system1_active_power,
+        system1_rated_apparent_power, reactive_rate_limit, system1_online);
+    float q_cap2 = Single_Mode_Reactive_Capacity(system2_active_power,
+        system2_rated_apparent_power, reactive_rate_limit, system2_online);
+    // LOG_INFO("q_cap1: %f, q_cap2: %f", q_cap1, q_cap2);
+    INT32S q_cap1_i = (INT32S)floorf(q_cap1);
+    INT32S q_cap2_i = (INT32S)floorf(q_cap2);
+    INT32S q_request = (total_reactive_power < 0) ?
+        -(INT32S)total_reactive_power : (INT32S)total_reactive_power;
+    INT32S q_target;
+    INT32S q1;
+    INT32S q2;
+    INT32S sign = (total_reactive_power < 0) ? -1 : 1;
+
+    *system1_reactive_power = 0;
+    *system2_reactive_power = 0;
+
+    if ((q_request == 0) || ((q_cap1_i + q_cap2_i) == 0))
+    {
+        return;
+    }
+
+    q_target = q_request;
+    if (q_target > q_cap1_i + q_cap2_i)
+    {
+        q_target = q_cap1_i + q_cap2_i;
+    }
+
+    q1 = (INT32S)roundf((float)q_target * (float)q_cap1_i /
+        (float)(q_cap1_i + q_cap2_i));
+    if (q1 > q_cap1_i)
+    {
+        q1 = q_cap1_i;
+    }
+    q2 = q_target - q1;
+    if (q2 > q_cap2_i)
+    {
+        q2 = q_cap2_i;
+        q1 = q_target - q2;
+    }
+
+    *system1_reactive_power = (INT16S)(sign * q1);
+    *system2_reactive_power = (INT16S)(sign * q2);
+}
 /**
  * @brief 将十六进制数据转换为字符串格式并追加到输出缓冲区
  * 
@@ -2668,6 +2761,7 @@ void MV_Power_allocate1(void)
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
     INT16U pcs_num=sys_cfg->pcsNum;
+    bool single_mode_case7_reactive = false;
 
     INT16U PCS1_sys_state = (INT16U)GET_INPUT(17000 + 300 * 0 + 60);//group1,主机PCS的运行状态
     INT8U  master1_Run  = (INT8U)(((PCS1_sys_state >> 3) & 0x1u) == 1u);//group1,主机PCS的运行
@@ -3603,6 +3697,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power   = GET_HOLD(1010);
     mv_r_power = single_mode ? GET_HOLD(1011) : 0;
+    single_mode_case7_reactive = (single_mode == 1);
     // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
     pcs1_rated_power        =   2782         ;                              
     pcs2_rated_power        =   2782       ;                             
@@ -4363,6 +4458,31 @@ else
 }
 
     MCU_AI_step();//MV总功率分配
+
+    /*
+     * 情况 7 的单 PCS 主机模式仅有两台实际下发功率的主机。MCU_AI_step()
+     * 会把离线 PCS 的额定功率 0 一并参与无功 Min 运算，导致无功被清零；
+     * 此处按 MCU_AI_step() 的 S^2 = P^2 + Q^2 限制重新分配系统总无功。
+     * Power_Divider1() 在该工况下向两台主机分别写入的有功为：
+     *   系统 1: pcs1 + pcs2 + pcs5 + pcs6
+     *   系统 2: pcs3 + pcs4 + pcs7 + pcs8
+     */
+    if (single_mode_case7_reactive)
+    {
+
+        // LOG_INFO("单 PCS 主机模式仅有两台实际下发功率的主机，重新分配系统总无功");
+        // LOG_INFO("系统总有功: %d, 系统总无功: %d, 系统 1 额定功率: %d, 系统 2 额定功率: %d",
+        //     (INT32S)pcs1_power + pcs2_power + pcs5_power + pcs6_power + pcs3_power + pcs4_power + pcs7_power + pcs8_power,
+        //     mv_r_power,
+        //     pcs1_rated_power,
+        //     pcs2_rated_power);
+        Allocate_Single_Mode_Case7_Reactive(mv_r_power,
+            (INT32S)pcs1_power + pcs2_power + pcs5_power + pcs6_power,
+            pcs1_rated_power, (master1_Run == 1) && (master1_fault != 1),
+            (INT32S)pcs3_power + pcs4_power + pcs7_power + pcs8_power,
+            pcs2_rated_power, (master2_Run == 1) && (master2_fault != 1),
+            reactive_rate, &pcs_r_power1_2, &pcs_r_power3_4);
+    }
 
     if((pcspowerallocate[0]!=pcs1_power) ||
     (pcspowerallocate[1]!=pcs2_power) ||
