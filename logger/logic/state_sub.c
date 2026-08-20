@@ -638,13 +638,13 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
             SET_INPUT(i + sub_index * 200, 0);
         }
 
-        for (int i = 31000; i < 31199; i++)
-        {
-            for (int j = 0; j < 12; j++)
-            {
-                SET_INPUT(i + sub_index * 3000 + j * 200, 0);
-            }
-        }
+        // for (int i = 31000; i < 31199; i++)
+        // {
+        //     for (int j = 0; j < 12; j++)
+        //     {
+        //         SET_INPUT(i + sub_index * 3000 + j * 200, 0);
+        //     }
+        // }
 
 
 

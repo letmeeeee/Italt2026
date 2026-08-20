@@ -5229,7 +5229,8 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     module_num              =2;              /* '<Root>/module_num' */
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
-    mv_r_power              = 0;  
+    mv_r_power = single_mode ? GET_HOLD(1011) : 0;
+    single_mode_case7_reactive = (single_mode == 1);
     pcs1_rated_power        =   2782         ;                              
     pcs2_rated_power        =   2782       ;                             
     pcs3_rated_power        =   0         ;             
