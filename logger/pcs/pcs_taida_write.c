@@ -939,6 +939,9 @@ Power_Divider_result_t Power_Divider()
     
     SYS_State_ENUM state[2]; 
     pthread_mutex_lock(&g_power_mtx);
+    // 获取系统配置信息
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
 
     INT16U PCS1_sys_state = (INT16U)GET_INPUT(17000 + 300 * 0 + 60);//group1,主机PCS的运行状态
     INT8U  master1_Run  = (INT8U)(((PCS1_sys_state >> 3) & 0x1u) == 1u);//group1,主机PCS的运行
@@ -1102,10 +1105,20 @@ else
 
 else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Run==1)&&((master2_fault!=1)))&&(slave2_Run!=1)))
 {
-    Power_Result.P1_out=pcs1_power;
-    Power_Result.P2_out=pcs3_power;
-    Power_Result.P3_out=pcs2_power;
-    Power_Result.P4_out=pcs4_power;
+    if (single_mode == 1)
+    {
+        Power_Result.P1_out=pcs1_power;
+        Power_Result.P2_out=pcs2_power;
+        Power_Result.P3_out=pcs3_power;
+        Power_Result.P4_out=pcs4_power;
+    }
+    else
+    {
+        Power_Result.P1_out=pcs1_power;
+        Power_Result.P2_out=pcs3_power;
+        Power_Result.P3_out=pcs2_power;
+        Power_Result.P4_out=pcs4_power;
+    }
 
     Power_Result.pcs_r_power1_2=pcs_r_power1_2;
     Power_Result.pcs_r_power3_4=pcs_r_power3_4;
@@ -1631,7 +1644,9 @@ Power_Divider_result_t Power_Divider1()
     
     SYS_State_ENUM state[2]; 
     pthread_mutex_lock(&g_power_mtx);
-
+    // 获取系统配置信息
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
     INT16U PCS1_sys_state = (INT16U)GET_INPUT(17000 + 300 * 0 + 60);//group1,主机PCS的运行状态
     INT8U  master1_Run  = (INT8U)(((PCS1_sys_state >> 3) & 0x1u) == 1u);//group1,主机PCS的运行
     INT8U  master1_fault  = (INT8U)(((PCS1_sys_state >> 4) & 0x1u) == 1u);//group1,主机PCS的运行故障
@@ -1878,15 +1893,30 @@ else
 
 else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Run==1)&&((master2_fault!=1)))&&(slave2_Run!=1)))
 {
-    Power_Result.P1_out=pcs1_power;
-    Power_Result.P2_out=pcs2_power;
-    Power_Result.P3_out=pcs5_power;
-    Power_Result.P4_out=pcs6_power;
+    if (single_mode == 1)
+    {
+        Power_Result.P1_out=pcs1_power;
+        Power_Result.P2_out=pcs2_power;
+        Power_Result.P3_out=pcs3_power;
+        Power_Result.P4_out=pcs4_power;
 
-    Power_Result.P5_out=pcs3_power;
-    Power_Result.P6_out=pcs4_power;
-    Power_Result.P7_out=pcs7_power;
-    Power_Result.P8_out=pcs8_power;
+        Power_Result.P5_out=pcs5_power;
+        Power_Result.P6_out=pcs6_power;
+        Power_Result.P7_out=pcs7_power;
+        Power_Result.P8_out=pcs8_power;
+    }
+    else
+    {
+        Power_Result.P1_out=pcs1_power;
+        Power_Result.P2_out=pcs2_power;
+        Power_Result.P3_out=pcs5_power;
+        Power_Result.P4_out=pcs6_power;
+
+        Power_Result.P5_out=pcs3_power;
+        Power_Result.P6_out=pcs4_power;
+        Power_Result.P7_out=pcs7_power;
+        Power_Result.P8_out=pcs8_power;
+    }
 
     Power_Result.pcs_r_power1_2=pcs_r_power1_2;
     Power_Result.pcs_r_power3_4=pcs_r_power3_4;
@@ -2944,10 +2974,10 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     mv_max_power            =10000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = GET_HOLD(1011);  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782         ;                             
-    pcs3_rated_power        =   2782         ;             
-    pcs4_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500         ;                             
+    pcs3_rated_power        =   2500         ;             
+    pcs4_rated_power        =   2500         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;  
     reactive_rate           =  sys_cfg->reactiverate;       
@@ -3080,9 +3110,9 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     mv_max_power            =7500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
-    pcs3_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
+    pcs3_rated_power        =   2500         ;             
     pcs4_rated_power        =   0        ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
@@ -3215,9 +3245,9 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     mv_max_power            =7500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
-    pcs3_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
+    pcs3_rated_power        =   2500         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;      
@@ -3354,9 +3384,9 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     mv_max_power            =7500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
-    pcs3_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
+    pcs3_rated_power        =   2500         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
@@ -3487,9 +3517,9 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     mv_max_power            =7500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =  2782       ;                             
-    pcs3_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =  2500       ;                             
+    pcs3_rated_power        =   2500         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;        
@@ -3592,8 +3622,8 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782         ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500         ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -3604,108 +3634,218 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
 
 else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Run==1)&&((master2_fault!=1)))&&(slave2_Run!=1)))
 {
-// LOG_INFO("情况7");
+    // LOG_INFO("情况7");
+    if (single_mode == 1)
+    {
     if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
-    {
-        bms1_max_charge_power   = GET_INPUT(38038);
+        {
+            bms1_max_charge_power   = GET_INPUT(38038);
+        }
+        else
+        {
+            bms1_max_charge_power   = 0;
+        }
+        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        {
+            bms1_max_discharge_power= GET_INPUT(38037);
+        }
+        else
+        {
+            bms1_max_discharge_power= 0;
+        }
+        bms1_soc                = GET_INPUT(38003);
+
+        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        {
+            bms2_max_charge_power   = GET_INPUT(38238);
+        }
+        else
+        {
+            bms2_max_charge_power   = 0;
+        }
+        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+        {
+            bms2_max_discharge_power= GET_INPUT(38237);
+        }
+        else
+        {
+            bms2_max_discharge_power= 0;
+        }
+        bms2_soc                = GET_INPUT(38203);
+
+        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+        {
+            bms5_max_charge_power = GET_INPUT(38838); /* '<Root>/bms5_max_charge_power' */
+        } 
+        else 
+        {
+            bms5_max_charge_power = 0;
+        }
+
+        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+        {
+            bms5_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms5_max_discharge_power' */
+        } 
+        else 
+        {
+            bms5_max_discharge_power = 0;
+        }
+        bms5_soc = GET_INPUT(38803);
+
+        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+        {
+            bms6_max_charge_power = GET_INPUT(39038); /* '<Root>/bms6_max_charge_power' */
+        } 
+        else 
+        {
+            bms6_max_charge_power = 0;
+        }
+        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+        {
+            bms6_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms6_max_discharge_power' */
+        } 
+        else 
+        {
+            bms6_max_discharge_power = 0;
+        }
+        bms6_soc = GET_INPUT(39003);
+
+        bms3_max_charge_power   = 0; /* '<Root>/bms3_max_charge_power' */
+        bms3_max_discharge_power= 0;/* '<Root>/bms3_max_discharge_power' */
+        bms3_soc                = 0;  
+
+        bms4_max_charge_power   = 0; /* '<Root>/bms4_max_charge_power' */
+        bms4_max_discharge_power= 0;/* '<Root>/bms4_max_discharge_power' */
+        bms4_soc                = 0;  
+
+        bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
+        bms7_max_discharge_power= 0;/* '<Root>/bms7_max_discharge_power' */
+        bms7_soc                = 0;  
+
+        bms8_max_charge_power   = 0; /* '<Root>/bms8_max_charge_power' */
+        bms8_max_discharge_power= 0;/* '<Root>/bms8_max_discharge_power' */
+        bms8_soc                = 0;              /* '<Root>/bms8_soc' */
+
+        bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
+        module_num              =8;              /* '<Root>/module_num' */
+        mv_max_power            =5500;          /* '<Root>/mv_max_power' */
+        mv_power   = GET_HOLD(1010);
+        mv_r_power = GET_HOLD(1011);
+        // single_mode_case7_reactive = (single_mode == 1);
+        // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
+        pcs1_rated_power        =   2750         ;                              
+        pcs2_rated_power        =   2750       ;                             
+        pcs3_rated_power        =   2750         ;             
+        pcs4_rated_power        =   2750         ;             
+        target_h_soc            = 1000 ;             
+        target_l_soc            = 0 ;       
+        reactive_rate           =  sys_cfg->reactiverate;  
+        // LOG_INFO
     }
     else
     {
-        bms1_max_charge_power   = 0;
-    }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
-    {
-        bms1_max_discharge_power= GET_INPUT(38037);
-    }
-    else
-    {
-        bms1_max_discharge_power= 0;
-    }
-    bms1_soc                = GET_INPUT(38003);
+    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+        {
+            bms1_max_charge_power   = GET_INPUT(38038);
+        }
+        else
+        {
+            bms1_max_charge_power   = 0;
+        }
+        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        {
+            bms1_max_discharge_power= GET_INPUT(38037);
+        }
+        else
+        {
+            bms1_max_discharge_power= 0;
+        }
+        bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
-    {
-        bms2_max_charge_power   = GET_INPUT(38238);
-    }
-    else
-    {
-        bms2_max_charge_power   = 0;
-    }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
-    {
-        bms2_max_discharge_power= GET_INPUT(38237);
-    }
-    else
-    {
-        bms2_max_discharge_power= 0;
-    }
-    bms2_soc                = GET_INPUT(38203);
+        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        {
+            bms2_max_charge_power   = GET_INPUT(38238);
+        }
+        else
+        {
+            bms2_max_charge_power   = 0;
+        }
+        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+        {
+            bms2_max_discharge_power= GET_INPUT(38237);
+        }
+        else
+        {
+            bms2_max_discharge_power= 0;
+        }
+        bms2_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
-    {
-        bms3_max_charge_power = GET_INPUT(38838); /* '<Root>/bms3_max_charge_power' */
-    } 
-    else 
-    {
-        bms3_max_charge_power = 0;
-    }
+        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+        {
+            bms3_max_charge_power = GET_INPUT(38838); /* '<Root>/bms3_max_charge_power' */
+        } 
+        else 
+        {
+            bms3_max_charge_power = 0;
+        }
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
-    {
-        bms3_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms3_max_discharge_power' */
-    } 
-    else 
-    {
-        bms3_max_discharge_power = 0;
-    }
-    bms3_soc = GET_INPUT(38803);
+        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+        {
+            bms3_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms3_max_discharge_power' */
+        } 
+        else 
+        {
+            bms3_max_discharge_power = 0;
+        }
+        bms3_soc = GET_INPUT(38803);
 
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
-    {
-        bms4_max_charge_power = GET_INPUT(39038); /* '<Root>/bms4_max_charge_power' */
-    } 
-    else 
-    {
-        bms4_max_charge_power = 0;
-    }
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
-    {
-        bms4_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms4_max_discharge_power' */
-    } 
-    else 
-    {
-        bms4_max_discharge_power = 0;
-    }
-    bms4_soc = GET_INPUT(39003);
-    bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
-    bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
-    bms5_soc                = 0;  
-            
-    bms6_max_charge_power   = 0; /* '<Root>/bms6_max_charge_power' */
-    bms6_max_discharge_power= 0;/* '<Root>/bms6_max_discharge_power' */
-    bms6_soc                = 0;  
-        
-    bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
-    bms7_max_discharge_power= 0;/* '<Root>/bms7_max_discharge_power' */
-    bms7_soc                = 0;  
-            
-    bms8_max_charge_power   = 0; /* '<Root>/bms8_max_charge_power' */
-    bms8_max_discharge_power= 0;/* '<Root>/bms8_max_discharge_power' */
-    bms8_soc                = 0;              /* '<Root>/bms8_soc' */
-    bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
-    module_num              =4;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
-    mv_power   = GET_HOLD(1010);
-    mv_r_power = single_mode ? GET_HOLD(1011) : 0;
-    single_mode_case7_reactive = (single_mode == 1);
-    // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
-    pcs3_rated_power        =   0         ;             
-    pcs4_rated_power        =   0         ;             
-    target_h_soc            = 1000 ;             
-    target_l_soc            = 0 ;       
-    reactive_rate           =  sys_cfg->reactiverate;  
+        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+        {
+            bms4_max_charge_power = GET_INPUT(39038); /* '<Root>/bms4_max_charge_power' */
+        } 
+        else 
+        {
+            bms4_max_charge_power = 0;
+        }
+        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+        {
+            bms4_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms4_max_discharge_power' */
+        } 
+        else 
+        {
+            bms4_max_discharge_power = 0;
+        }
+        bms4_soc = GET_INPUT(39003);
+        bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
+        bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
+        bms5_soc                = 0;  
+
+        bms6_max_charge_power   = 0; /* '<Root>/bms6_max_charge_power' */
+        bms6_max_discharge_power= 0;/* '<Root>/bms6_max_discharge_power' */
+        bms6_soc                = 0;  
+
+        bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
+        bms7_max_discharge_power= 0;/* '<Root>/bms7_max_discharge_power' */
+        bms7_soc                = 0;  
+
+        bms8_max_charge_power   = 0; /* '<Root>/bms8_max_charge_power' */
+        bms8_max_discharge_power= 0;/* '<Root>/bms8_max_discharge_power' */
+        bms8_soc                = 0;              /* '<Root>/bms8_soc' */
+        bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
+        module_num              =4;              /* '<Root>/module_num' */
+        mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+        mv_power   = GET_HOLD(1010);
+        mv_r_power = 0;
+        // single_mode_case7_reactive = (single_mode == 1);
+        // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
+        pcs1_rated_power        =   2500         ;                              
+        pcs2_rated_power        =   2500       ;                             
+        pcs3_rated_power        =   0         ;             
+        pcs4_rated_power        =   0         ;             
+        target_h_soc            = 1000 ;             
+        target_l_soc            = 0 ;       
+        reactive_rate           =  sys_cfg->reactiverate;  
+        }
 
 
 }
@@ -3806,8 +3946,8 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -3914,8 +4054,8 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -4021,8 +4161,8 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -4131,8 +4271,8 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782         ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500         ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -4209,7 +4349,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     mv_max_power            =2500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
+    pcs1_rated_power        =   2500         ;                              
     pcs2_rated_power        =  0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -4286,7 +4426,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     mv_max_power            =2500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
+    pcs1_rated_power        =   2500         ;                              
     pcs2_rated_power        =  0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -4363,7 +4503,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     mv_max_power            =2500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
+    pcs1_rated_power        =   2500         ;                              
     pcs2_rated_power        =   0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -4439,7 +4579,7 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     mv_max_power            =2500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
+    pcs1_rated_power        =   2500         ;                              
     pcs2_rated_power        =   0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -4644,10 +4784,10 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     mv_max_power            =10000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = GET_HOLD(1011);  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782         ;                             
-    pcs3_rated_power        =   2782         ;             
-    pcs4_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500         ;                             
+    pcs3_rated_power        =   2500         ;             
+    pcs4_rated_power        =   2500         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;            
     reactive_rate           =  sys_cfg->reactiverate; 
@@ -4749,9 +4889,9 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     mv_max_power            =7500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
-    pcs3_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
+    pcs3_rated_power        =   2500         ;             
     pcs4_rated_power        =   0        ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;            
@@ -4851,9 +4991,9 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     mv_max_power            =7500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
-    pcs3_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
+    pcs3_rated_power        =   2500         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
@@ -4958,9 +5098,9 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     mv_max_power            =7500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
-    pcs3_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
+    pcs3_rated_power        =   2500         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
@@ -5061,9 +5201,9 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     mv_max_power            =7500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =  2782       ;                             
-    pcs3_rated_power        =   2782         ;             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =  2500       ;                             
+    pcs3_rated_power        =   2500         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;      
@@ -5146,8 +5286,8 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782         ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500         ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5158,87 +5298,163 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
 
 else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Run==1)&&((master2_fault!=1)))&&(slave2_Run!=1)))
 {
-
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+    if (single_mode == 1)
     {
-        bms1_max_charge_power   = GET_INPUT(38038);
-    }
-    else
-    {
-        bms1_max_charge_power   = 0;
-    }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
-    {
-        bms1_max_discharge_power= GET_INPUT(38037);
-    }
-    else
-    {
-        bms1_max_discharge_power= 0;
-    }
-    bms1_soc                = GET_INPUT(38003);
+        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+        {
+            bms1_max_charge_power   = GET_INPUT(38038);
+        }
+        else
+        {
+            bms1_max_charge_power   = 0;
+        }
+        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        {
+            bms1_max_discharge_power= GET_INPUT(38037);
+        }
+        else
+        {
+            bms1_max_discharge_power= 0;
+        }
+        bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
-    {
-        bms2_max_charge_power   = GET_INPUT(38438);
-    }
-    else
-    {
-        bms2_max_charge_power   = 0;
-    }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
-    {
-        bms2_max_discharge_power= GET_INPUT(38437);
-    }
-    else
-    {
-        bms2_max_discharge_power= 0;
-    }
-    bms2_soc                = GET_INPUT(38403);
+        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+        {
+            bms3_max_charge_power   = GET_INPUT(38438);
+        }
+        else
+        {
+            bms3_max_charge_power   = 0;
+        }
+        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+        {
+            bms3_max_discharge_power= GET_INPUT(38437);
+        }
+        else
+        {
+            bms3_max_discharge_power= 0;
+        }
+        bms3_soc = GET_INPUT(38403);
 
-
-        bms3_max_charge_power = 0;
-
-
-
-        bms3_max_discharge_power = 0;
-
-    bms3_soc =0;
-
+        bms2_max_charge_power = 0;
+        bms2_max_discharge_power = 0;
+        bms2_soc =0;
 
         bms4_max_charge_power = 0;
-
         bms4_max_discharge_power = 0;
+        bms4_soc = 0;
 
-    bms4_soc = 0;
-    bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
-    bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
-    bms5_soc                = 0;  
-            
-    bms6_max_charge_power   = 0; /* '<Root>/bms6_max_charge_power' */
-    bms6_max_discharge_power= 0;/* '<Root>/bms6_max_discharge_power' */
-    bms6_soc                = 0;  
-        
-    bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
-    bms7_max_discharge_power= 0;/* '<Root>/bms7_max_discharge_power' */
-    bms7_soc                = 0;  
-            
-    bms8_max_charge_power   = 0; /* '<Root>/bms8_max_charge_power' */
-    bms8_max_discharge_power= 0;/* '<Root>/bms8_max_discharge_power' */
-    bms8_soc                = 0;              /* '<Root>/bms8_soc' */
-    bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
-    module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
-    mv_power                = GET_HOLD(1010);
-    mv_r_power = single_mode ? GET_HOLD(1011) : 0;
-    single_mode_case7_reactive = (single_mode == 1);
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
-    pcs3_rated_power        =   0         ;             
-    pcs4_rated_power        =   0         ;             
-    target_h_soc            = 1000 ;             
-    target_l_soc            = 0 ;
-    reactive_rate           =  sys_cfg->reactiverate;         
+        bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
+        bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
+        bms5_soc                = 0;  
 
+        bms6_max_charge_power   = 0; /* '<Root>/bms6_max_charge_power' */
+        bms6_max_discharge_power= 0;/* '<Root>/bms6_max_discharge_power' */
+        bms6_soc                = 0;  
+
+        bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
+        bms7_max_discharge_power= 0;/* '<Root>/bms7_max_discharge_power' */
+        bms7_soc                = 0;  
+
+        bms8_max_charge_power   = 0; /* '<Root>/bms8_max_charge_power' */
+        bms8_max_discharge_power= 0;/* '<Root>/bms8_max_discharge_power' */
+        bms8_soc                = 0;              /* '<Root>/bms8_soc' */
+        bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
+        module_num              =4;              /* '<Root>/module_num' */
+        mv_max_power            =5500;          /* '<Root>/mv_max_power' */
+        mv_power                = GET_HOLD(1010);
+        mv_r_power              = GET_HOLD(1011);
+        // single_mode_case7_reactive = (single_mode == 1);
+        pcs1_rated_power        =   2750        ;
+        pcs2_rated_power        =   2750        ;
+        pcs3_rated_power        =   2750        ;
+        pcs4_rated_power        =   2750        ;
+        target_h_soc            =   1000        ;
+        target_l_soc            =   0           ;
+        reactive_rate           =  sys_cfg->reactiverate;         
+    }
+    else
+    {
+        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+        {
+            bms1_max_charge_power   = GET_INPUT(38038);
+        }
+        else
+        {
+            bms1_max_charge_power   = 0;
+        }
+        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        {
+            bms1_max_discharge_power= GET_INPUT(38037);
+        }
+        else
+        {
+            bms1_max_discharge_power= 0;
+        }
+        bms1_soc                = GET_INPUT(38003);
+    
+        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+        {
+            bms2_max_charge_power   = GET_INPUT(38438);
+        }
+        else
+        {
+            bms2_max_charge_power   = 0;
+        }
+        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+        {
+            bms2_max_discharge_power= GET_INPUT(38437);
+        }
+        else
+        {
+            bms2_max_discharge_power= 0;
+        }
+        bms2_soc                = GET_INPUT(38403);
+    
+    
+            bms3_max_charge_power = 0;
+    
+    
+    
+            bms3_max_discharge_power = 0;
+    
+        bms3_soc =0;
+    
+    
+            bms4_max_charge_power = 0;
+    
+            bms4_max_discharge_power = 0;
+    
+        bms4_soc = 0;
+        bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
+        bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
+        bms5_soc                = 0;  
+                
+        bms6_max_charge_power   = 0; /* '<Root>/bms6_max_charge_power' */
+        bms6_max_discharge_power= 0;/* '<Root>/bms6_max_discharge_power' */
+        bms6_soc                = 0;  
+            
+        bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
+        bms7_max_discharge_power= 0;/* '<Root>/bms7_max_discharge_power' */
+        bms7_soc                = 0;  
+                
+        bms8_max_charge_power   = 0; /* '<Root>/bms8_max_charge_power' */
+        bms8_max_discharge_power= 0;/* '<Root>/bms8_max_discharge_power' */
+        bms8_soc                = 0;              /* '<Root>/bms8_soc' */
+        bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
+        module_num              =2;              /* '<Root>/module_num' */
+        mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+        mv_power                = GET_HOLD(1010);
+        mv_r_power              =   0           ;
+        // single_mode_case7_reactive = (single_mode == 1);
+        pcs1_rated_power        =   2500        ;                              
+        pcs2_rated_power        =   2500        ;                             
+        pcs3_rated_power        =   0           ;             
+        pcs4_rated_power        =   0           ;             
+        target_h_soc            = 1000          ;             
+        target_l_soc            = 0             ;
+        reactive_rate           =  sys_cfg->reactiverate;  
+    }
 
 }
 /*情况8：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机故障，发有功，不发无功*/
@@ -5317,8 +5533,8 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5403,8 +5619,8 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5489,8 +5705,8 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782       ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5577,8 +5793,8 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     mv_max_power            =5000;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
-    pcs2_rated_power        =   2782         ;                             
+    pcs1_rated_power        =   2500         ;                              
+    pcs2_rated_power        =   2500         ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5643,7 +5859,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     mv_max_power            =2500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
+    pcs1_rated_power        =   2500         ;                              
     pcs2_rated_power        =  0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -5708,7 +5924,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     mv_max_power            =2500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
+    pcs1_rated_power        =   2500         ;                              
     pcs2_rated_power        =  0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -5774,7 +5990,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     mv_max_power            =2500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
+    pcs1_rated_power        =   2500         ;                              
     pcs2_rated_power        =   0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -5838,7 +6054,7 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     mv_max_power            =2500;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2782         ;                              
+    pcs1_rated_power        =   2500         ;                              
     pcs2_rated_power        =   0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
