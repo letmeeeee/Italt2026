@@ -18,7 +18,8 @@
 /**
  * @brief EMS服务器通信线程
  */
-
+#define S_BUS (0xF)
+#define D_BUS (0xFF)
 void Task_EMS_Server(void);
  uint16_t PCSnum_calculate(uint16_t address);
 extern volatile bool Group1_power_multi_Flag;

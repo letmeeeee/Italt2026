@@ -358,11 +358,24 @@ static void* Server_Handle_Data(void *arg)
                 {
                     if(dev_add==1)
                     {
-                        // 单主机PCS模式下,EMS下发的BMS2/3实际返回BMS4/5的数据
-                        if ((single_mode == 1) && ((bmsnum == 2) || (bmsnum == 3)))
+                        if (single_mode == 1)
                         {
+                            // 单主机PCS双BUS模式下,EMS下发的BMS2/3实际返回BMS4/5的数据
+                            if ((BusType == D_BUS) && ((bmsnum == 2) || (bmsnum == 3)))
+                            {
 
-                            LC_EMS_Address = Temp.D16 + 200 * 2;
+                                LC_EMS_Address = Temp.D16 + 200 * 2;
+                            }
+                            // 单主机PCS单BUS模式下,EMS下发的BMS1实际返回BMS2的数据
+                            else if ((BusType == S_BUS) && (bmsnum == 1))
+                            {
+
+                                LC_EMS_Address = Temp.D16 + 200 * 1;
+                            }
+                            else
+                            {
+                                LC_EMS_Address = Temp.D16;
+                            }
                         }
                         else
                         {

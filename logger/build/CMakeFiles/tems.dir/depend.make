@@ -1888,8 +1888,8 @@ CMakeFiles/tems.dir/logic/MCU_AI.c.o: ../dsp/dspsrt_rt.h
 CMakeFiles/tems.dir/logic/MCU_AI.c.o: ../dsp/libmw_src_util.h
 CMakeFiles/tems.dir/logic/MCU_AI.c.o: ../logic/MCU_AI.c
 CMakeFiles/tems.dir/logic/MCU_AI.c.o: ../logic/MCU_AI.h
+CMakeFiles/tems.dir/logic/MCU_AI.c.o: ../logic/MCU_AI_private.h
 CMakeFiles/tems.dir/logic/MCU_AI.c.o: ../logic/MCU_AI_types.h
-CMakeFiles/tems.dir/logic/MCU_AI.c.o: ../logic/global_mcu_ai.h
 CMakeFiles/tems.dir/logic/MCU_AI.c.o: ../logic/rtwtypes.h
 
 CMakeFiles/tems.dir/logic/acl_db.c.o: ../base/system.h

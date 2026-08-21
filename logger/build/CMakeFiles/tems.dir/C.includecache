@@ -433,14 +433,8 @@ rtwtypes.h
 ../logic/rtwtypes.h
 math.h
 ../logic/math.h
-stddef.h
--
-string.h
--
 MCU_AI_types.h
 ../logic/MCU_AI_types.h
-global_mcu_ai.h
-../logic/global_mcu_ai.h
 
 ../logic/MCU_AI_types.h
 
@@ -1345,30 +1339,32 @@ MCU_AI.h
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI.h
 rtwtypes.h
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/rtwtypes.h
+MCU_AI_private.h
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI_private.h
 math.h
 -
-global_mcu_ai.h
-/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/global_mcu_ai.h
-dsp_rt.h
-/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/dsp_rt.h
-dspsrt_rt.h
-/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/dspsrt_rt.h
-dsp_rt.h
-/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/dsp_rt.h
 
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI.h
 rtwtypes.h
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/rtwtypes.h
 math.h
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/math.h
-stddef.h
--
-string.h
--
 MCU_AI_types.h
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI_types.h
-global_mcu_ai.h
-/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/global_mcu_ai.h
+
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI_private.h
+rtwtypes.h
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/rtwtypes.h
+MCU_AI_types.h
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI_types.h
+MCU_AI.h
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI.h
+dsp_rt.h
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/dsp_rt.h
+dspsrt_rt.h
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/dspsrt_rt.h
+dsp_rt.h
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/dsp_rt.h
 
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI_types.h
 

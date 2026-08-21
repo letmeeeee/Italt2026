@@ -3,11 +3,11 @@
  *
  * Code generated for Simulink model 'MCU_AI'.
  *
- * Model version                  : 16.9
+ * Model version                  : 16.16
  * Simulink Coder version         : 25.2 (R2025b) 28-Jul-2025
- * C/C++ source code generated on : Mon Mar 16 15:27:59 2026
+ * C/C++ source code generated on : Fri Aug 21 14:31:14 2026
  *
- * Target selection: ert.tlc
+ * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Generic->32-bit Embedded Processor
  * Emulation hardware selection:
  *    Differs from embedded hardware (MATLAB Host)
@@ -23,12 +23,7 @@
 #include "math.h"
 #endif                                 /* MCU_AI_COMMON_INCLUDES_ */
 
-#include <stddef.h>
-#include <string.h>
 #include "MCU_AI_types.h"
-
-/* Includes for objects with custom storage classes */
-#include "global_mcu_ai.h"
 
 /* Macros for accessing real-time model data structure */
 #ifndef rtmGetErrorStatus
@@ -40,104 +35,148 @@
 #endif
 
 /* Block signals (default storage) */
-typedef struct
-{
-    uint32_T Sort_o2[8];               /* '<S29>/Sort' */
-    uint32_T Sort1_o2[8];              /* '<S29>/Sort1' */
-    uint32_T Sort1_o1[8];              /* '<S29>/Sort1' */
-    real32_T TmpSignalConversionAtSelect[8];
-    real32_T Selector[8];              /* '<S29>/Selector' */
-    real32_T fv[8];
-    real32_T Sort_o1[8];               /* '<S29>/Sort' */
-    uint32_T Sort_o2_o[4];             /* '<S279>/Sort' */
-    uint32_T Sort1_o2_f[4];            /* '<S279>/Sort1' */
-    uint32_T Sort1_o1_g[4];            /* '<S279>/Sort1' */
-    real32_T TmpSignalConversionAtSele_j[4];
-    real32_T fv1[4];
-    real32_T Sort_o1_p[4];             /* '<S279>/Sort' */
-    real32_T Merge2;                   /* '<S59>/Merge2' */
-    real32_T Merge;                    /* '<S59>/Merge' */
-    real32_T Merge2_f;                 /* '<S60>/Merge2' */
-    real32_T Merge_g;                  /* '<S60>/Merge' */
-    real32_T Merge2_g;                 /* '<S61>/Merge2' */
-    real32_T Merge_d;                  /* '<S61>/Merge' */
-    real32_T Merge2_a;                 /* '<S62>/Merge2' */
-    real32_T Merge_gg;                 /* '<S62>/Merge' */
-    real32_T Merge2_o;                 /* '<S63>/Merge2' */
-    real32_T Merge_p;                  /* '<S63>/Merge' */
-    real32_T Merge2_gk;                /* '<S64>/Merge2' */
-    real32_T Merge_gi;                 /* '<S64>/Merge' */
-    real32_T Merge2_e;                 /* '<S65>/Merge2' */
-    real32_T Merge_i;                  /* '<S65>/Merge' */
-    real32_T Merge2_gm;                /* '<S66>/Merge2' */
-    real32_T Merge2_d;                 /* '<S297>/Merge2' */
-    real32_T Merge_go;                 /* '<S297>/Merge' */
-    real32_T Merge2_oe;                /* '<S298>/Merge2' */
-    real32_T Merge_j;                  /* '<S298>/Merge' */
-    real32_T Merge2_c;                 /* '<S299>/Merge2' */
-    real32_T Merge_dp;                 /* '<S299>/Merge' */
-    real32_T Merge2_b;                 /* '<S300>/Merge2' */
-    real32_T Min;                      /* '<S11>/Min' */
-    real32_T Min_k;                    /* '<S12>/Min' */
-    real32_T Min_d;                    /* '<S13>/Min' */
-    real32_T Min_h;                    /* '<S14>/Min' */
-    real32_T Switch12_e;               /* '<S278>/Switch12' */
-    real32_T Min_h1;                   /* '<S15>/Min' */
-    real32_T Min_kv;                   /* '<S16>/Min' */
-    real32_T DataTypeConversion9;      /* '<S280>/Data Type Conversion9' */
-    real32_T Min_l;                    /* '<S17>/Min' */
-    real32_T Product8_n;               /* '<S280>/Product8' */
-    real32_T Min_m;                    /* '<S18>/Min' */
-    real32_T Min4;                     /* '<S19>/Min4' */
-    real32_T Min4_i;                   /* '<S20>/Min4' */
-    real32_T Min4_p;                   /* '<S22>/Min4' */
-    real32_T Product7_d;               /* '<S280>/Product7' */
-    real32_T Min4_pm;                  /* '<S23>/Min4' */
-    real32_T Square1;                  /* '<S280>/Square1' */
-    real32_T Min4_f;                   /* '<S25>/Min4' */
-    real32_T Abs7;                     /* '<S29>/Abs7' */
-    real32_T Min4_l;                   /* '<S26>/Min4' */
-    real32_T Switch20;                 /* '<S32>/Switch20' */
-    real32_T Switch13;                 /* '<S32>/Switch13' */
-    real32_T Switch9_f;                /* '<S32>/Switch9' */
-    real32_T Switch14;                 /* '<S32>/Switch14' */
-    real32_T Switch15;                 /* '<S32>/Switch15' */
-    real32_T Switch5;                  /* '<S32>/Switch5' */
-    real32_T Switch6;                  /* '<S32>/Switch6' */
-    real32_T Switch7;                  /* '<S32>/Switch7' */
-    real32_T Switch19;                 /* '<S31>/Switch19' */
-    real32_T Product8;                 /* '<S31>/Product8' */
-    real32_T Switch17;                 /* '<S31>/Switch17' */
-    real32_T Switch2_kc;               /* '<S231>/Switch2' */
-    real32_T Divide35_o3;              /* '<S31>/Divide35' */
-    real32_T Switch2_apa;              /* '<S228>/Switch2' */
-    real32_T Switch27;                 /* '<S28>/Switch27' */
-    real32_T Switch28;                 /* '<S28>/Switch28' */
-    real32_T DataTypeConversion6_b;    /* '<S31>/Data Type Conversion6' */
-    real32_T Switch29;                 /* '<S28>/Switch29' */
-    real32_T Switch17_b;               /* '<S28>/Switch17' */
-    int32_T DataTypeConversion15;      /* '<S31>/Data Type Conversion15' */
-    int32_T DataTypeConversion4;       /* '<S31>/Data Type Conversion4' */
-    int32_T i;
-    uint32_T Switch4;                  /* '<S1>/Switch4' */
-    uint32_T Switch4_d;                /* '<S2>/Switch4' */
-    uint32_T Switch3;                  /* '<S1>/Switch3' */
-    uint32_T Switch2;                  /* '<S1>/Switch2' */
-    uint32_T Switch1;                  /* '<S1>/Switch1' */
-    uint32_T Switch3_g;                /* '<S2>/Switch3' */
-    uint32_T Switch2_p;                /* '<S2>/Switch2' */
-    uint32_T Switch1_k;                /* '<S2>/Switch1' */
-}
-BlockIO_MCU_AI;
+typedef struct {
+  uint32_T Sort_o2[8];                 /* '<S29>/Sort' */
+  uint32_T Sort1_o2[8];                /* '<S29>/Sort1' */
+  uint32_T Sort1_o1[8];                /* '<S29>/Sort1' */
+  real32_T TmpSignalConversionAtSelect[8];
+  real32_T Selector[8];                /* '<S29>/Selector' */
+  real32_T fv[8];
+  real32_T Sort_o1[8];                 /* '<S29>/Sort' */
+  uint32_T Sort_o2_o[4];               /* '<S279>/Sort' */
+  uint32_T Sort1_o2_f[4];              /* '<S279>/Sort1' */
+  uint32_T Sort1_o1_g[4];              /* '<S279>/Sort1' */
+  real32_T TmpSignalConversionAtSele_j[4];
+  real32_T fv1[4];
+  real32_T Sort_o1_p[4];               /* '<S279>/Sort' */
+  real32_T Merge2;                     /* '<S59>/Merge2' */
+  real32_T Merge;                      /* '<S59>/Merge' */
+  real32_T Merge2_f;                   /* '<S60>/Merge2' */
+  real32_T Merge_g;                    /* '<S60>/Merge' */
+  real32_T Merge2_g;                   /* '<S61>/Merge2' */
+  real32_T Merge_d;                    /* '<S61>/Merge' */
+  real32_T Merge2_a;                   /* '<S62>/Merge2' */
+  real32_T Merge_gg;                   /* '<S62>/Merge' */
+  real32_T Merge2_o;                   /* '<S63>/Merge2' */
+  real32_T Merge_p;                    /* '<S63>/Merge' */
+  real32_T Merge2_gk;                  /* '<S64>/Merge2' */
+  real32_T Merge_gi;                   /* '<S64>/Merge' */
+  real32_T Merge2_e;                   /* '<S65>/Merge2' */
+  real32_T Merge_i;                    /* '<S65>/Merge' */
+  real32_T Merge2_gm;                  /* '<S66>/Merge2' */
+  real32_T Merge2_d;                   /* '<S297>/Merge2' */
+  real32_T Merge_go;                   /* '<S297>/Merge' */
+  real32_T Merge2_oe;                  /* '<S298>/Merge2' */
+  real32_T Merge_j;                    /* '<S298>/Merge' */
+  real32_T Merge2_c;                   /* '<S299>/Merge2' */
+  real32_T Merge_dp;                   /* '<S299>/Merge' */
+  real32_T Merge2_b;                   /* '<S300>/Merge2' */
+  real32_T Switch6_i;                  /* '<S281>/Switch6' */
+  real32_T Product7_c;                 /* '<S30>/Product7' */
+  real32_T Switch9_f;                  /* '<S32>/Switch9' */
+  real32_T Product8;                   /* '<S31>/Product8' */
+  real32_T Divide38_j;                 /* '<S31>/Divide38' */
+  real32_T Subtract1;                  /* '<S28>/Subtract1' */
+  real32_T Switch27;                   /* '<S28>/Switch27' */
+  real32_T Divide36_a;                 /* '<S31>/Divide36' */
+  real32_T Switch28;                   /* '<S28>/Switch28' */
+  real32_T Switch29;                   /* '<S28>/Switch29' */
+  int32_T Min;                         /* '<S11>/Min' */
+  int32_T Min_k;                       /* '<S12>/Min' */
+  int32_T Min_d;                       /* '<S13>/Min' */
+  int32_T Min_h;                       /* '<S14>/Min' */
+  int32_T Min_h1;                      /* '<S15>/Min' */
+  int32_T Min_kv;                      /* '<S16>/Min' */
+  int32_T Min_l;                       /* '<S17>/Min' */
+  int32_T Min_m;                       /* '<S18>/Min' */
+  int32_T Min4;                        /* '<S19>/Min4' */
+  int32_T Min4_i;                      /* '<S20>/Min4' */
+  int32_T Min4_p;                      /* '<S22>/Min4' */
+  int32_T Min4_pm;                     /* '<S23>/Min4' */
+  int32_T Min4_f;                      /* '<S25>/Min4' */
+  int32_T Min4_l;                      /* '<S26>/Min4' */
+  int32_T Switch20;                    /* '<S32>/Switch20' */
+  int32_T Switch13;                    /* '<S32>/Switch13' */
+  int32_T Switch14;                    /* '<S32>/Switch14' */
+  int32_T Switch15;                    /* '<S32>/Switch15' */
+  int32_T Switch5;                     /* '<S32>/Switch5' */
+  int32_T Switch6;                     /* '<S32>/Switch6' */
+  int32_T Switch7;                     /* '<S32>/Switch7' */
+  int32_T Switch16;                    /* '<S32>/Switch16' */
+  int32_T Switch17;                    /* '<S31>/Switch17' */
+  int32_T Switch19;                    /* '<S31>/Switch19' */
+  int32_T DataTypeConversion4;         /* '<S31>/Data Type Conversion4' */
+  int32_T DataTypeConversion6_b;       /* '<S31>/Data Type Conversion6' */
+  uint32_T Switch4;                    /* '<S1>/Switch4' */
+  uint32_T Switch4_d;                  /* '<S2>/Switch4' */
+  uint32_T Switch3;                    /* '<S1>/Switch3' */
+  uint32_T Switch2;                    /* '<S1>/Switch2' */
+  uint32_T Switch1;                    /* '<S1>/Switch1' */
+} BlockIO_MCU_AI;
 
 /* Real-time Model Data Structure */
-struct tag_RTM_MCU_AI
-{
-    const char_T * volatile errorStatus;
+struct tag_RTM_MCU_AI {
+  const char_T * volatile errorStatus;
 };
 
 /* Block signals (default storage) */
 extern BlockIO_MCU_AI MCU_AI_B;
+
+/*
+ * Exported Global Signals
+ *
+ * Note: Exported global signals are block signals with an exported global
+ * storage class designation.  Code generation will declare the memory for
+ * these signals and export their symbols.
+ *
+ */
+extern uint16_T bms1_max_charge_power; /* '<Root>/bms1_max_charge_power' */
+extern uint16_T bms2_max_charge_power; /* '<Root>/bms2_max_charge_power' */
+extern uint16_T bms3_max_charge_power; /* '<Root>/bms3_max_charge_power' */
+extern uint16_T bms4_max_charge_power; /* '<Root>/bms4_max_charge_power' */
+extern uint16_T bms1_max_discharge_power;/* '<Root>/bms1_max_discharge_power' */
+extern uint16_T bms2_max_discharge_power;/* '<Root>/bms2_max_discharge_power' */
+extern uint16_T bms3_max_discharge_power;/* '<Root>/bms3_max_discharge_power' */
+extern uint16_T bms4_max_discharge_power;/* '<Root>/bms4_max_discharge_power' */
+extern uint16_T mv_max_power;          /* '<Root>/mv_max_power' */
+extern int16_T mv_power;               /* '<Root>/mv_power' */
+extern uint16_T bms1_soc;              /* '<Root>/bms1_soc' */
+extern uint16_T bms2_soc;              /* '<Root>/bms2_soc' */
+extern uint16_T bms3_soc;              /* '<Root>/bms3_soc' */
+extern uint16_T bms4_soc;              /* '<Root>/bms4_soc' */
+extern uint16_T module_num;            /* '<Root>/module_num' */
+extern uint16_T pcs1_rated_power;      /* '<Root>/pcs1_rated_power' */
+extern uint16_T pcs2_rated_power;      /* '<Root>/pcs2_rated_power' */
+extern uint16_T pcs3_rated_power;      /* '<Root>/pcs3_rated_power' */
+extern uint16_T pcs4_rated_power;      /* '<Root>/pcs4_rated_power' */
+extern int16_T mv_r_power;             /* '<Root>/mv_r_power' */
+extern uint16_T bms5_max_charge_power; /* '<Root>/bms5_max_charge_power' */
+extern uint16_T bms6_max_charge_power; /* '<Root>/bms6_max_charge_power' */
+extern uint16_T bms7_max_charge_power; /* '<Root>/bms7_max_charge_power' */
+extern uint16_T bms8_max_charge_power; /* '<Root>/bms8_max_charge_power' */
+extern uint16_T bms5_max_discharge_power;/* '<Root>/bms5_max_discharge_power' */
+extern uint16_T bms6_max_discharge_power;/* '<Root>/bms6_max_discharge_power' */
+extern uint16_T bms7_max_discharge_power;/* '<Root>/bms7_max_discharge_power' */
+extern uint16_T bms8_max_discharge_power;/* '<Root>/bms8_max_discharge_power' */
+extern uint16_T bms5_soc;              /* '<Root>/bms5_soc' */
+extern uint16_T bms6_soc;              /* '<Root>/bms6_soc' */
+extern uint16_T bms7_soc;              /* '<Root>/bms7_soc' */
+extern uint16_T bms8_soc;              /* '<Root>/bms8_soc' */
+extern uint16_T target_h_soc;          /* '<Root>/target_h_soc' */
+extern uint16_T target_l_soc;          /* '<Root>/target_l_soc' */
+extern uint16_T bus2_or_bus1;          /* '<Root>/bus2_or_bus1' */
+extern uint16_T reactive_rate;         /* '<Root>/reactive_rate' */
+extern uint16_T MW_5_10_flag;          /* '<Root>/MW_5_10_flag' */
+extern int16_T pcs1_power;             /* '<Root>/pcs1_power' */
+extern int16_T pcs2_power;             /* '<Root>/pcs2_power' */
+extern int16_T pcs3_power;             /* '<Root>/pcs3_power' */
+extern int16_T pcs4_power;             /* '<Root>/pcs4_power' */
+extern int16_T pcs_r_power1_2;         /* '<Root>/pcs_r_power1_2' */
+extern int16_T pcs_r_power3_4;         /* '<Root>/pcs_r_power3_4' */
+extern int16_T pcs5_power;             /* '<Root>/pcs5_power' */
+extern int16_T pcs6_power;             /* '<Root>/pcs6_power' */
+extern int16_T pcs7_power;             /* '<Root>/pcs7_power' */
+extern int16_T pcs8_power;             /* '<Root>/pcs8_power' */
 
 /* Model entry point functions */
 extern void MCU_AI_initialize(void);
@@ -146,6 +185,261 @@ extern void MCU_AI_terminate(void);
 
 /* Real-time Model object */
 extern RT_MODEL_MCU_AI *const MCU_AI_M;
+
+/*-
+ * These blocks were eliminated from the model due to optimizations:
+ *
+ * Block '<S68>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S68>/Data Type Propagation' : Unused code path elimination
+ * Block '<S69>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S69>/Data Type Propagation' : Unused code path elimination
+ * Block '<S70>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S70>/Data Type Propagation' : Unused code path elimination
+ * Block '<S71>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S71>/Data Type Propagation' : Unused code path elimination
+ * Block '<S72>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S72>/Data Type Propagation' : Unused code path elimination
+ * Block '<S73>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S73>/Data Type Propagation' : Unused code path elimination
+ * Block '<S74>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S74>/Data Type Propagation' : Unused code path elimination
+ * Block '<S75>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S75>/Data Type Propagation' : Unused code path elimination
+ * Block '<S85>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S85>/Data Type Propagation' : Unused code path elimination
+ * Block '<S86>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S86>/Data Type Propagation' : Unused code path elimination
+ * Block '<S87>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S87>/Data Type Propagation' : Unused code path elimination
+ * Block '<S88>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S88>/Data Type Propagation' : Unused code path elimination
+ * Block '<S89>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S89>/Data Type Propagation' : Unused code path elimination
+ * Block '<S90>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S90>/Data Type Propagation' : Unused code path elimination
+ * Block '<S91>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S91>/Data Type Propagation' : Unused code path elimination
+ * Block '<S92>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S92>/Data Type Propagation' : Unused code path elimination
+ * Block '<S102>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S102>/Data Type Propagation' : Unused code path elimination
+ * Block '<S103>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S103>/Data Type Propagation' : Unused code path elimination
+ * Block '<S104>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S104>/Data Type Propagation' : Unused code path elimination
+ * Block '<S105>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S105>/Data Type Propagation' : Unused code path elimination
+ * Block '<S106>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S106>/Data Type Propagation' : Unused code path elimination
+ * Block '<S107>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S107>/Data Type Propagation' : Unused code path elimination
+ * Block '<S108>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S108>/Data Type Propagation' : Unused code path elimination
+ * Block '<S109>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S109>/Data Type Propagation' : Unused code path elimination
+ * Block '<S119>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S119>/Data Type Propagation' : Unused code path elimination
+ * Block '<S120>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S120>/Data Type Propagation' : Unused code path elimination
+ * Block '<S121>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S121>/Data Type Propagation' : Unused code path elimination
+ * Block '<S122>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S122>/Data Type Propagation' : Unused code path elimination
+ * Block '<S123>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S123>/Data Type Propagation' : Unused code path elimination
+ * Block '<S124>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S124>/Data Type Propagation' : Unused code path elimination
+ * Block '<S125>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S125>/Data Type Propagation' : Unused code path elimination
+ * Block '<S126>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S126>/Data Type Propagation' : Unused code path elimination
+ * Block '<S136>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S136>/Data Type Propagation' : Unused code path elimination
+ * Block '<S137>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S137>/Data Type Propagation' : Unused code path elimination
+ * Block '<S138>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S138>/Data Type Propagation' : Unused code path elimination
+ * Block '<S139>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S139>/Data Type Propagation' : Unused code path elimination
+ * Block '<S140>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S140>/Data Type Propagation' : Unused code path elimination
+ * Block '<S141>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S141>/Data Type Propagation' : Unused code path elimination
+ * Block '<S142>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S142>/Data Type Propagation' : Unused code path elimination
+ * Block '<S143>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S143>/Data Type Propagation' : Unused code path elimination
+ * Block '<S153>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S153>/Data Type Propagation' : Unused code path elimination
+ * Block '<S154>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S154>/Data Type Propagation' : Unused code path elimination
+ * Block '<S155>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S155>/Data Type Propagation' : Unused code path elimination
+ * Block '<S156>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S156>/Data Type Propagation' : Unused code path elimination
+ * Block '<S157>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S157>/Data Type Propagation' : Unused code path elimination
+ * Block '<S158>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S158>/Data Type Propagation' : Unused code path elimination
+ * Block '<S159>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S159>/Data Type Propagation' : Unused code path elimination
+ * Block '<S160>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S160>/Data Type Propagation' : Unused code path elimination
+ * Block '<S170>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S170>/Data Type Propagation' : Unused code path elimination
+ * Block '<S171>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S171>/Data Type Propagation' : Unused code path elimination
+ * Block '<S172>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S172>/Data Type Propagation' : Unused code path elimination
+ * Block '<S173>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S173>/Data Type Propagation' : Unused code path elimination
+ * Block '<S174>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S174>/Data Type Propagation' : Unused code path elimination
+ * Block '<S175>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S175>/Data Type Propagation' : Unused code path elimination
+ * Block '<S176>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S176>/Data Type Propagation' : Unused code path elimination
+ * Block '<S177>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S177>/Data Type Propagation' : Unused code path elimination
+ * Block '<S66>/Abs4' : Unused code path elimination
+ * Block '<S186>/Compare' : Unused code path elimination
+ * Block '<S186>/Constant' : Unused code path elimination
+ * Block '<S66>/Constant8' : Unused code path elimination
+ * Block '<S66>/Data Type Conversion7' : Unused code path elimination
+ * Block '<S66>/Data Type Conversion8' : Unused code path elimination
+ * Block '<S187>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S187>/Data Type Propagation' : Unused code path elimination
+ * Block '<S188>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S188>/Data Type Propagation' : Unused code path elimination
+ * Block '<S189>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S189>/Data Type Propagation' : Unused code path elimination
+ * Block '<S190>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S190>/Data Type Propagation' : Unused code path elimination
+ * Block '<S191>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S191>/Data Type Propagation' : Unused code path elimination
+ * Block '<S192>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S192>/Data Type Propagation' : Unused code path elimination
+ * Block '<S193>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S193>/Data Type Propagation' : Unused code path elimination
+ * Block '<S194>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S194>/Data Type Propagation' : Unused code path elimination
+ * Block '<S66>/Switch5' : Unused code path elimination
+ * Block '<S205>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S205>/Data Type Propagation' : Unused code path elimination
+ * Block '<S206>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S206>/Data Type Propagation' : Unused code path elimination
+ * Block '<S207>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S207>/Data Type Propagation' : Unused code path elimination
+ * Block '<S208>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S208>/Data Type Propagation' : Unused code path elimination
+ * Block '<S209>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S209>/Data Type Propagation' : Unused code path elimination
+ * Block '<S236>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S236>/Data Type Propagation' : Unused code path elimination
+ * Block '<S237>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S237>/Data Type Propagation' : Unused code path elimination
+ * Block '<S242>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S242>/Data Type Propagation' : Unused code path elimination
+ * Block '<S243>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S243>/Data Type Propagation' : Unused code path elimination
+ * Block '<S248>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S248>/Data Type Propagation' : Unused code path elimination
+ * Block '<S249>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S249>/Data Type Propagation' : Unused code path elimination
+ * Block '<S254>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S254>/Data Type Propagation' : Unused code path elimination
+ * Block '<S255>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S255>/Data Type Propagation' : Unused code path elimination
+ * Block '<S228>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S228>/Data Type Propagation' : Unused code path elimination
+ * Block '<S229>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S229>/Data Type Propagation' : Unused code path elimination
+ * Block '<S230>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S230>/Data Type Propagation' : Unused code path elimination
+ * Block '<S231>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S231>/Data Type Propagation' : Unused code path elimination
+ * Block '<S302>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S302>/Data Type Propagation' : Unused code path elimination
+ * Block '<S303>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S303>/Data Type Propagation' : Unused code path elimination
+ * Block '<S304>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S304>/Data Type Propagation' : Unused code path elimination
+ * Block '<S305>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S305>/Data Type Propagation' : Unused code path elimination
+ * Block '<S311>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S311>/Data Type Propagation' : Unused code path elimination
+ * Block '<S312>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S312>/Data Type Propagation' : Unused code path elimination
+ * Block '<S313>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S313>/Data Type Propagation' : Unused code path elimination
+ * Block '<S314>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S314>/Data Type Propagation' : Unused code path elimination
+ * Block '<S320>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S320>/Data Type Propagation' : Unused code path elimination
+ * Block '<S321>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S321>/Data Type Propagation' : Unused code path elimination
+ * Block '<S322>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S322>/Data Type Propagation' : Unused code path elimination
+ * Block '<S323>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S323>/Data Type Propagation' : Unused code path elimination
+ * Block '<S300>/Abs4' : Unused code path elimination
+ * Block '<S328>/Compare' : Unused code path elimination
+ * Block '<S328>/Constant' : Unused code path elimination
+ * Block '<S300>/Constant8' : Unused code path elimination
+ * Block '<S300>/Data Type Conversion7' : Unused code path elimination
+ * Block '<S300>/Data Type Conversion8' : Unused code path elimination
+ * Block '<S329>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S329>/Data Type Propagation' : Unused code path elimination
+ * Block '<S330>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S330>/Data Type Propagation' : Unused code path elimination
+ * Block '<S331>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S331>/Data Type Propagation' : Unused code path elimination
+ * Block '<S332>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S332>/Data Type Propagation' : Unused code path elimination
+ * Block '<S300>/Switch5' : Unused code path elimination
+ * Block '<S339>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S339>/Data Type Propagation' : Unused code path elimination
+ * Block '<S340>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S340>/Data Type Propagation' : Unused code path elimination
+ * Block '<S341>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S341>/Data Type Propagation' : Unused code path elimination
+ * Block '<S342>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S342>/Data Type Propagation' : Unused code path elimination
+ * Block '<S343>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S343>/Data Type Propagation' : Unused code path elimination
+ * Block '<S354>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S354>/Data Type Propagation' : Unused code path elimination
+ * Block '<S355>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S355>/Data Type Propagation' : Unused code path elimination
+ * Block '<S356>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S356>/Data Type Propagation' : Unused code path elimination
+ * Block '<S357>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S357>/Data Type Propagation' : Unused code path elimination
+ * Block '<S11>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S12>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S13>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S14>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S15>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S16>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S17>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S18>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S19>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S20>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S21>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S22>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S23>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S24>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S25>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S26>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S269>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S270>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S271>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S272>/Data Type Conversion' : Eliminate redundant data type conversion
+ * Block '<S273>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S274>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S275>/Data Type Conversion6' : Eliminate redundant data type conversion
+ * Block '<S276>/Data Type Conversion6' : Eliminate redundant data type conversion
+ */
 
 /*-
  * The generated code includes comments that allow you to trace directly

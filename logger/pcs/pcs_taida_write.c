@@ -2813,6 +2813,8 @@ void MV_Power_allocate1(void)
     INT8U  slave2_Run  = (INT8U)(((slavePCS2_sys_state >> 2) & 0x1u) == 1u);//group2,从机PCS的运行
 
 //LOG_INFO("state[0]:%d,state[1]；%d,getinput:%d,(GET_INPUT(39271):%d,(GET_INPUT(39471):%d", state[0], state[1],GET_INPUT(17062),GET_INPUT(39271),GET_INPUT(39471));
+    // 5MW标志位
+    MW_5_10_flag = (single_mode == 1) ? 0 : 1;
 
 if(BusType==D_BUS)
 {

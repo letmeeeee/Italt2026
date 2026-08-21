@@ -1,21 +1,21 @@
 Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
 Change Dir: /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_1bfd5/fast && /usr/bin/make -f CMakeFiles/cmTC_1bfd5.dir/build.make CMakeFiles/cmTC_1bfd5.dir/build
+Run Build Command(s):/usr/bin/make cmTC_2f98b/fast && /usr/bin/make -f CMakeFiles/cmTC_2f98b.dir/build.make CMakeFiles/cmTC_2f98b.dir/build
 make[1]: 进入目录“/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_1bfd5.dir/src.c.o
-/usr/bin/cc   -g -Wall -DCMAKE_HAVE_LIBC_PTHREAD   -std=gnu99 -o CMakeFiles/cmTC_1bfd5.dir/src.c.o   -c /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_1bfd5
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1bfd5.dir/link.txt --verbose=1
-/usr/bin/cc  -g -Wall -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_1bfd5.dir/src.c.o  -o cmTC_1bfd5 
-/usr/bin/ld: CMakeFiles/cmTC_1bfd5.dir/src.c.o: in function `main':
+Building C object CMakeFiles/cmTC_2f98b.dir/src.c.o
+/usr/bin/cc   -g -Wall -DCMAKE_HAVE_LIBC_PTHREAD   -std=gnu99 -o CMakeFiles/cmTC_2f98b.dir/src.c.o   -c /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_2f98b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2f98b.dir/link.txt --verbose=1
+/usr/bin/cc  -g -Wall -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_2f98b.dir/src.c.o  -o cmTC_2f98b 
+/usr/bin/ld: CMakeFiles/cmTC_2f98b.dir/src.c.o: in function `main':
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp/src.c:11: undefined reference to `pthread_create'
 /usr/bin/ld: /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp/src.c:12: undefined reference to `pthread_detach'
 /usr/bin/ld: /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp/src.c:13: undefined reference to `pthread_join'
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_1bfd5.dir/build.make:87：cmTC_1bfd5] 错误 1
+make[1]: *** [CMakeFiles/cmTC_2f98b.dir/build.make:87：cmTC_2f98b] 错误 1
 make[1]: 离开目录“/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp”
-make: *** [Makefile:121：cmTC_1bfd5/fast] 错误 2
+make: *** [Makefile:121：cmTC_2f98b/fast] 错误 2
 
 
 Source file was:
@@ -41,18 +41,18 @@ int main(void)
 Determining if the function pthread_create exists in the pthreads failed with the following output:
 Change Dir: /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_8ff9e/fast && /usr/bin/make -f CMakeFiles/cmTC_8ff9e.dir/build.make CMakeFiles/cmTC_8ff9e.dir/build
+Run Build Command(s):/usr/bin/make cmTC_56d82/fast && /usr/bin/make -f CMakeFiles/cmTC_56d82.dir/build.make CMakeFiles/cmTC_56d82.dir/build
 make[1]: 进入目录“/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_8ff9e.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -g -Wall -DCHECK_FUNCTION_EXISTS=pthread_create   -std=gnu99 -o CMakeFiles/cmTC_8ff9e.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
-Linking C executable cmTC_8ff9e
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8ff9e.dir/link.txt --verbose=1
-/usr/bin/cc  -g -Wall -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_8ff9e.dir/CheckFunctionExists.c.o  -o cmTC_8ff9e  -lpthreads 
+Building C object CMakeFiles/cmTC_56d82.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -g -Wall -DCHECK_FUNCTION_EXISTS=pthread_create   -std=gnu99 -o CMakeFiles/cmTC_56d82.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_56d82
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_56d82.dir/link.txt --verbose=1
+/usr/bin/cc  -g -Wall -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_56d82.dir/CheckFunctionExists.c.o  -o cmTC_56d82  -lpthreads 
 /usr/bin/ld: 找不到 -lpthreads
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_8ff9e.dir/build.make:87：cmTC_8ff9e] 错误 1
+make[1]: *** [CMakeFiles/cmTC_56d82.dir/build.make:87：cmTC_56d82] 错误 1
 make[1]: 离开目录“/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/CMakeTmp”
-make: *** [Makefile:121：cmTC_8ff9e/fast] 错误 2
+make: *** [Makefile:121：cmTC_56d82/fast] 错误 2
 
 
 

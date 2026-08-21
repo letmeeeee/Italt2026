@@ -1889,8 +1889,8 @@ CMakeFiles/tems.dir/logic/MCU_AI.c.o
  ../dsp/libmw_src_util.h
  /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI.c
  /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI.h
+ /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI_private.h
  /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/MCU_AI_types.h
- /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/global_mcu_ai.h
  /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/rtwtypes.h
 CMakeFiles/tems.dir/logic/acl_db.c.o
  ../base/system.h
