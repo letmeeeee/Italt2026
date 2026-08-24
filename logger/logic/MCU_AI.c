@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'MCU_AI'.
  *
- * Model version                  : 16.16
+ * Model version                  : 16.18
  * Simulink Coder version         : 25.2 (R2025b) 28-Jul-2025
- * C/C++ source code generated on : Fri Aug 21 14:31:14 2026
+ * C/C++ source code generated on : Mon Aug 24 15:14:57 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Generic->32-bit Embedded Processor
@@ -7233,9 +7233,9 @@ void MCU_AI_step(void)
    *  Product: '<S280>/Product9'
    */
   MCU_AI_B.Product7_c = fminf(fminf(fminf(rtb_Divide35_py * (real32_T)
-    MCU_AI_B.Switch4, rtb_Divide35_py * (real32_T)MCU_AI_B.Switch3),
-    rtb_Divide35_py * (real32_T)MCU_AI_B.Switch2), rtb_Divide35_py * (real32_T)
-    MCU_AI_B.Switch1);
+    MCU_AI_B.Switch4_d, rtb_Divide35_py * (real32_T)rtb_Switch3_i),
+    rtb_Divide35_py * (real32_T)rtb_Switch2_fu), rtb_Divide35_py * (real32_T)
+    rtb_Switch1_c);
 
   /* Switch: '<S280>/Switch9' incorporates:
    *  Constant: '<S280>/Constant1'

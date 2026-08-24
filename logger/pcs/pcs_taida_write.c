@@ -4673,6 +4673,7 @@ else if(BusType==S_BUS)
     /*情况1：系统1处于正常运行或者告警运行，但是系统1从机无故障，系统2处于正常运行或者告警运行，系统2无从机故障，发有功，发无功*/
 if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
 {
+    // LOG_INFO("================== 情况1 ==================");
     if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
@@ -5374,6 +5375,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         target_h_soc            =   1000        ;
         target_l_soc            =   0           ;
         reactive_rate           =  sys_cfg->reactiverate;         
+        // LOG_INFO("mv_power:%d,mv_r_power:%d",mv_power,mv_r_power);
     }
     else
     {

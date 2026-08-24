@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'MCU_AI'.
  *
- * Model version                  : 16.16
+ * Model version                  : 16.18
  * Simulink Coder version         : 25.2 (R2025b) 28-Jul-2025
- * C/C++ source code generated on : Fri Aug 21 14:31:14 2026
+ * C/C++ source code generated on : Mon Aug 24 15:14:57 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Generic->32-bit Embedded Processor
