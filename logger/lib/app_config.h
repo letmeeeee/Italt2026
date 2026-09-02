@@ -265,6 +265,7 @@ typedef struct {
 //[MEASURE_NETWORK]
     INT8U   measure_ip[MAX_MEASURE_NUM][MAX_IP_LEN];  //测控装置IP地址
     INT32U  measure_port[MAX_MEASURE_NUM];            //测控装置网络端口号
+    INT32U  measure_type[MAX_MEASURE_NUM];            //测控装置类型
 //[ETH_SERIAL]
     INT8U   eth485_ip[MAX_ETH485_NUM][MAX_IP_LEN];    //485转TCP的IP地址
     INT32U  eth485_port[MAX_ETH485_NUM];              //485转TCP的端口号

@@ -53,6 +53,7 @@ void MV_UPS_Task(const void* item)
         Modbus_RTU_POLL(tx_buffer,(p1+list_num),rx_buffer,dev_fd);
         switch ((p1+list_num)->poll_state)
         {
+            LOG_INFO("(p1+list_num)->poll_state: %d", (p1+list_num)->poll_state);
             case SEND_READY:
                 break;
             case SEND_END:

@@ -176,6 +176,9 @@ static void EMS_Close_Client(int fd)
 static void* Server_Handle_Data(void *arg)
 {
     ClientCtx *ctx = (ClientCtx*)arg;
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U cem_mode = (INT8U)((sys_cfg->measure_type[0] == 1) ? 1 : 0); /* 1: 13.8MW映射测控点位 */
+    INT8U single_mode  = (sys_cfg->singlePcsMaster == 1) ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
     const int new_fd_thread = ctx ? ctx->fd : -1;
     free(ctx), 
     ctx = NULL;
@@ -200,8 +203,6 @@ static void* Server_Handle_Data(void *arg)
     u16_conv RegVal; 
     int16_t EMS_Power_Input[4] = {0};
     struct timeval rec_timeout;
-    sysPara* sys_cfg = SysConf_GetInfo();
-    INT8U single_mode  = sys_cfg->singlePcsMaster;
     INT16U pcsnum = 0;
     INT16S bmsnum = 0;
     INT16U bms_5mw_state = 0;
@@ -697,7 +698,7 @@ static void* Server_Handle_Data(void *arg)
                     else if(Temp.D16==33201)
                     {
                         Cem9000_Write_Flag =true;
-                        Cem9000_Addr =2001;
+                        Cem9000_Addr = (cem_mode == 1) ? 2003 : 2001;
                         Cem9000_Control_Value=0xFF00;
                     }
                     

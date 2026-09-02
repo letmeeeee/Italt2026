@@ -412,3 +412,28 @@ int CEM9000_HOLD(INT16S value)
     return 0;
 }
  /*******************************************END*************************************************************** */
+ /**********************************cem9000-13800******************************** ************************************/
+#define CEM9000_13800_SRC_BASE      1000
+#define CEM9000_13800_SRC_LAST      1016
+
+/*  目标地址 = 27300 + (src_reg-1000)*16 + bit */
+static inline INT16U map_13800_dst_addr(INT16U src_reg, INT8U bit)
+{
+    return (INT16U)(EMS_DST_BASE + (src_reg - CEM9000_13800_SRC_BASE) * BITS_PER_REG + bit);
+}
+
+// 遥信待更新
+int CEM9000_13800_INPUT(INT16U address, INT16U value)
+{
+    if (address < CEM9000_13800_SRC_BASE || address > CEM9000_13800_SRC_LAST) return -10;  // 超范围保护
+
+    for (INT8U bit = 0; bit < BITS_PER_REG; ++bit) {
+        INT16U v = (INT16U)((value >> bit) & 0x1u);     // 取该位的 0/1
+        INT16U dst = map_13800_dst_addr(address, bit);             // 计算目标地址
+        SET_INPUT(dst, v);
+    
+    }
+    return 0;
+}
+
+ /*******************************************END*************************************************************** */

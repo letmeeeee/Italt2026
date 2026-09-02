@@ -63,7 +63,8 @@ static void Hex_To_String(char *out, size_t out_size, const unsigned char *buf, 
 }
 static void server_handle_data_body(int fd)
 {
-
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U cem_mode = (INT8U)((sys_cfg->measure_type[0] == 1) ? 1 : 0); /* 13.8MW映射测控点位 */
     static int volatile connect_num = 0;            // 统计链接的客户端数量（注意：并发场景为近似值）
     static unsigned int volatile connect_time = 0;  // 统计链接的客户端总次数
     static unsigned int volatile connect_ID_min = UINT_MAX;
@@ -85,9 +86,7 @@ static void server_handle_data_body(int fd)
     INT16U MStar = 0, MLen = 0;
     INT8U dev_add = 0;
     u16_conv RegVal;
-
     struct timeval rec_TimeOut;
-    sysPara* sys_cfg = SysConf_GetInfo();
 
     /* 通讯正常 */
    
@@ -301,9 +300,24 @@ static void server_handle_data_body(int fd)
                     LOG_INFO("whitedevice set 0x06, address:%d -> data:%d", Temp.D16, RegVal.D16);
                 }
 
-                if (Temp.D16==33200 && RegVal.D16==0xAA) { Cem9000_Write_Flag = true; Cem9000_Addr=2000; Cem9000_Control_Value=0xFF00; }
-                else if (Temp.D16==33200 && RegVal.D16==0xEE) { Cem9000_Write_Flag = true; Cem9000_Addr=2001; Cem9000_Control_Value=0xFF00; }
-                else if (Temp.D16==33201) { Cem9000_Write_Flag = true; Cem9000_Addr=2002; Cem9000_Control_Value=0xFF00; }
+                if (Temp.D16==33200 && RegVal.D16==0xAA) 
+                { 
+                    Cem9000_Write_Flag = true; 
+                    Cem9000_Addr=2000; 
+                    Cem9000_Control_Value=0xFF00; 
+                }
+                else if (Temp.D16==33200 && RegVal.D16==0xEE) 
+                { 
+                    Cem9000_Write_Flag = true; 
+                    Cem9000_Addr=2000; 
+                    Cem9000_Control_Value=0xFF00; 
+                }
+                else if (Temp.D16==33201) 
+                { 
+                    Cem9000_Write_Flag = true; 
+                    Cem9000_Addr = (cem_mode == 1) ? 2003 : 2001;
+                    Cem9000_Control_Value=0xFF00; 
+                }
 
                 for (INT8U sys_num=0; (sys_num < sys_cfg->sysNum); sys_num++)
                 {

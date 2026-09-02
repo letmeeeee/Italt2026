@@ -91,6 +91,9 @@ static void* Server_Handle_Data(void *arg)
 {
     ClientCtx *ctx = (ClientCtx*)arg;
     const int new_fd_thread = ctx ? ctx->fd : -1;
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U cem_mode = (INT8U)((sys_cfg->measure_type[0] == 1) ? 1 : 0); /* 13.8MW映射测控点位 */
+    INT8U single_mode  = (sys_cfg->singlePcsMaster == 1) ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
     free(ctx), 
     ctx = NULL;
     static int volatile connect_num = 0; // 统计链接的客户端数量
@@ -115,8 +118,6 @@ static void* Server_Handle_Data(void *arg)
     int sys_num=0;
     ////////////////设置接收超时////////////////
     struct timeval rec_timeout;
-    sysPara* sys_cfg = SysConf_GetInfo();
-    INT8U single_mode  = sys_cfg->singlePcsMaster;
     // EMS通讯正常,全部通信链接均判断正常
 
     rec_timeout.tv_sec  = 0;
@@ -469,13 +470,13 @@ static void* Server_Handle_Data(void *arg)
                 else if(Temp.D16==33200&&RegVal.D16==0XEE)
                 {
                     Cem9000_Write_Flag =true;
-                    Cem9000_Addr =2001;
+                    Cem9000_Addr =2000;
                     Cem9000_Control_Value=0x0000;
                 }
                 else if(Temp.D16==33201)
                 {
                     Cem9000_Write_Flag =true;
-                    Cem9000_Addr =2001;
+                    Cem9000_Addr = (cem_mode == 1) ? 2003 : 2001;
                     Cem9000_Control_Value=0xFF00;
                 }
                       

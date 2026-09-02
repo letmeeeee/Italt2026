@@ -17,6 +17,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/tems.dir/bms/bms_xieneng_write.c.o"
   "CMakeFiles/tems.dir/cJSON/cJSON.c.o"
   "CMakeFiles/tems.dir/cJSON/cJSON_app.c.o"
+  "CMakeFiles/tems.dir/cem9000/cem9000-13800.c.o"
   "CMakeFiles/tems.dir/cem9000/cem9000.c.o"
   "CMakeFiles/tems.dir/dido/di_e1210.c.o"
   "CMakeFiles/tems.dir/dido/dido_e1214.c.o"

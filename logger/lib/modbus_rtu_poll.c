@@ -323,7 +323,15 @@ void Modbus_RTU_POLL(INT8U *send_buf,poll_data_str *p1,INT8U *rx_buf,int fd)
             }
             write(fd,send_buf,send_length);
             // delay_time=(波特率/（字节数*12）)+10ms
-          //  LOG_INFO("发送长度：%d",send_length);
+           LOG_INFO("发送长度：%d",send_length);
+            // int i;
+            // printf("TX: ");
+            // for(i=0; i<send_length; i++)
+            // {
+            //     printf("%02X", send_buf[i]);
+            // }
+            // printf("\n");
+        //    LOG_INFO("");
             p1->poll_state=SEND_END;                //进入下个状态
             break;
         case SEND_END:     
@@ -345,7 +353,7 @@ void Modbus_RTU_POLL(INT8U *send_buf,poll_data_str *p1,INT8U *rx_buf,int fd)
                 {
                     p1->repeat_ask=0;
                     p1->poll_state=ACK_ERR;
-                    // printf("数据回复超时\n");
+                    printf("数据回复超时\n");
                 }
                 else
                 {
@@ -354,6 +362,13 @@ void Modbus_RTU_POLL(INT8U *send_buf,poll_data_str *p1,INT8U *rx_buf,int fd)
             }
             else if(receive_lenth>=4)                                   //接收到数据了
             {
+            // int i;
+            // printf("RX: ");
+            // for(i=0; i<receive_lenth; i++)
+            // {
+            //     printf("%02X", rx_buf[i]);
+            // }
+            // printf("\n");
                 for(x=0;x<receive_lenth;x++)
                 {
                     if(rx_buf[x]==p1->slave_id)                                         //判断设备ID

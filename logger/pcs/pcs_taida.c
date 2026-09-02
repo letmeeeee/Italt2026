@@ -112,7 +112,7 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
     int index = 0;
     bool is_ok = 0;
     sysPara *sys_cfg = SysConf_GetInfo();
-    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
+    INT8U single_mode = (INT8U)((sys_cfg->singlePcsMaster == 1) ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
     memcpy(pbuf, ptr, PCS_BUFF_LEN);
     float S_OUT;
     float PF_OUT;
@@ -871,7 +871,7 @@ static uint8_t Pcs_Is_Online(uint8_t pcs)
 {
     uint16_t online_flag;
     sysPara *sys_cfg = SysConf_GetInfo();
-    INT8U single_mode = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
+    INT8U single_mode = (INT8U)((sys_cfg->singlePcsMaster == 1) ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
 
     if ((pcs < 1) || (pcs > PCS_MAX_NUM))
     {
@@ -1016,7 +1016,7 @@ static uint8_t Check_Pcs_Bus_Mode_Bit_Diff(uint8_t pcs_total_num)
     uint16_t ref_val = 0;
     uint16_t cur_val = 0;
     sysPara *sys_cfg = SysConf_GetInfo();
-    INT8U single_mode = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
+    INT8U single_mode = (INT8U)((sys_cfg->singlePcsMaster == 1) ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
 
    if (pcs_total_num <= 1)
     {
@@ -1181,7 +1181,7 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
     uint16_t input225 = 0;
     uint16_t sys_num = 0;
     sysPara *sys_cfg = SysConf_GetInfo();
-    INT8U single_mode = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
+    INT8U single_mode = (INT8U)((sys_cfg->singlePcsMaster == 1) ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
 
     if (pcs_total_num > PCS_MAX_NUM)
     {

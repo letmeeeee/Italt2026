@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger
+CMAKE_SOURCE_DIR = /home/wx/WorkStation/ItemCode/Italy-taida-g3/logger
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build
+CMAKE_BINARY_DIR = /home/wx/WorkStation/ItemCode/Italy-taida-g3/logger/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/wx/WorkStation/ItemCode/Italy-taida-g3/logger/build/CMakeFiles /home/wx/WorkStation/ItemCode/Italy-taida-g3/logger/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/wx/WorkStation/ItemCode/Italy-taida-g3/logger/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -608,6 +608,33 @@ cJSON/cJSON_app.s: cJSON/cJSON_app.c.s
 cJSON/cJSON_app.c.s:
 	$(MAKE) -f CMakeFiles/tems.dir/build.make CMakeFiles/tems.dir/cJSON/cJSON_app.c.s
 .PHONY : cJSON/cJSON_app.c.s
+
+cem9000/cem9000-13800.o: cem9000/cem9000-13800.c.o
+
+.PHONY : cem9000/cem9000-13800.o
+
+# target to build an object file
+cem9000/cem9000-13800.c.o:
+	$(MAKE) -f CMakeFiles/tems.dir/build.make CMakeFiles/tems.dir/cem9000/cem9000-13800.c.o
+.PHONY : cem9000/cem9000-13800.c.o
+
+cem9000/cem9000-13800.i: cem9000/cem9000-13800.c.i
+
+.PHONY : cem9000/cem9000-13800.i
+
+# target to preprocess a source file
+cem9000/cem9000-13800.c.i:
+	$(MAKE) -f CMakeFiles/tems.dir/build.make CMakeFiles/tems.dir/cem9000/cem9000-13800.c.i
+.PHONY : cem9000/cem9000-13800.c.i
+
+cem9000/cem9000-13800.s: cem9000/cem9000-13800.c.s
+
+.PHONY : cem9000/cem9000-13800.s
+
+# target to generate assembly for a file
+cem9000/cem9000-13800.c.s:
+	$(MAKE) -f CMakeFiles/tems.dir/build.make CMakeFiles/tems.dir/cem9000/cem9000-13800.c.s
+.PHONY : cem9000/cem9000-13800.c.s
 
 cem9000/cem9000.o: cem9000/cem9000.c.o
 
@@ -2994,6 +3021,9 @@ help:
 	@echo "... cJSON/cJSON_app.o"
 	@echo "... cJSON/cJSON_app.i"
 	@echo "... cJSON/cJSON_app.s"
+	@echo "... cem9000/cem9000-13800.o"
+	@echo "... cem9000/cem9000-13800.i"
+	@echo "... cem9000/cem9000-13800.s"
 	@echo "... cem9000/cem9000.o"
 	@echo "... cem9000/cem9000.i"
 	@echo "... cem9000/cem9000.s"

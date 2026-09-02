@@ -20,7 +20,11 @@
 #define Active_Power_Addr  (110)
 #define MVPower                        (1010)
 
+#define MV_Max_Power_1                 (13800) //MV最大功率--四台PCS
+#define MV_Max_Power_2                 (10350) //MV最大功率--三台PCS
+#define MV_Max_Power_3                 (6900)  //MV最大功率--两台PCS
 
+#define PCS_Max_Power                  (3556)  //PCS最大功率
 
 void  PCS_TAida_write_Task(const char *_num);
 int Controlword_Bit(uint16_t address, uint8_t val01,int num);

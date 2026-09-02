@@ -1272,7 +1272,7 @@ else if(sys_cfg->pcsNum==4)
     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
 }
    INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
-    INT32U Nominal_capctiy = 27820*PCS_num;
+    INT32U Nominal_capctiy = 34500*PCS_num;
 
     SET_INPUT(NOMINAL_CAPCTIY_H, (INT16U)(Nominal_capctiy >> 16));
     SET_INPUT(NOMINAL_CAPCTIY_L, (INT16U)(Nominal_capctiy & 0xFFFF));
@@ -1958,7 +1958,7 @@ else if(sys_cfg->pcsNum==4)
     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
 }
    INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
-    INT32U Nominal_capctiy = 27820*PCS_num;
+    INT32U Nominal_capctiy = 34500*PCS_num;
 
     SET_INPUT(NOMINAL_CAPCTIY_H, (INT16U)(Nominal_capctiy >> 16));
     SET_INPUT(NOMINAL_CAPCTIY_L, (INT16U)(Nominal_capctiy & 0xFFFF));

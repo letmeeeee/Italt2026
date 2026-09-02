@@ -6,6 +6,7 @@ void Cem9000_Task(const char *arg);
 #define Cem9000_SLAVE_ADDR        (1)
 #define Rec_BUFF_LEN        (300)
 
+// 标准测控点位
 #define Cem9000_Addr1      (0)  
 #define cem9000size1      (100)    //cem9000遥测数据点
 
@@ -17,6 +18,19 @@ void Cem9000_Task(const char *arg);
 
 #define Cem9000_Addr3      (2000)  
 #define cem9000size3      (2)    //cem9000遥控数据点
+
+// 13.8MW一体机测控点位
+#define Cem9000_13800_Addr1      (0)  
+#define cem9000_13800_size1      (100) 
+
+#define Cem9000_13800_Addr4      (100) 
+#define cem9000_13800_size4      (24)  
+
+#define Cem9000_13800_Addr2      (1000)
+#define cem9000_13800_size2      (17)  
+
+#define Cem9000_13800_Addr3      (2000)
+#define cem9000_13800_size3      (6)   
 
 #define high_vol_switch_addr 2000 //远方分闸地址
 

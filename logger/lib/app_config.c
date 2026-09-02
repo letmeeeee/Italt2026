@@ -506,6 +506,12 @@ static int Measure_Network_parsing(sysPara* pconfig, const char* section, const 
             pconfig->measure_port[i] = atoi(value);
             return 1;
         }
+        //Measure装置类型,标准版和13.8MW一体机测控点表的区别,0:测控标准点表; 1:13.8MW一体机测控点表
+        MATCH_SPRINT(match_str, "measure%d_type", i + 1);
+        if (MATCH("MEASURE_NETWORK", match_str)) {
+            pconfig->measure_type[i] = atoi(value);
+            return 1;
+        }
     }
 
     return 0;

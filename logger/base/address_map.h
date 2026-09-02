@@ -41,6 +41,10 @@ int write_bits_by_addr(INT16U addr, INT16U value,INT16U pcs_num);
 int CEM9000_HOLD(INT16S value);
  INT32S G2pro_ADDR_FROM_INDEX(INT8U bms_index, INT32S index);
  INT32S Trina_Addr_From_Index(INT8U pcs_index, INT32S index);
+
+// 13.8MW兼容测控映射函数
+int CEM9000_13800_INPUT(INT16U address, INT16U value);
+
  // 反向映射：index → address
  #define HOLD_ADDRESS(index) 
 
@@ -235,6 +239,30 @@ int CEM9000_HOLD(INT16S value);
 
 
 /***********************************************END************************************************************************************/
+
+/********************************************** cem9000-13800 **********************************************************************/  
+
+#define Cem9000_13800_INPUT_INDEX(address) ( \
+  ((address) >= 80 && (address) < 100 ? ((address) - 80 + 25030) : /*变压器数据*/ \
+  ((address) >= 100 && (address) < 114 ? ((address) - 100 + 25306) : /*AB线电压～N线电流*/\
+  ((address) >= 114 && (address) < 116 ? ((address) - 114 + 25326) : /*总有功*/\
+  ((address) >= 116 && (address) < 118 ? ((address) - 116 + 25334) : /*总无功*/\
+  ((address) >= 118 && (address) < 120 ? ((address) - 118 + 25342) : /*总视在*/\
+  ((address) >= 120 && (address) < 124 ? ((address) - 120 + 25350) : /*总功率因数～HZ*/\
+  ((address) >= 124 && (address) < 128 ? ((address) - 124 + 25362) : /*正向有功电能～反向有功*/\
+  ((address) >= 128 && (address) < 132 ? ((address) - 128 + 25368) : /*正向无功电能～反向无功*/\
+  ((address) >= 0 && (address) < 14 ? ((address) - 0 + 25850) : /*高压测量IA～高压保护3I0*/\
+  ((address) >= 14 && (address) < 80 ? ((address) - 14 + 27750) : /*系统频率F～CEM9000-4-20mA备用*/\
+  -1 )))))))))))
+
+#define Cem9000_hold_INDEX(address) ( \
+  ((address) >= 2000 && (address) < 2007 ? ((address) - 2000 + 33200) : \
+  -1 )) 
+
+
+
+/***********************************************END************************************************************************************/
+
 /**********************************************台达寄存器地址映射 **********************************************************************/  
 
 #define Taida_INPUT_INDEX(pcs_index, address) ( \
