@@ -690,10 +690,20 @@ void *nvme_log_monitor_thread(void *arg)
 
 
     pthread_t new_cem9000= 0;
+    pthread_t new_cem9000_13800= 0;
 
-
-    pthread_create(&new_cem9000, &thread_attr, (void*)Cem9000_Task, (void *)&pthread_index[0]);
-    usleep(10*1000);
+    if (sys_cfg->measure_type[0] == MEASU_CEM9000)
+        {
+        pthread_create(&new_cem9000, &thread_attr, (void*)Cem9000_Task, (void *)&pthread_index[0]);
+        usleep(10*1000);
+        }
+    else if (sys_cfg->measure_type[0] == MEASU_CEM9000_13800)
+    {
+        pthread_create(&new_cem9000_13800, &thread_attr, (void*)Cem9000_138_Task, (void *)&pthread_index[0]);
+        usleep(10*1000);
+    }
+    // pthread_create(&new_cem9000, &thread_attr, (void*)Cem9000_Task, (void *)&pthread_index[0]);
+    // usleep(10*1000);
 
     while (1) 
     { 

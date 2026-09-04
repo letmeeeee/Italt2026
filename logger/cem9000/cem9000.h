@@ -1,7 +1,7 @@
 #ifndef CEM9000_H
 #define CEM9000_H
 void Cem9000_Task(const char *arg);
-
+void Cem9000_138_Task(const char *arg);
 
 #define Cem9000_SLAVE_ADDR        (1)
 #define Rec_BUFF_LEN        (300)

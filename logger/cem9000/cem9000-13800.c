@@ -19,6 +19,8 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
     char str[15] = {0};
 
     int index = 0;
+    int index_tmp = 0;
+    uint16_t yx_index = 0;
     bool is_ok = 0;
     
     sysPara *sys_cfg = SysConf_GetInfo();
@@ -48,14 +50,12 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
         }
         if ((temp.D16 >= 1000) && (temp.D16 < 1017))
         {
-       
-
             for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
             {
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
 
-                CEM9000_13800_INPUT(temp.D16+i, RegVal.D16);
+                CEM9000_13800_INPUT(temp.D16+i, RegVal.D16, &yx_index);
                // LOG_INFO("temp.D16+i:%d,RegVal.D16:%d",temp.D16+i,RegVal.D16);
            
             } 
@@ -97,9 +97,12 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
 
-               index= Cem9000_13800_INPUT_INDEX(temp.D16+i);
+                /* 映射到测控标准点表 */
+               index_tmp= Cem9000_13800_INPUT_INDEX(temp.D16+i);
+            //    LOG_INFO("temp.D16+i:%d,RegVal.D16:%d,index_tmp is %d",temp.D16+i,RegVal.D16,index_tmp);
+               index = Cem9000_INPUT_INDEX(index_tmp);
                SET_INPUT(index, RegVal.D16);
-        //  LOG_INFO("协能：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
+                // LOG_INFO("协能：temp.D16+i is %d,RegVal.D16 is %d,index is %d",temp.D16+i,RegVal.D16,index);
             } 
         }
         else

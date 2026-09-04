@@ -91,6 +91,10 @@ extern "C" {
 #define BMS_XIENENG_G2pro       (4)     //G2pro
 #define BMS_XIENENG_V20         (5)     //协能BMS-V2.0版本，增加了液冷机信息
 
+//测控类型标识
+#define MEASU_CEM9000           (0)     //CEM9000测控标准点表
+#define MEASU_CEM9000_13800     (1)     //CEM9000-13800测控点表
+
 //特殊设备标志
 #define U3_EC                   (1)     //英维克E3空调
 #define RS_WS_N01               (2)     //建大仁科温湿度传感器

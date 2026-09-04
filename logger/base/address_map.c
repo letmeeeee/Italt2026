@@ -368,6 +368,7 @@ int Find_Taida_N(int addr, int *base_out) {
 #define CEM9000_SRC_BASE      1000
 #define CEM9000_SRC_LAST      1007
 #define EMS_DST_BASE      27600
+#define EMS_DST1_BASE      25100
 #define BITS_PER_REG  16
 
 
@@ -415,24 +416,141 @@ int CEM9000_HOLD(INT16S value)
  /**********************************cem9000-13800******************************** ************************************/
 #define CEM9000_13800_SRC_BASE      1000
 #define CEM9000_13800_SRC_LAST      1016
+#define INVALID_DST_BIT    0xFF
 
-/*  目标地址 = 27300 + (src_reg-1000)*16 + bit */
+static const INT8U cem9000_13800_bit_map[] =
+{
+    /* src YX -> dst YX */
+    // modbus 1000
+    0,      // YX0  -> YX0
+    1,      // YX1  -> YX1
+    2,      // YX2  -> YX2
+    3,      // YX3  -> YX3
+    4,      // YX4  -> YX4
+    5,      // YX5  -> YX5
+    6,      // YX6  -> YX6
+    9,      // YX7  -> YX9
+    8,      // YX8  -> YX8
+    7,      // YX9  -> YX7
+    16,     // YX10 -> YX16
+    12,     // YX11 -> YX12
+    10,     // YX12 -> YX10
+    20,     // YX13 -> YX20
+    11,     // YX14 -> YX11
+    13,     // YX15 -> YX13
+    // modbus 1001
+    19,     // YX16 -> YX19
+    INVALID_DST_BIT,    // YX17 -> -
+    INVALID_DST_BIT,    // YX18 -> -
+    INVALID_DST_BIT,    // YX19 -> -
+    INVALID_DST_BIT,    // YX20 -> -
+    21,     // YX21 -> YX21
+    22,     // YX22 -> YX22
+    23,     // YX23 -> YX23
+    24,     // YX24 -> YX24
+    25,     // YX25 -> YX25
+    26,     // YX26 -> YX26
+    27,     // YX27 -> YX27
+    INVALID_DST_BIT,    // YX28 -> -
+    29,     // YX29 -> YX29
+    49,     // YX30 -> YX49
+    32,     // YX31 -> YX32
+    // modbus 1002
+    31,     // YX32 -> YX31
+    33,     // YX33 -> YX33
+    35,     // YX34 -> YX35
+    34,     // YX35 -> YX34
+    36,     // YX36 -> YX36
+    37,     // YX37 -> YX37
+    38,     // YX38 -> YX38
+    39,     // YX39 -> YX39
+    40,     // YX40 -> YX40
+    42,     // YX41 -> YX42
+    41,     // YX42 -> YX41
+    43,     // YX43 -> YX43
+    44,     // YX44 -> YX44
+    46,     // YX45 -> YX46
+    45,     // YX46 -> YX45
+    47,     // YX47 -> YX47
+    // modbus 1003
+    48,     // YX48 -> YX48
+    50,     // YX49 -> YX50
+    51,    // YX50 -> -YX51
+    52,    // YX51 -> -YX52
+    53,    // YX52 -> -YX53
+    54,    // YX53 -> -YX54
+    55,    // YX54 -> -YX55
+    56,    // YX55 -> -YX56
+    57,    // YX56 -> -YX57
+    58,    // YX57 -> -YX58
+    59,    // YX58 -> -YX59
+    60,    // YX59 -> -YX60
+    61,    // YX60 -> -YX61
+    INVALID_DST_BIT,    // YX61 -> -
+    62,     // YX62 -> YX62
+    63,     // YX63 -> YX63
+    // modbus 1004
+    64,     // YX64 -> YX64
+    65,     // YX65 -> YX65
+    66,     // YX66 -> YX66
+    67,     // YX67 -> YX67
+    68      // YX68 -> YX68
+    // 后面点位直接丢弃
+};
+
+/*  目标地址 = 27600/25100 + (src_reg-1000)*16 + bit */
 static inline INT16U map_13800_dst_addr(INT16U src_reg, INT8U bit)
 {
-    return (INT16U)(EMS_DST_BASE + (src_reg - CEM9000_13800_SRC_BASE) * BITS_PER_REG + bit);
+    INT16U src_yx;
+    INT8U dst_yx;
+
+    src_yx = (INT16U)((src_reg - CEM9000_13800_SRC_BASE)
+                       * BITS_PER_REG + bit);
+
+    if (src_yx >= sizeof(cem9000_13800_bit_map))
+        return 0xFFFF;
+
+    dst_yx = cem9000_13800_bit_map[src_yx];
+
+    if (dst_yx == INVALID_DST_BIT)
+        return 0xFFFF;
+
+    if ((dst_yx >= 51) && (dst_yx <= 61))
+        return (INT16U)(EMS_DST1_BASE + (dst_yx - 51));
+    else
+        return (INT16U)(EMS_DST_BASE + dst_yx);
 }
 
 // 遥信待更新
-int CEM9000_13800_INPUT(INT16U address, INT16U value)
+int CEM9000_13800_INPUT(INT16U address,
+                        INT16U value,
+                        uint16_t *index)
 {
-    if (address < CEM9000_13800_SRC_BASE || address > CEM9000_13800_SRC_LAST) return -10;  // 超范围保护
-
-    for (INT8U bit = 0; bit < BITS_PER_REG; ++bit) {
-        INT16U v = (INT16U)((value >> bit) & 0x1u);     // 取该位的 0/1
-        INT16U dst = map_13800_dst_addr(address, bit);             // 计算目标地址
-        SET_INPUT(dst, v);
-    
+    if (address < CEM9000_13800_SRC_BASE ||
+        address > CEM9000_13800_SRC_LAST)
+    {
+        return -10;
     }
+
+    for (INT8U bit = 0; bit < BITS_PER_REG; ++bit)
+    {
+        INT16U v;
+        INT16U dst;
+
+        /* 取原始寄存器对应 bit */
+        v = (INT16U)((value >> bit) & 0x1u);
+
+        /* 根据映射表得到目标点 */
+        dst = map_13800_dst_addr(address, bit);
+        (*index)++;
+
+        /* 没有目标点，跳过 */
+        if (dst == 0xFFFF)
+            continue;
+
+        SET_INPUT(dst, v);
+    }
+
     return 0;
 }
 

@@ -323,7 +323,7 @@ void Modbus_RTU_POLL(INT8U *send_buf,poll_data_str *p1,INT8U *rx_buf,int fd)
             }
             write(fd,send_buf,send_length);
             // delay_time=(波特率/（字节数*12）)+10ms
-           LOG_INFO("发送长度：%d",send_length);
+        //    LOG_INFO("发送长度：%d",send_length);
             // int i;
             // printf("TX: ");
             // for(i=0; i<send_length; i++)
