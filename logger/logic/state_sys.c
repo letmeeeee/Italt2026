@@ -2287,8 +2287,10 @@ static void Event_Start_SUB_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM rea
 
     sysPara *sys_cfg = SysConf_GetInfo();
     INT16U PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 60);
+    INT16U slave_PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 62);
+    INT16U slave_standby = (INT8U)(((slave_PCS_sys_state >> 0) & 0x1u) == 1u);
  
-    if (((PCS_sys_state >> 1 )&1u)== 1) {
+    if ((((PCS_sys_state >> 1 )&1u)== 1) || (slave_standby == 1)) {
         for (INT8U sub = 0; (sub < sys_cfg->subNum) && (sub < MAX_SUB_NUM); sub++) 
         {
             if (!SUB_ENABLED_SYS(sys_num, sub)) continue;
