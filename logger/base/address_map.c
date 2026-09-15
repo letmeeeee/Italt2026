@@ -451,7 +451,7 @@ static const INT8U cem9000_13800_bit_map[] =
     25,     // YX25 -> YX25
     26,     // YX26 -> YX26
     27,     // YX27 -> YX27
-    INVALID_DST_BIT,    // YX28 -> -
+    28,    // YX28 -> -
     29,     // YX29 -> YX29
     49,     // YX30 -> YX49
     32,     // YX31 -> YX32
