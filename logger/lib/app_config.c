@@ -101,6 +101,15 @@ static int System_parsing(sysPara* pconfig, const char* section, const char* nam
             pconfig->singlePcsMaster = 0;
         }
     }
+    //单台BMS的额定电量 
+    else if (MATCH("SYSTEM", "bmsPerRatedEnergy")) {
+        int bmsPerRatedEnergy = atoi(value);
+        pconfig->bmsPerRatedEnergy = bmsPerRatedEnergy;
+    }
+    else if (MATCH("SYSTEM", "pcsPerRateCapacity")) {
+        int pcsPerRateCapacity = atoi(value);
+        pconfig->pcsPerRateCapacity = pcsPerRateCapacity;
+    }
     //PCS个数
     else if (MATCH("SYSTEM", "pcsNum")) {
         pconfig->pcsNum = atoi(value);

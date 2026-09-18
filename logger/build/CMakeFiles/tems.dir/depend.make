@@ -1986,6 +1986,8 @@ CMakeFiles/tems.dir/logic/global_mcu_ai.c.o: ../logic/global_mcu_ai.c
 CMakeFiles/tems.dir/logic/global_mcu_ai.c.o: ../logic/global_mcu_ai.h
 CMakeFiles/tems.dir/logic/global_mcu_ai.c.o: ../logic/rtwtypes.h
 
+CMakeFiles/tems.dir/logic/pf_convert_final.c.o: ../base/system.h
+CMakeFiles/tems.dir/logic/pf_convert_final.c.o: ../lib/app_config.h
 CMakeFiles/tems.dir/logic/pf_convert_final.c.o: ../logic/pf_convert_final.c
 CMakeFiles/tems.dir/logic/pf_convert_final.c.o: ../logic/pf_convert_final.h
 

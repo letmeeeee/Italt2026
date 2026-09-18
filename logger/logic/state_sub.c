@@ -768,6 +768,9 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
 
 
     sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
+    INT32U bmsPerRatedEnergy = sys_cfg->bmsPerRatedEnergy; /* 单台bms电量 */
+    INT32U pcsPerRateCapacity = sys_cfg->pcsPerRateCapacity; /* 单台pcs容量 */
     INT16U year, month, day, hour, minute, second;
 //当设备进行切入切出时。通信拓扑会发生变化，然后根据不同设备进行系统赋值
     if (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0x0C) {
@@ -1249,9 +1252,12 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     SET_INPUT(APPARENT_POWERH, (INT16U)((INT32U)S >> 16));
     SET_INPUT(APPARENT_POWERL, (INT16U)((INT32U)S & 0xFFFF));
 
+    int64_t S_GROUP_CAP = (single_mode == 1) ? pcsPerRateCapacity * 1 : pcsPerRateCapacity * 2;
+    int64_t D_GROUP_CAP = (single_mode == 1) ? pcsPerRateCapacity * 2 : pcsPerRateCapacity * 4;
+
 if(sys_cfg->pcsNum==2)
 {
-   INT32U Available_inductive_reactive_powertotal=sqrt((double)5000 * (double)5000 - (double)p64 * (double)p64);
+   INT32U Available_inductive_reactive_powertotal=sqrt((double)S_GROUP_CAP * (double)S_GROUP_CAP - (double)p64 * (double)p64);
 
 
     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
@@ -1262,7 +1268,7 @@ if(sys_cfg->pcsNum==2)
 }
 else if(sys_cfg->pcsNum==4)
 {
-      INT32U Available_inductive_reactive_powertotal=sqrt((double)10000 * (double)10000 - (double)p64 * (double)p64);
+      INT32U Available_inductive_reactive_powertotal=sqrt((double)D_GROUP_CAP * (double)D_GROUP_CAP - (double)p64 * (double)p64);
 
 
     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
@@ -1271,13 +1277,15 @@ else if(sys_cfg->pcsNum==4)
     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
 }
-   INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
-    INT32U Nominal_capctiy = 27820*PCS_num;
+   INT8U PCS_num = (single_mode == 1) ? COUNT_BITS_16(GET_INPUT(228)) : COUNT_BITS_16(GET_INPUT(218));
+    INT32U dot_pcsPerRateCapacity = pcsPerRateCapacity * 10;
+    INT32U Nominal_capctiy = dot_pcsPerRateCapacity * PCS_num;
 
     SET_INPUT(NOMINAL_CAPCTIY_H, (INT16U)(Nominal_capctiy >> 16));
     SET_INPUT(NOMINAL_CAPCTIY_L, (INT16U)(Nominal_capctiy & 0xFFFF));
     INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-    INT32U Nominal_energy = 50000*BMS_num;
+    INT32U dot_bmsPerRatedEnergy = bmsPerRatedEnergy * 10;
+    INT32U Nominal_energy = dot_bmsPerRatedEnergy * BMS_num;
 
     SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
     SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));
@@ -1436,6 +1444,9 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
 
 
     sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
+    INT32U bmsPerRatedEnergy = sys_cfg->bmsPerRatedEnergy; /* 单台bms电量 */
+    INT32U pcsPerRateCapacity = sys_cfg->pcsPerRateCapacity; /* 单台pcs容量 */
     INT16U year, month, day, hour, minute, second;
 //当设备进行切入切出时。通信拓扑会发生变化，然后根据不同设备进行系统赋值
     if (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0xF0) {
@@ -1934,10 +1945,12 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
     // 同样拆成高低字输出
     SET_INPUT(APPARENT_POWERH, (INT16U)((INT32U)S >> 16));
     SET_INPUT(APPARENT_POWERL, (INT16U)((INT32U)S & 0xFFFF));
+    int64_t S_GROUP_CAP = (single_mode == 1) ? pcsPerRateCapacity * 1 : pcsPerRateCapacity * 2;
+    int64_t D_GROUP_CAP = (single_mode == 1) ? pcsPerRateCapacity * 2 : pcsPerRateCapacity * 4;
 
 if(sys_cfg->pcsNum==2)
 {
-   INT32U Available_inductive_reactive_powertotal=sqrt((double)5000 * (double)5000 - (double)p64 * (double)p64);
+   INT32U Available_inductive_reactive_powertotal=sqrt((double)S_GROUP_CAP * (double)S_GROUP_CAP - (double)p64 * (double)p64);
 
 
     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
@@ -1948,7 +1961,7 @@ if(sys_cfg->pcsNum==2)
 }
 else if(sys_cfg->pcsNum==4)
 {
-      INT32U Available_inductive_reactive_powertotal=sqrt((double)10000 * (double)10000 - (double)p64 * (double)p64);
+      INT32U Available_inductive_reactive_powertotal=sqrt((double)D_GROUP_CAP * (double)D_GROUP_CAP - (double)p64 * (double)p64);
 
 
     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
@@ -1957,13 +1970,15 @@ else if(sys_cfg->pcsNum==4)
     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
 }
-   INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
-    INT32U Nominal_capctiy = 27820*PCS_num;
+   INT8U PCS_num = (single_mode == 1) ? COUNT_BITS_16(GET_INPUT(228)) : COUNT_BITS_16(GET_INPUT(218));
+    INT32U dot_pcsPerRateCapacity = pcsPerRateCapacity * 10;
+    INT32U Nominal_capctiy = dot_pcsPerRateCapacity * PCS_num;
 
     SET_INPUT(NOMINAL_CAPCTIY_H, (INT16U)(Nominal_capctiy >> 16));
     SET_INPUT(NOMINAL_CAPCTIY_L, (INT16U)(Nominal_capctiy & 0xFFFF));
  INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-    INT32U Nominal_energy = 50000*BMS_num;
+    INT32U dot_bmsPerRatedEnergy = bmsPerRatedEnergy * 10;
+    INT32U Nominal_energy = dot_bmsPerRatedEnergy * BMS_num;
 
     SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
     SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));

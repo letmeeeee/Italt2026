@@ -1987,6 +1987,8 @@ CMakeFiles/tems.dir/logic/global_mcu_ai.c.o
  /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/global_mcu_ai.h
  /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/rtwtypes.h
 CMakeFiles/tems.dir/logic/pf_convert_final.c.o
+ ../base/system.h
+ ../lib/app_config.h
  /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/pf_convert_final.c
  /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/pf_convert_final.h
 CMakeFiles/tems.dir/logic/state_sub.c.o

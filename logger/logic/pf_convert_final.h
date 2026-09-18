@@ -2,6 +2,7 @@
 #define PF_CONVERT_FINAL_H
 
 #include <stdbool.h>
+#include "app_config.h"
 
 #ifdef __cplusplus
 extern "C" {

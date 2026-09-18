@@ -469,6 +469,8 @@ MCU_AI_types.h
 ../logic/pf_convert_final.h
 stdbool.h
 -
+app_config.h
+../logic/app_config.h
 
 ../logic/rtwtypes.h
 
@@ -1455,6 +1457,8 @@ pf_convert_final.h
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/pf_convert_final.h
 stdbool.h
 -
+app_config.h
+/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/app_config.h
 
 /home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/logic/rtwtypes.h
 
