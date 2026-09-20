@@ -50,13 +50,13 @@
 bool P_PF_to_S_pf_cmd(float P, float PF, float* S_cmd, float* pf_cmd)
 {
     sysPara *sys_cfg = SysConf_GetInfo();
-    __uint32_t pcsPerRateCapacity = sys_cfg->pcsPerRateCapacity; /* 单台PCS容量 */
+    __uint32_t singlePcsMaster = sys_cfg->singlePcsMaster; /* 单台PCS容量 */
     if (!S_cmd || !pf_cmd) return false;
 
     float pf_abs  = f_clamp(f_abs(PF), PF_MIN, 1.0f - PF_EPS);
     float S_abs = f_abs(P) / pf_abs;
     float Q_abs = sqrtf((S_abs * S_abs) - (P * P));
-    float S_max = (float)pcsPerRateCapacity;
+    float S_max = (singlePcsMaster == 1) ? (2750) : (2500); /* 单台PCS容量 */
     if (!within_apparent_limit(P, Q_abs, S_max))
     {
         return false ;
