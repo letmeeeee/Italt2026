@@ -2782,7 +2782,6 @@ void MV_Power_allocate1(void)
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
     INT16U pcs_num=sys_cfg->pcsNum;
-    bool single_mode_case7_reactive = false;
 
     INT16U PCS1_sys_state = (INT16U)GET_INPUT(17000 + 300 * 0 + 60);//group1,主机PCS的运行状态
     INT8U  master1_Run  = (INT8U)(((PCS1_sys_state >> 3) & 0x1u) == 1u);//group1,主机PCS的运行
@@ -2831,8 +2830,7 @@ void MV_Power_allocate1(void)
                         &&(((GET_INPUT(2600 + 900 + 211) >> 1) & 0x1u) == 0u));
 
 //LOG_INFO("state[0]:%d,state[1]；%d,getinput:%d,(GET_INPUT(39271):%d,(GET_INPUT(39471):%d", state[0], state[1],GET_INPUT(17062),GET_INPUT(39271),GET_INPUT(39471));
-    // 5MW标志位
-    MW_5_10_flag = (single_mode == 1) ? 0 : 1;
+
     MV_PQ_Control_B(  GET_HOLD(1011), &g_MV_Power,&reactive_power);
 if(BusType==D_BUS)
 {
@@ -3662,7 +3660,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     // LOG_INFO("情况7");
     if (single_mode == 1)
     {
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+    if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
         {
             bms1_max_charge_power   = GET_INPUT(38038);
         }
@@ -3670,7 +3668,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms1_max_charge_power   = 0;
         }
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
         {
             bms1_max_discharge_power= GET_INPUT(38037);
         }
@@ -3680,7 +3678,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
 
-        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
         {
             bms2_max_charge_power   = GET_INPUT(38238);
         }
@@ -3688,7 +3686,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms2_max_charge_power   = 0;
         }
-        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
         {
             bms2_max_discharge_power= GET_INPUT(38237);
         }
@@ -3698,7 +3696,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms2_soc                = GET_INPUT(38203);
 
-        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+        if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1))
         {
             bms5_max_charge_power = GET_INPUT(38838); /* '<Root>/bms5_max_charge_power' */
         } 
@@ -3707,7 +3705,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
             bms5_max_charge_power = 0;
         }
 
-        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+        if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
         {
             bms5_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms5_max_discharge_power' */
         } 
@@ -3717,7 +3715,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms5_soc = GET_INPUT(38803);
 
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)&&(PCS3BUS2==1)) 
         {
             bms6_max_charge_power = GET_INPUT(39038); /* '<Root>/bms6_max_charge_power' */
         } 
@@ -3725,7 +3723,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms6_max_charge_power = 0;
         }
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)&&(PCS3BUS2==1)) 
         {
             bms6_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms6_max_discharge_power' */
         } 
@@ -3756,7 +3754,6 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         mv_max_power            =5500;          /* '<Root>/mv_max_power' */
         mv_power   = GET_HOLD(1010);
         mv_r_power = GET_HOLD(1011);
-        // single_mode_case7_reactive = (single_mode == 1);
         // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
         pcs1_rated_power        =   2750         ;                              
         pcs2_rated_power        =   2750       ;                             
@@ -3769,7 +3766,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     }
     else
     {
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+    if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
         {
             bms1_max_charge_power   = GET_INPUT(38038);
         }
@@ -3777,7 +3774,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms1_max_charge_power   = 0;
         }
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
         {
             bms1_max_discharge_power= GET_INPUT(38037);
         }
@@ -3787,7 +3784,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
 
-        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
         {
             bms2_max_charge_power   = GET_INPUT(38238);
         }
@@ -3795,7 +3792,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms2_max_charge_power   = 0;
         }
-        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
         {
             bms2_max_discharge_power= GET_INPUT(38237);
         }
@@ -3805,7 +3802,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms2_soc                = GET_INPUT(38203);
 
-        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+        if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1))
         {
             bms3_max_charge_power = GET_INPUT(38838); /* '<Root>/bms3_max_charge_power' */
         } 
@@ -3814,7 +3811,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
             bms3_max_charge_power = 0;
         }
 
-        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+        if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1))
         {
             bms3_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms3_max_discharge_power' */
         } 
@@ -3824,7 +3821,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms3_soc = GET_INPUT(38803);
 
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+        if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
         {
             bms4_max_charge_power = GET_INPUT(39038); /* '<Root>/bms4_max_charge_power' */
         } 
@@ -3832,7 +3829,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms4_max_charge_power = 0;
         }
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+        if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1)) 
         {
             bms4_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms4_max_discharge_power' */
         } 
@@ -3861,7 +3858,6 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         mv_max_power            =5000;          /* '<Root>/mv_max_power' */
         mv_power   = GET_HOLD(1010);
         mv_r_power = 0;
-        // single_mode_case7_reactive = (single_mode == 1);
         // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
         pcs1_rated_power        =   2500         ;                              
         pcs2_rated_power        =   2500       ;                             
@@ -4632,31 +4628,6 @@ else
 
     MCU_AI_step();//MV总功率分配
 
-    /*
-     * 情况 7 的单 PCS 主机模式仅有两台实际下发功率的主机。MCU_AI_step()
-     * 会把离线 PCS 的额定功率 0 一并参与无功 Min 运算，导致无功被清零；
-     * 此处按 MCU_AI_step() 的 S^2 = P^2 + Q^2 限制重新分配系统总无功。
-     * Power_Divider1() 在该工况下向两台主机分别写入的有功为：
-     *   系统 1: pcs1 + pcs2 + pcs5 + pcs6
-     *   系统 2: pcs3 + pcs4 + pcs7 + pcs8
-     */
-    if (single_mode_case7_reactive)
-    {
-
-        // LOG_INFO("单 PCS 主机模式仅有两台实际下发功率的主机，重新分配系统总无功");
-        // LOG_INFO("系统总有功: %d, 系统总无功: %d, 系统 1 额定功率: %d, 系统 2 额定功率: %d",
-        //     (INT32S)pcs1_power + pcs2_power + pcs5_power + pcs6_power + pcs3_power + pcs4_power + pcs7_power + pcs8_power,
-        //     mv_r_power,
-        //     pcs1_rated_power,
-        //     pcs2_rated_power);
-        Allocate_Single_Mode_Case7_Reactive(mv_r_power,
-            (INT32S)pcs1_power + pcs2_power + pcs5_power + pcs6_power,
-            pcs1_rated_power, (master1_Run == 1) && (master1_fault != 1),
-            (INT32S)pcs3_power + pcs4_power + pcs7_power + pcs8_power,
-            pcs2_rated_power, (master2_Run == 1) && (master2_fault != 1),
-            reactive_rate, &pcs_r_power1_2, &pcs_r_power3_4);
-    }
-
     if((pcspowerallocate[0]!=pcs1_power) ||
     (pcspowerallocate[1]!=pcs2_power) ||
     (pcspowerallocate[2]!=pcs3_power) ||
@@ -5340,7 +5311,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
 {
     if (single_mode == 1)
     {
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
         {
             bms1_max_charge_power   = GET_INPUT(38038);
         }
@@ -5348,7 +5319,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms1_max_charge_power   = 0;
         }
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
         {
             bms1_max_discharge_power= GET_INPUT(38037);
         }
@@ -5358,7 +5329,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
 
-        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
         {
             bms3_max_charge_power   = GET_INPUT(38438);
         }
@@ -5366,7 +5337,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms3_max_charge_power   = 0;
         }
-        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
         {
             bms3_max_discharge_power= GET_INPUT(38437);
         }
@@ -5404,7 +5375,6 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         mv_max_power            =5500;          /* '<Root>/mv_max_power' */
         mv_power                = GET_HOLD(1010);
         mv_r_power              = GET_HOLD(1011);
-        // single_mode_case7_reactive = (single_mode == 1);
         pcs1_rated_power        =   2750        ;
         pcs2_rated_power        =   2750        ;
         pcs3_rated_power        =   2750        ;
@@ -5416,7 +5386,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     }
     else
     {
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
         {
             bms1_max_charge_power   = GET_INPUT(38038);
         }
@@ -5424,7 +5394,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms1_max_charge_power   = 0;
         }
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
         {
             bms1_max_discharge_power= GET_INPUT(38037);
         }
@@ -5434,7 +5404,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
     
-        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
         {
             bms2_max_charge_power   = GET_INPUT(38438);
         }
@@ -5442,7 +5412,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms2_max_charge_power   = 0;
         }
-        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
         {
             bms2_max_discharge_power= GET_INPUT(38437);
         }
@@ -5487,7 +5457,6 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         mv_max_power            =5000;          /* '<Root>/mv_max_power' */
         mv_power                = GET_HOLD(1010);
         mv_r_power              =   0           ;
-        // single_mode_case7_reactive = (single_mode == 1);
         pcs1_rated_power        =   2500        ;                              
         pcs2_rated_power        =   2500        ;                             
         pcs3_rated_power        =   0           ;             
