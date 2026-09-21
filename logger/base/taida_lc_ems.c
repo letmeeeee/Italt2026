@@ -4,6 +4,21 @@
 
 extern INT8U BusType;
 
+/* 读取输入寄存器指定位：bit 为 0~15（0 为最低位）。
+ * 返回 0/1；地址或 bit 越界返回 -1。
+ */
+int LC_EMS_Get_Input_Bit(int addr, int bit)
+{
+    uint16_t value;
+
+    if (addr < 0 || addr >= INPUT_SIZE || bit < 0 || bit > 15)
+    {
+        return -1;
+    }
+
+    value = (uint16_t)GET_INPUT(addr);
+    return (int)((value >> bit) & 0x01U);
+}
 /*
  * 功能：
  * 根据输入地址进行映射转换
@@ -210,6 +225,10 @@ static void Update_Bit_Status_By_One_Word(int base,
 void Update_Input_Bit_Status(int system_num)
 {
     int base = INPUT_BASE_ADDR + INPUT_GROUP_STEP * system_num;
+    int sysRdyRef = 0;
+
+    /* 处理 17000 + 300*n + 60 */
+    sysRdyRef = LC_EMS_Get_Input_Bit(base + 60, 3);
 
     /* 处理 17000 + 300*n + 61 */
     Update_Bit_Status_By_One_Word(base, 61, 208, 209, 200, 201);
@@ -220,6 +239,7 @@ void Update_Input_Bit_Status(int system_num)
     for(int i=0;i<4;i++)
     {
         SET_INPUT(base + 212 + i, GET_INPUT(base + 43));
+        SET_INPUT(base + 236 + i, sysRdyRef);
     }
     for(int j=0;j<3;j++)
     {

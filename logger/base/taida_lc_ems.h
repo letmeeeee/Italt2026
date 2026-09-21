@@ -22,7 +22,8 @@
  int LC_EMS_Convert_Address(int pcsnum, int addr);
 void LC_EMS_Calc_Power_Percent(int pcsnum);
 void Update_Input_Bit_Status(int system_num);
+/* bit: 0~15；返回 0/1，参数越界返回 -1。 */
+int LC_EMS_Get_Input_Bit(int addr, int bit);
 void Update_Slave_sysstate2(uint16_t Slave_sys_state2_value,uint16_t addr);
 #define POWER_DEFAULT_RATIO 250
- #endif 
- 
+ #endif
