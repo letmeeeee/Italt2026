@@ -465,125 +465,139 @@ void* Bank_G2pro_Read_Task(const char *arg) {
                      LOG_INFO("BMS[%d] 0x06 write ok: hold[%u->idx %u] = %u", bms_num, addr, idx, value);
                  }  
                     loop++;
+                   // LOG("loop %d", loop);
                     break;
-                case 1:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr0 , G2PROBank_block_size0, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;
-                case 2:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr1 , G2PROBank_block_size1, CMD_DELAY_200);
-                   Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;
-                        
-                case 3:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr2 , G2PROBank_block_size2, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;
-                case 4:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr3 , G2PROBank_block_size3, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
+
+                 case 1: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr0, G2PROBank_block_size0, CMD_DELAY_200);
                     loop++;
                     break;
 
-                case 5:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr4 , G2PROBank_block_size4, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;
-                case 6:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr5, G2PROBank_block_size5, CMD_DELAY_200);
-                     Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
+                case 3: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr1, G2PROBank_block_size1, CMD_DELAY_200);
                     loop++;
                     break;
 
-                case 7:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr6, G2PROBank_block_size6, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
+                case 5: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr2, G2PROBank_block_size2, CMD_DELAY_200);
                     loop++;
                     break;
-                case 8:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr7 , G2PROBank_block_size7, CMD_DELAY_200);
-                     Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
+
+                case 7: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr3, G2PROBank_block_size3, CMD_DELAY_200);
                     loop++;
                     break;
-                case 9:
-                   Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr8 , G2PROBank_block_size8, CMD_DELAY_200);
-                   Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                // Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr8 , G2PROBank_block_size8, CMD_DELAY_200);
-                    loop++;
-                    break;   
-                case 10:
-                    // LOG_INFO("G2pro Bank Env Read addr: %d\n", G2PROBank_block_addr9);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr9, G2PROBank_block_size9, CMD_DELAY_200);
-                     Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
+
+                case 9: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr4, G2PROBank_block_size4, CMD_DELAY_200);
                     loop++;
                     break;
+
                 case 11:
-                    // LOG_INFO("G2pro Bank Env Read addr: %d\n", G2PROBank_block_addr10);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr10 , G2PROBank_block_size10, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr5, G2PROBank_block_size5, CMD_DELAY_200);
                     loop++;
                     break;
+
+                case 13: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr6, G2PROBank_block_size6, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 15: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr7, G2PROBank_block_size7, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 17: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr8, G2PROBank_block_size8, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 19: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr9, G2PROBank_block_size9, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 21: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr10, G2PROBank_block_size10, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 23: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr11, G2PROBank_block_size11, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 25: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr12, G2PROBank_block_size12, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 27:
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr13, G2PROBank_block_size13, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 29: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr14, G2PROBank_block_size14, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 31: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr15, G2PROBank_block_size15, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 33: 
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr16, G2PROBank_block_size16, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+                case 35: 
+                    Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr17, G2PROBank_block_size17, CMD_DELAY_200);
+                    loop++;
+                    break;
+
+            
+                case 2:
+                case 4:
+                case 6:
+                case 8:
+                case 10:
                 case 12:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr11 , G2PROBank_block_size11, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;  
-                 case 13:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr12 , G2PROBank_block_size12, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;
                 case 14:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr13 , G2PROBank_block_size13, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;  
-                case 15:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr14 , G2PROBank_block_size14, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;
                 case 16:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr15 , G2PROBank_block_size15, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;  
-                case 17:
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr16 , G2PROBank_block_size16, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;
                 case 18:
-                    Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr17 , G2PROBank_block_size17, CMD_DELAY_200);
-                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                    loop++;
-                    break;  
-                //  case 19:
-                //     Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr18 , G2PROBank_block_size18, CMD_DELAY_200);
-                //     Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                //     loop++;
-                //     break;
-                // case 20:
-                //     Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr19 , G2PROBank_block_size19, CMD_DELAY_200);
-                //     Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr23 , G2PROBank_block_size23, CMD_DELAY_200);
-                //     loop++;
-                //     break;  
-                // case 21:
-                //     Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr20 , G2PROBank_block_size20, CMD_DELAY_200);
-                //     loop++;
-                //     break;
-                // case 22:
-                //     Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr21 , G2PROBank_block_size21, CMD_DELAY_200);
-                //     loop++;
-                //     break;                     
-                // case 23:
-                //     Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03, G2PROBank_block_addr22 , G2PROBank_block_size22, CMD_DELAY_200);
-                //     loop++;
-                //     break;                        
+                case 20:
+                case 22:
+                case 24:
+                case 26:
+                case 28:
+                case 30:
+                case 32:
+                case 34:
+                case 36:
+                    Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
+                                    G2PROBank_block_addr23, G2PROBank_block_size23, CMD_DELAY_200);
+               loop++;
 
                 default:
                     loop = 0;

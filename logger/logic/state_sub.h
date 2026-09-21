@@ -107,7 +107,10 @@ uint64_t get_in_time_sub(INT8U sys_num,INT8U sub_num);
 void Success_Out_Sub(INT8U sys_num,INT8U sub_num);
 
 void success_in_sub(INT8U sys_num,INT8U sub_num);
- void system_value1();
-  void system_value();
+ void taida_system_value1();
+  void taida_system_value();
+   void trina_system_value1();
+  void trina_system_value();
+
    void check_limit(INT8U sys_num, INT8U sub_num);
 #endif

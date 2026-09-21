@@ -349,14 +349,14 @@ static void Event_SUB_Run_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SUB_S
     // if ((((SUB_EVENT_CMD_START + 200) == Get_Out_Sub(sys_num, sub_num)) && (regval == 0 || regval == 1 || regval == 2)) ||
     //     (1 == resD)) 
         
-    if (((GET_INPUT(38062 + (sys_num * BMS_PER_SYS + sub_num) * 200)==2) && (regval == 0 || regval == 1 || regval == 2)) ||
-    (1 == resD))    
+    // if (((GET_INPUT(38062 + (sys_num * BMS_PER_SYS + sub_num) * 200)==2) && (regval == 0 || regval == 1 || regval == 2)) ||
+    // (1 == resD))    
         
-        {
+    //     {
         Last_Time[sys_num * MAX_SUB_NUM + sub_num] = Timer_GetTick();
         eid[sys_num * MAX_SUB_NUM + sub_num] = SUB_EVENT_SUB_RUN;
         LOG_INFO("SUB-%d is already started!", sub_num);
-    }
+    // }
 }
 
 static void Event_Timeout_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SUB_State_ENUM real_state)
@@ -763,7 +763,7 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     }
 }
 
- void system_value()
+ void taida_system_value()
 {
 
 
@@ -1439,7 +1439,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
     }
 }
 
- void system_value1()
+ void taida_system_value1()
 {
 
 
@@ -1627,6 +1627,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                             GET_INPUT(38000 + 1 * 200 + 3) +
                             GET_INPUT(38000 + 2 * 200 + 3) +
                             GET_INPUT(38000 + 3 * 200 + 3)) / BMS_num;
+                           // LOG_INFO("SOC :%d,BMS : %d",SOC,BMS_num);
             SET_INPUT(SYSTEM_SOC, SOC);
 
             INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
@@ -2120,6 +2121,1589 @@ INT32U AC_Daily_Cap_Reactive_Energy =
     else if(GET_INPUT(27631) == 0 && GET_INPUT(27632) == 1)//高压侧开关合闸
     {
         SET_INPUT(High_voltage_switch_status,0xAA);
+    }
+    INT32S PCS1_status = ((INT16S)GET_INPUT(2600 + 0 * 300 + 18));
+    INT32S PCS2_status = ((INT16S)GET_INPUT(2600 + 1 * 300 + 18));
+    INT32S PCS3_status = ((INT16S)GET_INPUT(2600 + 2 * 300 + 18));
+    INT32S PCS4_status = ((INT16S)GET_INPUT(2600 + 3 * 300 + 18));
+
+    SET_INPUT(17000 + 300 * 0 + 32, PCS_Status_To_RegValue(PCS1_status));
+    SET_INPUT(17000 + 300 * 0 + 33, PCS_Status_To_RegValue(PCS2_status));
+    SET_INPUT(17000 + 300 * 1 + 32, PCS_Status_To_RegValue(PCS3_status));
+    SET_INPUT(17000 + 300 * 1 + 33, PCS_Status_To_RegValue(PCS4_status));
+}
+void trina_system_value()
+{
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT16U year, month, day, hour, minute, second;
+//当设备进行切入切出时。通信拓扑会发生变化，然后根据不同设备进行系统赋值
+    if (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0x0C) {
+
+        INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+        INT16U SOC = (GET_INPUT(38000 + 2* 200 + 3) +
+                        GET_INPUT(38000 + 3 * 200 + 3) 
+                                                        ) / BMS_num;
+        SET_INPUT(SYSTEM_SOC, SOC);
+
+        INT16U SOH = (GET_INPUT(38000 + 2 * 200 + 4) +
+                        GET_INPUT(38000 + 3 * 200 + 4) 
+                                                        ) / BMS_num;
+        SET_INPUT(SYSTEM_SOH, SOH);
+
+
+        INT16U ac_freq = GET_INPUT(17000 + 1 * 300 + 43);
+        SET_INPUT(AC_FREQUENCY, ac_freq);
+
+        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 1 * 300 + 42);
+        SET_INPUT(POWER_FACTOR, Power_Factor);
+
+        INT32U DC_average_voltage = (GET_INPUT(38000 + 2 * 200 + 0) +
+                                       GET_INPUT(38000 + 3* 200 + 0) )/ BMS_num;
+        SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
+        SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
+
+        if (GET_INPUT(17063 + 1 * 300) == 2) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
+        }
+        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) ? 2 : 0));
+        int faulting_BMS_Num = 0;   
+        
+        for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
+        {
+            if((GET_INPUT(38071 + (fault_BMS+2) * 200) == 4))
+            {
+                faulting_BMS_Num++;
+            }
+            else
+            {
+                faulting_BMS_Num=faulting_BMS_Num;
+            }
+        }
+        SET_INPUT(NUMBER_OF_FAULT_BMSs, faulting_BMS_Num );
+        int Warning_BMS_Num=0;
+        for(int Warn_BMS_Num=0;Warn_BMS_Num<2;Warn_BMS_Num++)
+        {
+            if((GET_INPUT(38040 + (Warn_BMS_Num+2) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num+2) * 200) !=0))
+            {
+                Warning_BMS_Num++;
+            }
+            else
+            {
+                Warning_BMS_Num=Warning_BMS_Num;
+            }
+        }
+        SET_INPUT(NUMBER_OF_WARNING_BMSs, Warning_BMS_Num );
+        int running_bms_num =0;
+        for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
+        {
+            if((GET_INPUT(38072 + (Run_BMS_Num+2) * 200) !=0))
+            {
+                running_bms_num ++;
+            }
+            else
+            {
+                running_bms_num =running_bms_num ;
+            }
+        }
+        SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
+
+        if ((GET_INPUT(38072 + 2* 200) == 2) ||
+            (GET_INPUT(38072 + 3 * 200) == 2) ) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
+        } else if ((GET_INPUT(38072 + 2 * 200) == 1) ||
+                   (GET_INPUT(38072 + 3 * 200) == 1) ) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
+        }
+
+    } else if (g_enabled_mask_pcs == 0x03 || g_enabled_mask_bms == 0x03) {
+       INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+        INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) +
+                        GET_INPUT(38000 + 1 * 200 + 3) ) / BMS_num;
+        SET_INPUT(SYSTEM_SOC, SOC);
+
+        INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
+                        GET_INPUT(38000 + 1 * 200 + 4) ) / BMS_num;
+        SET_INPUT(SYSTEM_SOH, SOH);
+
+        INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
+        SET_INPUT(AC_FREQUENCY, ac_freq);
+
+        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+        SET_INPUT(POWER_FACTOR, Power_Factor);
+
+        INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
+                                       GET_INPUT(38000 + 1 * 200 + 0) ) /BMS_num;
+        SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
+        SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
+
+        if (GET_INPUT(17063 + 0 * 300) == 2) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
+        }
+        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
+        if ((GET_INPUT(38072 + 0 * 200) == 2) ||
+            (GET_INPUT(38072 + 1 * 200) == 2) ) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
+        } else if ((GET_INPUT(38072 + 0 * 200) == 1) ||
+                   (GET_INPUT(38072 + 1 * 200) == 1) ) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
+        }
+        int faulting_BMS_Num = 0;  
+        for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
+        {
+            if((GET_INPUT(38071 + (fault_BMS) * 200) == 4))
+            {
+                faulting_BMS_Num++;
+            }
+            else
+            {
+                faulting_BMS_Num=faulting_BMS_Num;
+            }
+        }
+        SET_INPUT(NUMBER_OF_FAULT_BMSs, faulting_BMS_Num );
+        int Warning_BMS_Num=0;
+        for(int Warn_BMS_Num=0;Warn_BMS_Num<2;Warn_BMS_Num++)
+        {
+            if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+            {
+                Warning_BMS_Num++;
+            }
+            else
+            {
+                Warning_BMS_Num=Warning_BMS_Num;
+            }
+        }
+        SET_INPUT(NUMBER_OF_WARNING_BMSs, Warning_BMS_Num );
+        int running_bms_num =0;
+        for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
+        {
+            if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+            {
+                running_bms_num ++;
+            }
+            else
+            {
+                running_bms_num =running_bms_num ;
+            }
+        }
+        SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
+
+    } else {
+        if ((GET_INPUT(NUMBER_OF_PCSs) == 2)&&(GET_INPUT(NUMBER_OF_BMSs) == 2)) {
+
+            INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+            INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) +
+                            GET_INPUT(38000 + 1 * 200 + 3) ) / BMS_num;
+            SET_INPUT(SYSTEM_SOC, SOC);
+
+            INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
+                            GET_INPUT(38000 + 1 * 200 + 4) ) / BMS_num;
+            SET_INPUT(SYSTEM_SOH, SOH);
+
+            uint16_t ac_freq = GET_INPUT(2600+0*300+106);
+
+            for (uint8_t n = 1; n < 4; n++)
+            {
+                uint16_t value = GET_INPUT(2600 + n * 300 + 106);
+
+                if (value > ac_freq)
+                {
+                    ac_freq = value;
+                }
+            }            
+                SET_INPUT(AC_FREQUENCY, ac_freq);
+
+             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+             if(PCS_num!=0)
+             {
+             INT16S Power_Factor = ((INT16S)GET_INPUT(2600 + 0 * 300 + 114)+(INT16S)GET_INPUT(2600 + 1* 300 + 114))/PCS_num;
+            SET_INPUT(POWER_FACTOR, Power_Factor);
+             }
+
+     
+            INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
+                                           GET_INPUT(38000 + 1 * 200 + 0) ) / BMS_num;
+            SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
+            SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
+
+            if ((GET_INPUT(2600+100 + 0 * 300) == 2)&&((GET_INPUT(2600+100 + 1* 300) == 2))) {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);//所有PCS待机
+            }
+            else if (((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1)&&((GET_INPUT(2600+100 + 0 * 300)>> 2) & 1 == 1)){
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);//所有PCS全部关闭，无法启动
+            }            
+            else if (((GET_INPUT(2600 +100+ 0 * 300)>> 0) & 1 == 1) ||
+                ((GET_INPUT(2600 +100+ 0 * 300)>> 0) & 1)) {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);//运行，任意一个在运行
+            } else if (((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1) ||
+                    ((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1 )) {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);//任意一个故障
+            }
+            SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
+            SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
+
+             SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
+            if (((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1U) {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
+            } else {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
+            }
+           int faulting_BMS_Num = 0;   // 一定要先清零
+            for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
+            {
+                if((GET_INPUT(38071 + (fault_BMS) * 200) == 4))
+                {
+                    faulting_BMS_Num++;
+                }
+                else
+                {
+                    faulting_BMS_Num=faulting_BMS_Num;
+                }
+            }
+            SET_INPUT(NUMBER_OF_FAULT_BMSs, faulting_BMS_Num );
+
+
+            int Warning_BMS_Num=0;
+            for(int Warn_BMS_Num=0;Warn_BMS_Num<2;Warn_BMS_Num++)
+            {
+                if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+                {
+                    Warning_BMS_Num++;
+                }
+                else
+                {
+                    Warning_BMS_Num=Warning_BMS_Num;
+                }
+            }
+            SET_INPUT(NUMBER_OF_WARNING_BMSs, Warning_BMS_Num );
+            int running_bms_num =0;
+            for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
+            {
+                if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+                {
+                    running_bms_num ++;
+                }
+                else
+                {
+                    running_bms_num =running_bms_num ;
+                }
+            }
+            SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
+             if ((GET_HOLD(12000+2) == 1U)&&(GET_HOLD(12000+2+700) == 1U)){
+                SET_INPUT(Blackstart_mode, 1);
+            } else {
+                SET_INPUT(Blackstart_mode, 0);
+            }
+
+        } else if((GET_INPUT(NUMBER_OF_PCSs) == 4)&&(GET_INPUT(NUMBER_OF_BMSs) == 4))
+        {
+             INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+            INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) + GET_INPUT(38000 + 1 * 200 + 3) +
+                            GET_INPUT(38000 + 2 * 200 + 3) + GET_INPUT(38000 + 3 * 200 + 3) ) / BMS_num;
+            SET_INPUT(SYSTEM_SOC, SOC);
+
+            INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) + GET_INPUT(38000 + 1 * 200 + 4) +
+                            GET_INPUT(38000 + 2 * 200 + 4) + GET_INPUT(38000 + 3 * 200 + 4)) / BMS_num;
+            SET_INPUT(SYSTEM_SOH, SOH);
+
+
+
+            SYS_State_ENUM state[2]; 
+
+            state[0]= Get_State_Sys(0); //获取系统1的状态
+            state[1]= Get_State_Sys(1); //获取系统2的状态
+
+            bool sys1_run = (state[0] == SYSRun || state[0] == SYSWarnRun);
+            bool sys2_run = (state[1] == SYSRun || state[1] == SYSWarnRun);
+            
+            if(sys1_run==1)
+            {
+             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+             if (PCS_num!=0)
+             {
+             INT16S Power_Factor = ((INT16S)GET_INPUT(2600 + 0 * 300 + 114)+(INT16S)GET_INPUT(2600 + 1* 300 + 114))/PCS_num;
+            SET_INPUT(POWER_FACTOR, Power_Factor); 
+             }
+
+            }
+            else if(sys2_run==1)
+            {
+             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+             if (PCS_num!=0)
+             {
+             INT16S Power_Factor = ((INT16S)GET_INPUT(2600 + 2 * 300 + 114)+(INT16S)GET_INPUT(2600 + 3* 300 + 114))/PCS_num;
+            SET_INPUT(POWER_FACTOR, Power_Factor); 
+             }
+            }
+            else
+            {
+                 SET_INPUT(POWER_FACTOR, 0);
+            }
+
+            uint16_t ac_freq = GET_INPUT(2600+0*300+106);
+
+            for (uint8_t n = 1; n < 4; n++)
+            {
+                uint16_t value = GET_INPUT(2600 + n * 300 + 106);
+
+                if (value > ac_freq)
+                {
+                    ac_freq = value;
+                }
+            }            
+                SET_INPUT(AC_FREQUENCY, ac_freq);
+
+
+
+            INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
+                                           GET_INPUT(38000 + 1 * 200 + 0) +
+                                           GET_INPUT(38000 + 2 * 200 + 0) +
+                                           GET_INPUT(38000 + 3 * 200 + 0) ) / BMS_num;
+            SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
+            SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
+
+
+            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) 
+            {          
+               
+                SET_INPUT(PCS_GROUP_STATUS, 1);
+          
+            } 
+            
+
+            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1) 
+            {          
+               
+                SET_INPUT(PCS_GROUP_STATUS, 2);
+            } 
+            if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 6) & 1)) == 1) {
+                SET_INPUT(NUMBER_OF_WARNING_PCSs, 2);
+            } else if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) == 1) &&
+                       (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) == 1)) {
+                SET_INPUT(NUMBER_OF_WARNING_PCSs, 4);
+            } else {
+                SET_INPUT(NUMBER_OF_WARNING_PCSs, 0);
+            }
+ 
+
+            if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 4) & 1)) == 1) {
+                SET_INPUT(NUMBER_OF_FAULT_PCSs, 2);
+
+                // SET_INPUT(PCS_GROUP_STATUS, 1);
+            } else if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) &&
+                       (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1)) {
+                SET_INPUT(NUMBER_OF_FAULT_PCSs, 4);
+                SET_INPUT(PCS_GROUP_STATUS, 3);
+            } 
+
+            else {
+                SET_INPUT(NUMBER_OF_FAULT_PCSs, 0);
+                SET_INPUT(PCS_GROUP_STATUS, 0);
+            }
+        
+            if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) ^ ((GET_INPUT(17063 + 1 * 300) >> 3) & 1)) == 1) {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
+            } else if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1) &&
+                       (((GET_INPUT(17063 + 1 * 300) >> 3) & 1) == 1)) {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 4);
+            } else {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
+            }
+             uint16_t master1_state;
+            uint16_t master2_state;
+            uint16_t slave1_state;
+            uint16_t slave2_state;
+
+            uint8_t all_fault;
+            uint8_t any_fault;
+            uint8_t any_running;
+            uint8_t all_standby;
+
+            /*
+            * 主机状态：
+            * 2  = 待机
+            * 8  = 运行
+            * 16 = 故障
+            */
+            master1_state = GET_INPUT(2600+100 + 0 * 300);
+            master2_state = GET_INPUT(2600+100  + 2 * 300);
+
+            /*
+            * 从机状态：
+            * 0 = 离线，按照待机处理
+            * 1 = 待机
+            * 2 = 故障
+            * 4 = 运行
+            */
+            slave1_state = GET_INPUT(2600+100  + 1 * 300);
+            slave2_state = GET_INPUT(2600+100 + 3 * 300);
+
+            /*
+            * 状态1：所有PCS全部故障。
+            */
+            all_fault =
+                ((master1_state >> 2) & 1) &&
+                ((master2_state >> 2) & 1) &&
+                ((slave1_state>> 2) & 1) &&
+                ((slave2_state >> 2) & 1);
+
+            /*
+            * 状态4：任意PCS故障。
+            */
+            any_fault =
+                ((master1_state >> 2) & 1) ||
+                ((master2_state >> 2) & 1) ||
+                ((slave1_state>> 2) & 1) ||
+                ((slave2_state >> 2) & 1);
+
+            /*
+            * 状态3：任意PCS运行。
+            */
+            any_running =
+                ((master1_state >> 0) & 1) ||
+                ((master2_state >> 0) & 1) ||
+                ((slave1_state>> 0) & 1) ||
+                ((slave2_state >> 0) & 1);
+
+            /*
+            * 状态2：所有PCS待机。
+            *
+            * 主机必须为待机状态2。
+            * 从机为待机状态1或离线状态0，都按照待机处理。
+            */
+            all_standby =
+                ((master1_state >> 1) & 1) &&
+                ((master2_state >> 1) & 1) &&
+                ((slave1_state>> 1) & 1) &&
+                ((slave2_state >> 1) & 1);
+
+            /*
+            * 判断优先级：
+            * 全部故障 > 任意故障 > 任意运行 > 全部待机。
+            */
+            if (all_fault)
+            {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);
+            }
+            else if (any_fault)
+            {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
+            }
+            else if (any_running)
+            {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);
+            }
+            else if (all_standby)
+            {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
+            }
+            else
+            {
+                /*
+                * 未定义状态，避免保留上一次状态。
+                */
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 0);
+            }
+            
+            int faulting_BMS_Num = 0;   // 一定要先清零
+            for(int fault_BMS=0;fault_BMS<sys_cfg->bmsNum;fault_BMS++)
+            {
+                if((GET_INPUT(38071 + (fault_BMS) * 200) == 4) )
+                {
+                    faulting_BMS_Num++;
+                }
+                else
+                {
+                    faulting_BMS_Num=faulting_BMS_Num;
+                }
+            }
+            SET_INPUT(NUMBER_OF_FAULT_BMSs, faulting_BMS_Num );
+            int Warning_BMS_Num=0;
+            for(int Warn_BMS_Num=0;Warn_BMS_Num<sys_cfg->bmsNum;Warn_BMS_Num++)
+            {
+                if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+                {
+                    Warning_BMS_Num++;
+                }
+                else
+                {
+                    Warning_BMS_Num=Warning_BMS_Num;
+                }
+            }
+            SET_INPUT(NUMBER_OF_WARNING_BMSs, Warning_BMS_Num );
+
+            int running_bms_num =0;
+            for(int Run_BMS_Num=0;Run_BMS_Num<sys_cfg->bmsNum;Run_BMS_Num++)
+            {
+                if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+                {
+                    running_bms_num ++;             
+                }
+                else
+                {
+                    running_bms_num =running_bms_num ;
+                }
+            }
+            SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
+
+           if ((GET_HOLD(12000+2) == 1U)&&(GET_HOLD(12000+2+700) == 1U)&&(GET_HOLD(12000+2+1400) == 1U)&&(GET_HOLD(12000+2+2100) == 1U)){
+                SET_INPUT(Blackstart_mode, 1);
+            } else {
+                SET_INPUT(Blackstart_mode, 0);
+            }
+        }
+    }
+//该部分数据无论拓扑如何变化都可以这样计算
+    /* 系统级数据量 */
+    INT32U chg_remain_capacity =
+        GET_INPUT(38000 + 0 * 200 + 6) + GET_INPUT(38000 + 1 * 200 + 6) +
+        GET_INPUT(38000 + 2 * 200 + 6) + GET_INPUT(38000 + 3 * 200 + 6) ;
+    chg_remain_capacity *= 10;
+    SET_INPUT(AVAILABLE_CHARGE_ENERGYH, (INT16U)(chg_remain_capacity >> 16));
+    SET_INPUT(AVAILABLE_CHARGE_ENERGYL, (INT16U)(chg_remain_capacity & 0xFFFF));
+
+    INT32U dchg_remain_capacity =
+        GET_INPUT(38000 + 0 * 200 + 7) + GET_INPUT(38000 + 1 * 200 + 7) +
+        GET_INPUT(38000 + 2 * 200 + 7) + GET_INPUT(38000 + 3 * 200 + 7) ;
+    dchg_remain_capacity *= 10;
+    SET_INPUT(AVAILABLE_DISCHARGE_ENERGYH, (INT16U)(dchg_remain_capacity >> 16));
+    SET_INPUT(AVAILABLE_DISCHARGE_ENERGYL, (INT16U)(dchg_remain_capacity & 0xFFFF));
+
+    INT32U chg_power =
+        GET_INPUT(38000 + 0 * 200 + 38) + GET_INPUT(38000 + 1 * 200 + 38) +
+        GET_INPUT(38000 + 2 * 200 + 38) + GET_INPUT(38000 + 3 * 200 + 38) ;
+    chg_power *= 10;
+    SET_INPUT(AVAILABLE_CHARGE_POWERH, (INT16U)(chg_power >> 16));
+    SET_INPUT(AVAILABLE_CHARGE_POWERL, (INT16U)(chg_power & 0xFFFF));
+
+    INT32U dchg_power =
+        GET_INPUT(38000 + 0 * 200 + 37) + GET_INPUT(38000 + 1 * 200 + 37) +
+        GET_INPUT(38000 + 2 * 200 + 37) + GET_INPUT(38000 + 3 * 200 + 37) ;
+    dchg_power *= 10;
+    SET_INPUT(AVAILABLE_DISCHARGE_POWERH, (INT16U)(dchg_power >> 16));
+    SET_INPUT(AVAILABLE_DISCHARGE_POWERL, (INT16U)(dchg_power & 0xFFFF));
+
+    INT32S Atvice_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 111) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 111)+(INT16S)GET_INPUT(2600 + 2 * 300 + 111) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 111))*10;
+    SET_INPUT(ATVICE_POWERH, (INT16U)(Atvice_power >> 16));
+    SET_INPUT(ATVICE_POWERL, (INT16U)(Atvice_power & 0xFFFF));
+
+    INT32S Reactive_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 112) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 112)+(INT16S)GET_INPUT(2600 + 2 * 300 + 112) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 112))*10;
+
+    SET_INPUT(REACTIVE_POWERH, (INT16U)(Reactive_power >> 16));
+    SET_INPUT(REACTIVE_POWERL, (INT16U)(Reactive_power & 0xFFFF));
+
+
+    INT32S S = (INT32S)((INT16S)GET_INPUT(2600 + 0 * 300 + 113) + (INT16S)GET_INPUT(2600 + 1 * 300 + 113)+(INT16S)GET_INPUT(2600 + 2 * 300 + 113) + (INT16S)GET_INPUT(2600 + 3 * 300 + 113));
+
+    // 同样拆成高低字输出
+    SET_INPUT(APPARENT_POWERH, (INT16U)((INT32U)S >> 16));
+    SET_INPUT(APPARENT_POWERL, (INT16U)((INT32U)S & 0xFFFF));
+
+// if(sys_cfg->pcsNum==2)
+// {
+//    INT32U Available_inductive_reactive_powertotal=sqrt((double)5000 * (double)5000 - (double)p64 * (double)p64);
+
+
+//     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
+//     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
+
+//     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
+//     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
+// }
+// else if(sys_cfg->pcsNum==4)
+// {
+//       INT32U Available_inductive_reactive_powertotal=sqrt((double)10000 * (double)10000 - (double)p64 * (double)p64);
+
+
+//     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
+//     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
+
+//     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
+//     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
+// }
+   INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+    INT32U Nominal_capctiy = 35560*PCS_num;
+
+    SET_INPUT(NOMINAL_CAPCTIY_H, (INT16U)(Nominal_capctiy >> 16));
+    SET_INPUT(NOMINAL_CAPCTIY_L, (INT16U)(Nominal_capctiy & 0xFFFF));
+    INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+    INT32U Nominal_energy = 50000*BMS_num;
+
+    SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
+    SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));
+
+    INT32S DC_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 110) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 110)+(INT16S)GET_INPUT(2600 + 2 * 300 + 110) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 110))*10;
+    SET_INPUT(DC_POWERH, (INT16U)(DC_power >> 16));
+    SET_INPUT(DC_POWERL, (INT16U)(DC_power & 0xFFFF));
+
+   INT32S DC_current = ((INT16S)GET_INPUT(2600 + 0 * 300 + 115) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 115)+(INT16S)GET_INPUT(2600 + 2 * 300 + 115) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 115))*10;
+    SET_INPUT(DC_CURRENTH, (INT16U)(DC_current >> 16));
+    SET_INPUT(DC_CURRENTL, (INT16U)(DC_current & 0xFFFF));
+
+ INT32U Total_Daily_discharged_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 26)<<16) + GET_INPUT(2600 + 0 * 300 + 27))+((GET_INPUT(2600 + 0 * 300 + 66)<<16) + GET_INPUT(2600 + 0 * 300 + 67))+
+ ((GET_INPUT(2600 + 1 * 300 + 26)<<16) + GET_INPUT(2600 + 1 * 300 + 27))+((GET_INPUT(2600 + 1 * 300 + 66)<<16) + GET_INPUT(2600 + 1 * 300 + 67))+
+ ((GET_INPUT(2600 + 2 * 300 + 26)<<16) + GET_INPUT(2600 + 2 * 300 + 27))+((GET_INPUT(2600 + 2 * 300 + 66)<<16) + GET_INPUT(2600 + 2 * 300 + 67))+
+ ((GET_INPUT(2600 + 3 * 300 + 26)<<16) + GET_INPUT(2600 + 3 * 300 + 27))+((GET_INPUT(2600 + 3 * 300 + 66)<<16) + GET_INPUT(2600 + 3 * 300 + 67))
+ )*10;
+     SET_INPUT(Daily_discharged_EnergyH, (INT16U)(Total_Daily_discharged_Energy >> 16));
+     SET_INPUT(Daily_discharged_EnergyL, (INT16U)(Total_Daily_discharged_Energy & 0xFFFF));
+
+ INT32U Total_Daily_charged_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 28)<<16) + GET_INPUT(2600 + 0 * 300 + 29))+((GET_INPUT(2600 + 0 * 300 + 68)<<16) + GET_INPUT(2600 + 0 * 300 + 69))+
+ ((GET_INPUT(2600 + 1 * 300 + 28)<<16) + GET_INPUT(2600 + 1 * 300 + 29))+((GET_INPUT(2600 + 1 * 300 + 68)<<16) + GET_INPUT(2600 + 1 * 300 + 69))+
+ ((GET_INPUT(2600 + 2 * 300 + 28)<<16) + GET_INPUT(2600 + 2 * 300 + 29))+((GET_INPUT(2600 + 2 * 300 + 68)<<16) + GET_INPUT(2600 + 2 * 300 + 69))+
+ ((GET_INPUT(2600 + 3 * 300 + 28)<<16) + GET_INPUT(2600 + 3 * 300 + 29))+((GET_INPUT(2600 + 3 * 300 + 68)<<16) + GET_INPUT(2600 + 3 * 300 + 69))
+ )*10;
+     SET_INPUT(Daily_charged_EnergyH, (INT16U)(Total_Daily_charged_Energy >> 16));
+     SET_INPUT(Daily_charged_EnergyL, (INT16U)(Total_Daily_charged_Energy & 0xFFFF));
+
+
+ INT32U Total_Total_discharged_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 42)<<16) + GET_INPUT(2600 + 0 * 300 + 43))+((GET_INPUT(2600 + 0 * 300 + 74)<<16) + GET_INPUT(2600 + 0 * 300 + 75))+
+ ((GET_INPUT(2600 + 1 * 300 + 42)<<16) + GET_INPUT(2600 + 1 * 300 + 43))+((GET_INPUT(2600 + 1 * 300 + 74)<<16) + GET_INPUT(2600 + 1 * 300 + 75))+
+ ((GET_INPUT(2600 + 2 * 300 + 42)<<16) + GET_INPUT(2600 + 2 * 300 + 43))+((GET_INPUT(2600 + 2 * 300 + 74)<<16) + GET_INPUT(2600 + 2 * 300 + 75))+
+ ((GET_INPUT(2600 + 3 * 300 + 42)<<16) + GET_INPUT(2600 + 3 * 300 + 43))+((GET_INPUT(2600 + 3 * 300 + 74)<<16) + GET_INPUT(2600 + 3 * 300 + 75))
+ )*10;
+     SET_INPUT(Total_discharged_EnergyH, (INT16U)(Total_Total_discharged_Energy >> 16));
+     SET_INPUT(Total_discharged_EnergyL, (INT16U)(Total_Total_discharged_Energy & 0xFFFF));
+
+ INT32U Total_Total_charged_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 44)<<16) + GET_INPUT(2600 + 0 * 300 + 45))+((GET_INPUT(2600 + 0 * 300 + 76)<<16) + GET_INPUT(2600 + 0 * 300 + 77))+
+ ((GET_INPUT(2600 + 1 * 300 + 44)<<16) + GET_INPUT(2600 + 1 * 300 + 45))+((GET_INPUT(2600 + 1 * 300 + 76)<<16) + GET_INPUT(2600 + 1 * 300 + 77))+
+ ((GET_INPUT(2600 + 2 * 300 + 44)<<16) + GET_INPUT(2600 + 2 * 300 + 45))+((GET_INPUT(2600 + 2 * 300 + 76)<<16) + GET_INPUT(2600 + 2 * 300 + 77))+
+ ((GET_INPUT(2600 + 3 * 300 + 44)<<16) + GET_INPUT(2600 + 3 * 300 + 45))+((GET_INPUT(2600 + 3 * 300 + 76)<<16) + GET_INPUT(2600 + 3 * 300 + 77))
+ )*10;
+     SET_INPUT(Total_charged_EnergyH, (INT16U)(Total_Total_charged_Energy >> 16));
+     SET_INPUT(Total_charged_EnergyL, (INT16U)(Total_Total_charged_Energy & 0xFFFF));
+////
+
+INT32U AC_Total_Daily_discharged_Energy = 
+ (
+    ((GET_INPUT(2600 + 0 * 300 + 70)<<16) + GET_INPUT(2600 + 0 * 300 + 71))+
+    ((GET_INPUT(2600 + 0 * 300 + 82)<<16) + GET_INPUT(2600 + 0 * 300 + 83))+
+    ((GET_INPUT(2600 + 1 * 300 + 70)<<16) + GET_INPUT(2600 + 1 * 300 + 71))+
+    ((GET_INPUT(2600 + 1 * 300 + 82)<<16) + GET_INPUT(2600 + 1 * 300 + 83))+
+    ((GET_INPUT(2600 + 2 * 300 + 70)<<16) + GET_INPUT(2600 + 2 * 300 + 71))+
+    ((GET_INPUT(2600 + 2 * 300 + 82)<<16) + GET_INPUT(2600 + 2 * 300 + 83))+
+
+    ((GET_INPUT(2600 + 3 * 300 + 70)<<16) + GET_INPUT(2600 + 3 * 300 + 71))+
+    ((GET_INPUT(2600 + 3 * 300 + 82)<<16) + GET_INPUT(2600 + 3 * 300 + 83))
+
+
+
+ )*10;
+     SET_INPUT(AC_Daily_discharged_EnergyH, (INT16U)(AC_Total_Daily_discharged_Energy >> 16));
+     SET_INPUT(AC_Daily_discharged_EnergyL, (INT16U)(AC_Total_Daily_discharged_Energy & 0xFFFF));
+
+ INT32U AC_Total_Daily_charged_Energy = 
+ (
+    ((GET_INPUT(2600 + 0 * 300 + 68)<<16) + GET_INPUT(2600 + 0 * 300 + 69))+
+    ((GET_INPUT(2600 + 0 * 300 + 80)<<16) + GET_INPUT(2600 + 0 * 300 + 81))+
+    ((GET_INPUT(2600 + 1 * 300 + 68)<<16) + GET_INPUT(2600 + 1 * 300 + 69))+
+    ((GET_INPUT(2600 + 1 * 300 + 80)<<16) + GET_INPUT(2600 + 1 * 300 + 81))+
+    ((GET_INPUT(2600 + 2 * 300 + 68)<<16) + GET_INPUT(2600 + 2 * 300 + 69))+
+    ((GET_INPUT(2600 + 2 * 300 + 80)<<16) + GET_INPUT(2600 + 2 * 300 + 81))+
+    ((GET_INPUT(2600 + 3 * 300 + 68)<<16) + GET_INPUT(2600 + 3 * 300 + 69))+
+    ((GET_INPUT(2600 + 3 * 300 + 80)<<16) + GET_INPUT(2600 + 3 * 300 + 81))
+ )*10;
+     SET_INPUT(AC_Daily_charged_EnergyH, (INT16U)(AC_Total_Daily_charged_Energy >> 16));
+     SET_INPUT(AC_Daily_charged_EnergyL, (INT16U)(AC_Total_Daily_charged_Energy & 0xFFFF));
+
+
+ INT32U AC_Total_Total_discharged_Energy = 
+ (
+ ((GET_INPUT(2600 + 0 * 300 + 74)<<16) + GET_INPUT(2600 + 0 * 300 + 75))+
+ ((GET_INPUT(2600 + 0 * 300 + 86)<<16) + GET_INPUT(2600 + 0 * 300 + 87))+
+ ((GET_INPUT(2600 + 1 * 300 + 74)<<16) + GET_INPUT(2600 + 1 * 300 + 75))+
+ ((GET_INPUT(2600 + 1 * 300 + 86)<<16) + GET_INPUT(2600 + 1 * 300 + 87))+
+ ((GET_INPUT(2600 + 2 * 300 + 74)<<16) + GET_INPUT(2600 + 2 * 300 + 75))+
+ ((GET_INPUT(2600 + 2 * 300 + 86)<<16) + GET_INPUT(2600 + 2 * 300 + 87))+
+ ((GET_INPUT(2600 + 3 * 300 + 74)<<16) + GET_INPUT(2600 + 3 * 300 + 75))+
+ ((GET_INPUT(2600 + 3 * 300 + 86)<<16) + GET_INPUT(2600 + 3 * 300 + 87))
+ 
+)*10;
+     SET_INPUT(AC_Total_discharged_EnergyH, (INT16U)(AC_Total_Total_discharged_Energy >> 16));
+     SET_INPUT(AC_Total_discharged_EnergyL, (INT16U)(AC_Total_Total_discharged_Energy & 0xFFFF));
+
+ INT32U AC_Total_Total_charged_Energy = 
+ (
+ ((GET_INPUT(2600 + 0 * 300 + 72)<<16) + GET_INPUT(2600 + 0 * 300 + 73))+
+ ((GET_INPUT(2600 + 0 * 300 + 84)<<16) + GET_INPUT(2600 + 0 * 300 + 85))+
+ ((GET_INPUT(2600 + 1 * 300 + 72)<<16) + GET_INPUT(2600 + 1 * 300 + 73))+
+ ((GET_INPUT(2600 + 1 * 300 + 84)<<16) + GET_INPUT(2600 + 1 * 300 + 85))+
+ ((GET_INPUT(2600 + 2 * 300 + 72)<<16) + GET_INPUT(2600 + 2 * 300 + 73))+
+ ((GET_INPUT(2600 + 2 * 300 + 84)<<16) + GET_INPUT(2600 + 2 * 300 + 85))+
+ ((GET_INPUT(2600 + 3 * 300 + 72)<<16) + GET_INPUT(2600 + 3 * 300 + 73))+
+ ((GET_INPUT(2600 + 3 * 300 + 84)<<16) + GET_INPUT(2600 + 3 * 300 + 85))
+
+)*10;
+     SET_INPUT(AC_Total_charged_EnergyH, (INT16U)(AC_Total_Total_charged_Energy >> 16));
+     SET_INPUT(AC_Total_charged_EnergyL, (INT16U)(AC_Total_Total_charged_Energy & 0xFFFF));
+    const char *time_str = get_current_time();
+int ret = sscanf(time_str,
+                 "%u-%u-%u %u:%u:%u",
+                 &year,
+                 &month,
+                 &day,
+                 &hour,
+                 &minute,
+                 &second);
+
+if (ret == 6)
+{
+    SET_INPUT(Year,   (INT16U)year);
+    SET_INPUT(Month,  (INT16U)month);
+    SET_INPUT(Day,    (INT16U)day);
+    SET_INPUT(Hour,   (INT16U)hour);
+    SET_INPUT(Minute, (INT16U)minute);
+    SET_INPUT(Second, (INT16U)second);
+}
+
+    INT32S PCS1_status = ((INT16S)GET_INPUT(2600 + 0 * 300 + 18));
+    INT32S PCS2_status = ((INT16S)GET_INPUT(2600 + 1 * 300 + 18));
+    INT32S PCS3_status = ((INT16S)GET_INPUT(2600 + 2 * 300 + 18));
+    INT32S PCS4_status = ((INT16S)GET_INPUT(2600 + 3 * 300 + 18));
+
+    SET_INPUT(17000 + 300 * 0 + 32, PCS_Status_To_RegValue(PCS1_status));
+    SET_INPUT(17000 + 300 * 0 + 33, PCS_Status_To_RegValue(PCS2_status));
+    SET_INPUT(17000 + 300 * 1 + 32, PCS_Status_To_RegValue(PCS3_status));
+    SET_INPUT(17000 + 300 * 1 + 33, PCS_Status_To_RegValue(PCS4_status));
+
+
+
+
+    if((GET_INPUT(27327) == 1)&& (GET_INPUT(27326) == 0))//高压侧开关分闸
+    {
+        SET_INPUT(High_voltage_switch_status,0xEE);
+    }
+    else if(GET_INPUT(27327) == 0 && GET_INPUT(27326) == 1)//高压侧开关合闸
+    {
+        SET_INPUT(High_voltage_switch_status,0xAA);
+    }
+
+}
+
+
+
+
+void trina_system_value1()
+{
+
+
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT16U year, month, day, hour, minute, second;
+    uint16_t master1_state;
+    uint16_t master2_state;
+    uint16_t slave1_state;
+    uint16_t slave2_state;
+
+    uint8_t all_fault;
+    uint8_t any_fault;
+    uint8_t any_running;
+    uint8_t all_standby;
+
+//当设备进行切入切出时。通信拓扑会发生变化，然后根据不同设备进行系统赋值
+    if (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0xF0) {
+       INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+        INT16U SOC = (GET_INPUT(38000 + 4 * 200 + 3) +
+                        GET_INPUT(38000 + 5 * 200 + 3) +
+                        GET_INPUT(38000 + 6 * 200 + 3) +
+                        GET_INPUT(38000 + 7 * 200 + 3)) / BMS_num;
+        SET_INPUT(SYSTEM_SOC, SOC);
+
+        INT16U SOH = (GET_INPUT(38000 + 4 * 200 + 4) +
+                        GET_INPUT(38000 + 5 * 200 + 4) +
+                        GET_INPUT(38000 + 6 * 200 + 4) +
+                        GET_INPUT(38000 + 7 * 200 + 4)) / BMS_num;
+        SET_INPUT(SYSTEM_SOH, SOH);
+
+
+        INT16U ac_freq = GET_INPUT(17000 + 1 * 300 + 43);
+        SET_INPUT(AC_FREQUENCY, ac_freq);
+
+        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 1 * 300 + 42);
+        SET_INPUT(POWER_FACTOR, Power_Factor);
+
+        INT32U DC_average_voltage = (GET_INPUT(38000 + 4 * 200 + 0) +
+                                       GET_INPUT(38000 + 5 * 200 + 0) +
+                                       GET_INPUT(38000 + 6 * 200 + 0) +
+                                       GET_INPUT(38000 + 7 * 200 + 0)) / BMS_num;
+        SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
+        SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
+
+        if (GET_INPUT(17063 + 1 * 300) == 2) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
+        }
+        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) ? 2 : 0));
+        int faulting_BMS_Num = 0;   
+        
+        for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
+        {
+            if((GET_INPUT(38071 + (fault_BMS+4) * 200) == 4))
+            {
+                faulting_BMS_Num++;
+            }
+            else
+            {
+                faulting_BMS_Num=faulting_BMS_Num;
+            }
+        }
+        SET_INPUT(NUMBER_OF_FAULT_BMSs, faulting_BMS_Num );
+        int Warning_BMS_Num=0;
+        for(int Warn_BMS_Num=0;Warn_BMS_Num<4;Warn_BMS_Num++)
+        {
+            if((GET_INPUT(38040 + (Warn_BMS_Num+4) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num+4) * 200) !=0))
+            {
+                Warning_BMS_Num++;
+            }
+            else
+            {
+                Warning_BMS_Num=Warning_BMS_Num;
+            }
+        }
+        SET_INPUT(NUMBER_OF_WARNING_BMSs, Warning_BMS_Num );
+        int running_bms_num =0;
+        for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
+        {
+            if((GET_INPUT(38072 + (Run_BMS_Num+4) * 200) !=0))
+            {
+                running_bms_num ++;
+            }
+            else
+            {
+                running_bms_num =running_bms_num ;
+            }
+        }
+        SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
+
+        if ((GET_INPUT(38072 + 4 * 200) == 2) ||
+            (GET_INPUT(38072 + 5 * 200) == 2) ||
+            (GET_INPUT(38072 + 6 * 200) == 2) ||
+            (GET_INPUT(38072 + 7 * 200) == 2)) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
+        } else if ((GET_INPUT(38072 + 4 * 200) == 1) ||
+                   (GET_INPUT(38072 + 5 * 200) == 1) ||
+                   (GET_INPUT(38072 + 6 * 200) == 1) ||
+                   (GET_INPUT(38072 + 7 * 200) == 1)) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
+        }
+
+    } else if (g_enabled_mask_pcs == 0x03 || g_enabled_mask_bms == 0x0F) {
+      INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+        INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) +
+                        GET_INPUT(38000 + 1 * 200 + 3) +
+                        GET_INPUT(38000 + 2 * 200 + 3) +
+                        GET_INPUT(38000 + 3 * 200 + 3)) / BMS_num;
+        SET_INPUT(SYSTEM_SOC, SOC);
+
+        INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
+                        GET_INPUT(38000 + 1 * 200 + 4) +
+                        GET_INPUT(38000 + 2 * 200 + 4) +
+                        GET_INPUT(38000 + 3 * 200 + 4)) / BMS_num;
+        SET_INPUT(SYSTEM_SOH, SOH);
+
+        INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
+        SET_INPUT(AC_FREQUENCY, ac_freq);
+
+        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+        SET_INPUT(POWER_FACTOR, Power_Factor);
+
+        INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
+                                       GET_INPUT(38000 + 1 * 200 + 0) +
+                                       GET_INPUT(38000 + 2 * 200 + 0) +
+                                       GET_INPUT(38000 + 3 * 200 + 0)) / BMS_num;
+        SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
+        SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
+
+        if (GET_INPUT(17063 + 0 * 300) == 2) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
+        }
+        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
+        if ((GET_INPUT(38072 + 0 * 200) == 2) ||
+            (GET_INPUT(38072 + 1 * 200) == 2) ||
+            (GET_INPUT(38072 + 2 * 200) == 2) ||
+            (GET_INPUT(38072 + 3 * 200) == 2)) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
+        } else if ((GET_INPUT(38072 + 0 * 200) == 1) ||
+                   (GET_INPUT(38072 + 1 * 200) == 1) ||
+                   (GET_INPUT(38072 + 2 * 200) == 1) ||
+                   (GET_INPUT(38072 + 3 * 200) == 1)) {
+            SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
+        }
+        int faulting_BMS_Num = 0;  
+        for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
+        {
+            if((GET_INPUT(38071 + (fault_BMS) * 200) == 4))
+            {
+                faulting_BMS_Num++;
+            }
+            else
+            {
+                faulting_BMS_Num=faulting_BMS_Num;
+            }
+        }
+        SET_INPUT(NUMBER_OF_FAULT_BMSs, faulting_BMS_Num );
+        int Warning_BMS_Num=0;
+        for(int Warn_BMS_Num=0;Warn_BMS_Num<4;Warn_BMS_Num++)
+        {
+            if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+            {
+                Warning_BMS_Num++;
+            }
+            else
+            {
+                Warning_BMS_Num=Warning_BMS_Num;
+            }
+        }
+        SET_INPUT(NUMBER_OF_WARNING_BMSs, Warning_BMS_Num );
+        int running_bms_num =0;
+        for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
+        {
+            if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+            {
+                running_bms_num ++;
+            }
+            else
+            {
+                running_bms_num =running_bms_num ;
+            }
+        }
+        SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
+
+    } else {
+        if ((GET_INPUT(NUMBER_OF_PCSs) == 2)&&(GET_INPUT(NUMBER_OF_BMSs) == 4)) {
+            INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+            INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) +
+                            GET_INPUT(38000 + 1 * 200 + 3) +
+                            GET_INPUT(38000 + 2 * 200 + 3) +
+                            GET_INPUT(38000 + 3 * 200 + 3)) / BMS_num;
+            SET_INPUT(SYSTEM_SOC, SOC);
+
+            INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
+                            GET_INPUT(38000 + 1 * 200 + 4) +
+                            GET_INPUT(38000 + 2 * 200 + 4) +
+                            GET_INPUT(38000 + 3 * 200 + 4)) / BMS_num;
+            SET_INPUT(SYSTEM_SOH, SOH);
+
+
+
+            INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
+                                           GET_INPUT(38000 + 1 * 200 + 0) +
+                                           GET_INPUT(38000 + 2 * 200 + 0) +
+                                           GET_INPUT(38000 + 3 * 200 + 0)) / BMS_num;
+            SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
+            SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
+            
+
+
+            INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+            SET_INPUT(POWER_FACTOR, Power_Factor);
+
+            if ((GET_INPUT(2600+100 + 0 * 300) == 2)&&((GET_INPUT(2600+100 + 1* 300) == 2))) {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);//所有PCS待机
+            }
+            else if (((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1)&&((GET_INPUT(2600+100 + 0 * 300)>> 2) & 1 == 1)){
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);//所有PCS全部关闭，无法启动
+            }            
+            else if (((GET_INPUT(2600 +100+ 0 * 300)>> 0) & 1 == 1) ||
+                ((GET_INPUT(2600 +100+ 0 * 300)>> 0) & 1)){
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);//运行，任意一个在运行
+            } else if (((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1) ||
+                    ((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1 )){
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);//任意一个故障
+            }
+
+            SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
+            SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
+
+             SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
+            if (((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1U) {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
+            } else {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
+            }
+           int faulting_BMS_Num = 0;   // 一定要先清零
+            for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
+            {
+                if((GET_INPUT(38071 + (fault_BMS) * 200) == 4))
+                {
+                    faulting_BMS_Num++;
+                }
+                else
+                {
+                    faulting_BMS_Num=faulting_BMS_Num;
+                }
+            }
+            SET_INPUT(NUMBER_OF_FAULT_BMSs, faulting_BMS_Num );
+
+
+            int Warning_BMS_Num=0;
+            for(int Warn_BMS_Num=0;Warn_BMS_Num<4;Warn_BMS_Num++)
+            {
+                if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+                {
+                    Warning_BMS_Num++;
+                }
+                else
+                {
+                    Warning_BMS_Num=Warning_BMS_Num;
+                }
+            }
+            SET_INPUT(NUMBER_OF_WARNING_BMSs, Warning_BMS_Num );
+            int running_bms_num =0;
+            for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
+            {
+                if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+                {
+                    running_bms_num ++;
+                }
+                else
+                {
+                    running_bms_num =running_bms_num ;
+                }
+            }
+            SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
+             if ((GET_HOLD(12000+2) == 1U)&&(GET_HOLD(12000+2+700) == 1U)) {
+                SET_INPUT(Blackstart_mode, 1);
+            } else {
+                SET_INPUT(Blackstart_mode, 0);
+            }
+            uint16_t ac_freq = GET_INPUT(2600+0*300+106);
+
+            for (uint8_t n = 1; n < 4; n++)
+            {
+                uint16_t value = GET_INPUT(2600 + n * 300 + 106);
+
+                if (value > ac_freq)
+                {
+                    ac_freq = value;
+                }
+            }            
+                SET_INPUT(AC_FREQUENCY, ac_freq);
+        } else if((GET_INPUT(NUMBER_OF_PCSs) == 4)&&(GET_INPUT(NUMBER_OF_BMSs) == 8))
+        {
+             INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+            INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) + GET_INPUT(38000 + 1 * 200 + 3) +
+                            GET_INPUT(38000 + 2 * 200 + 3) + GET_INPUT(38000 + 3 * 200 + 3) +
+                            GET_INPUT(38000 + 4 * 200 + 3) + GET_INPUT(38000 + 5 * 200 + 3) +
+                            GET_INPUT(38000 + 6 * 200 + 3) + GET_INPUT(38000 + 7 * 200 + 3)) / BMS_num;
+            SET_INPUT(SYSTEM_SOC, SOC);
+
+            INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) + GET_INPUT(38000 + 1 * 200 + 4) +
+                            GET_INPUT(38000 + 2 * 200 + 4) + GET_INPUT(38000 + 3 * 200 + 4) +
+                            GET_INPUT(38000 + 4 * 200 + 4) + GET_INPUT(38000 + 5 * 200 + 4) +
+                            GET_INPUT(38000 + 6 * 200 + 4) + GET_INPUT(38000 + 7 * 200 + 4)) / BMS_num;
+            SET_INPUT(SYSTEM_SOH, SOH);
+
+            SYS_State_ENUM state[2]; 
+
+            state[0]= Get_State_Sys(0); //获取系统1的状态
+            state[1]= Get_State_Sys(1); //获取系统2的状态
+
+            bool sys1_run = (state[0] == SYSRun || state[0] == SYSWarnRun);
+            bool sys2_run = (state[1] == SYSRun || state[1] == SYSWarnRun);
+            
+            if(sys1_run==1)
+            {
+                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 0 * 300 + 42)); 
+                SET_INPUT(POWER_FACTOR, Power_Factor);
+            }
+            else if(sys2_run==1)
+            {
+                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 1 * 300 + 42)); 
+                SET_INPUT(POWER_FACTOR, Power_Factor);
+            }
+            else
+            {
+                 SET_INPUT(POWER_FACTOR, 0);
+            }
+
+            uint16_t ac_freq = GET_INPUT(2600+0*300+106);
+
+            for (uint8_t n = 1; n < 4; n++)
+            {
+                uint16_t value = GET_INPUT(2600 + n * 300 + 106);
+
+                if (value > ac_freq)
+                {
+                    ac_freq = value;
+                }
+            }            
+                SET_INPUT(AC_FREQUENCY, ac_freq);
+            
+
+            INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
+                                           GET_INPUT(38000 + 1 * 200 + 0) +
+                                           GET_INPUT(38000 + 2 * 200 + 0) +
+                                           GET_INPUT(38000 + 3 * 200 + 0) +
+                                           GET_INPUT(38000 + 4 * 200 + 0) +
+                                           GET_INPUT(38000 + 5 * 200 + 0) +
+                                           GET_INPUT(38000 + 6 * 200 + 0) +
+                                           GET_INPUT(38000 + 7 * 200 + 0)) / BMS_num;
+            SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
+            SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
+
+
+            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) 
+            {          
+               
+                SET_INPUT(PCS_GROUP_STATUS, 1);
+          
+            } 
+            
+
+            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1) 
+            {          
+               
+                SET_INPUT(PCS_GROUP_STATUS, 2);
+            } 
+            if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 6) & 1)) == 1) {
+                SET_INPUT(NUMBER_OF_WARNING_PCSs, 2);
+            } else if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) == 1) &&
+                       (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) == 1)) {
+                SET_INPUT(NUMBER_OF_WARNING_PCSs, 4);
+            } else {
+                SET_INPUT(NUMBER_OF_WARNING_PCSs, 0);
+            }
+ 
+
+            if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 4) & 1)) == 1) {
+                SET_INPUT(NUMBER_OF_FAULT_PCSs, 2);
+
+                // SET_INPUT(PCS_GROUP_STATUS, 1);
+            } else if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) &&
+                       (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1)) {
+                SET_INPUT(NUMBER_OF_FAULT_PCSs, 4);
+                SET_INPUT(PCS_GROUP_STATUS, 3);
+            } 
+
+            else {
+                SET_INPUT(NUMBER_OF_FAULT_PCSs, 0);
+                SET_INPUT(PCS_GROUP_STATUS, 0);
+            }
+        
+            if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) ^ ((GET_INPUT(17063 + 1 * 300) >> 3) & 1)) == 1) {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
+            } else if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1) &&
+                       (((GET_INPUT(17063 + 1 * 300) >> 3) & 1) == 1)) {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 4);
+            } else {
+                SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
+            }
+
+    //  uint16_t master1_state;
+    //         uint16_t master2_state;
+    //         uint16_t slave1_state;
+    //         uint16_t slave2_state;
+
+    //         uint8_t all_fault;
+    //         uint8_t any_fault;
+    //         uint8_t any_running;
+    //         uint8_t all_standby;
+
+            /*
+            * 主机状态：
+            * 2  = 待机
+            * 8  = 运行
+            * 16 = 故障
+            */
+            master1_state = GET_INPUT(2600+100 + 0 * 300);
+            master2_state = GET_INPUT(2600+100  + 2 * 300);
+
+            /*
+            * 从机状态：
+            * 0 = 离线，按照待机处理
+            * 1 = 待机
+            * 2 = 故障
+            * 4 = 运行
+            */
+            slave1_state = GET_INPUT(2600+100  + 1 * 300);
+            slave2_state = GET_INPUT(2600+100 + 3 * 300);
+
+            /*
+            * 状态1：所有PCS全部故障。
+            */
+            all_fault =
+                ((master1_state >> 2) & 1) &&
+                ((master2_state >> 2) & 1) &&
+                ((slave1_state>> 2) & 1) &&
+                ((slave2_state >> 2) & 1);
+
+            /*
+            * 状态4：任意PCS故障。
+            */
+            any_fault =
+                ((master1_state >> 2) & 1) ||
+                ((master2_state >> 2) & 1) ||
+                ((slave1_state>> 2) & 1) ||
+                ((slave2_state >> 2) & 1);
+
+            /*
+            * 状态3：任意PCS运行。
+            */
+            any_running =
+                ((master1_state >> 0) & 1) ||
+                ((master2_state >> 0) & 1) ||
+                ((slave1_state>> 0) & 1) ||
+                ((slave2_state >> 0) & 1);
+
+            /*
+            * 状态2：所有PCS待机。
+            *
+            * 主机必须为待机状态2。
+            * 从机为待机状态1或离线状态0，都按照待机处理。
+            */
+            all_standby =
+                ((master1_state >> 1) & 1) &&
+                ((master2_state >> 1) & 1) &&
+                ((slave1_state>> 1) & 1) &&
+                ((slave2_state >> 1) & 1);
+
+            /*
+            * 判断优先级：
+            * 全部故障 > 任意故障 > 任意运行 > 全部待机。
+            */
+            if (all_fault)
+            {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);
+            }
+            else if (any_fault)
+            {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
+            }
+            else if (any_running)
+            {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);
+            }
+            else if (all_standby)
+            {
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
+            }
+            else
+            {
+                /*
+                * 未定义状态，避免保留上一次状态。
+                */
+                SET_INPUT(STATE_OF_THE_ENERGY_STATION, 0);
+            }
+            
+
+            int faulting_BMS_Num = 0;   // 一定要先清零
+            for(int fault_BMS=0;fault_BMS<sys_cfg->bmsNum;fault_BMS++)
+            {
+                if((GET_INPUT(38071 + (fault_BMS) * 200) == 4) )
+                {
+                    faulting_BMS_Num++;
+                }
+                else
+                {
+                    faulting_BMS_Num=faulting_BMS_Num;
+                }
+            }
+            SET_INPUT(NUMBER_OF_FAULT_BMSs, faulting_BMS_Num );
+            int Warning_BMS_Num=0;
+            for(int Warn_BMS_Num=0;Warn_BMS_Num<sys_cfg->bmsNum;Warn_BMS_Num++)
+            {
+                if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+                {
+                    Warning_BMS_Num++;
+                }
+                else
+                {
+                    Warning_BMS_Num=Warning_BMS_Num;
+                }
+            }
+            SET_INPUT(NUMBER_OF_WARNING_BMSs, Warning_BMS_Num );
+
+            int running_bms_num =0;
+            for(int Run_BMS_Num=0;Run_BMS_Num<sys_cfg->bmsNum;Run_BMS_Num++)
+            {
+                if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+                {
+                    running_bms_num ++;
+     
+             
+                }
+                else
+                {
+                    running_bms_num =running_bms_num ;
+                }
+            }
+            SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
+           if ((GET_HOLD(12000+2) == 1U)&&(GET_HOLD(12000+2+700) == 1U)&&(GET_HOLD(12000+2+1400) == 1U)&&(GET_HOLD(12000+2+2100) == 1U)) {
+                SET_INPUT(Blackstart_mode, 1);
+            } else {
+                SET_INPUT(Blackstart_mode, 0);
+            }
+        }
+    }
+//该部分数据无论拓扑如何变化都可以这样计算
+    /* 系统级数据量 */
+    INT32U chg_remain_capacity =
+        (GET_INPUT(38000 + 0 * 200 + 6) + GET_INPUT(38000 + 1 * 200 + 6) +
+        GET_INPUT(38000 + 2 * 200 + 6) + GET_INPUT(38000 + 3 * 200 + 6) +
+        GET_INPUT(38000 + 4 * 200 + 6) + GET_INPUT(38000 + 5 * 200 + 6) +
+        GET_INPUT(38000 + 6 * 200 + 6) + GET_INPUT(38000 + 7 * 200 + 6))*10;
+    SET_INPUT(AVAILABLE_CHARGE_ENERGYH, (INT16U)(chg_remain_capacity >> 16));
+    SET_INPUT(AVAILABLE_CHARGE_ENERGYL, (INT16U)(chg_remain_capacity & 0xFFFF));
+
+    INT32U dchg_remain_capacity =
+        (GET_INPUT(38000 + 0 * 200 + 7) + GET_INPUT(38000 + 1 * 200 + 7) +
+        GET_INPUT(38000 + 2 * 200 + 7) + GET_INPUT(38000 + 3 * 200 + 7) +
+        GET_INPUT(38000 + 4 * 200 + 7) + GET_INPUT(38000 + 5 * 200 + 7) +
+        GET_INPUT(38000 + 6 * 200 + 7) + GET_INPUT(38000 + 7 * 200 + 7))*10;
+    SET_INPUT(AVAILABLE_DISCHARGE_ENERGYH, (INT16U)(dchg_remain_capacity >> 16));
+    SET_INPUT(AVAILABLE_DISCHARGE_ENERGYL, (INT16U)(dchg_remain_capacity & 0xFFFF));
+
+    INT32U chg_power =
+        (GET_INPUT(38000 + 0 * 200 + 38) + GET_INPUT(38000 + 1 * 200 + 38) +
+        GET_INPUT(38000 + 2 * 200 + 38) + GET_INPUT(38000 + 3 * 200 + 38) +
+        GET_INPUT(38000 + 4 * 200 + 38) + GET_INPUT(38000 + 5 * 200 + 38) +
+        GET_INPUT(38000 + 6 * 200 + 38) + GET_INPUT(38000 + 7 * 200 + 38))*10;
+    SET_INPUT(AVAILABLE_CHARGE_POWERH, (INT16U)(chg_power >> 16));
+    SET_INPUT(AVAILABLE_CHARGE_POWERL, (INT16U)(chg_power & 0xFFFF));
+
+    INT32U dchg_power =
+        (GET_INPUT(38000 + 0 * 200 + 37) + GET_INPUT(38000 + 1 * 200 + 37) +
+        GET_INPUT(38000 + 2 * 200 + 37) + GET_INPUT(38000 + 3 * 200 + 37) +
+        GET_INPUT(38000 + 4 * 200 + 37) + GET_INPUT(38000 + 5 * 200 + 37) +
+        GET_INPUT(38000 + 6 * 200 + 37) + GET_INPUT(38000 + 7 * 200 + 37))*10;
+
+    SET_INPUT(AVAILABLE_DISCHARGE_POWERH, (INT16U)(dchg_power >> 16));
+    SET_INPUT(AVAILABLE_DISCHARGE_POWERL, (INT16U)(dchg_power & 0xFFFF));
+
+    INT32S Atvice_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 111) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 111)+(INT16S)GET_INPUT(2600 + 2 * 300 + 111) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 111))*10;
+    SET_INPUT(ATVICE_POWERH, (INT16U)(Atvice_power >> 16));
+    SET_INPUT(ATVICE_POWERL, (INT16U)(Atvice_power & 0xFFFF));
+
+    INT32S Reactive_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 112) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 112)+(INT16S)GET_INPUT(2600 + 2 * 300 + 112) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 112))*10;
+
+    SET_INPUT(REACTIVE_POWERH, (INT16U)(Reactive_power >> 16));
+    SET_INPUT(REACTIVE_POWERL, (INT16U)(Reactive_power & 0xFFFF));
+
+
+    INT32S S = (INT32S)((INT16S)GET_INPUT(2600 + 0 * 300 + 113) + (INT16S)GET_INPUT(2600 + 1 * 300 + 113)+(INT16S)GET_INPUT(2600 + 2 * 300 + 113) + (INT16S)GET_INPUT(2600 + 3 * 300 + 113));
+
+    // 同样拆成高低字输出
+    SET_INPUT(APPARENT_POWERH, (INT16U)((INT32U)S >> 16));
+    SET_INPUT(APPARENT_POWERL, (INT16U)((INT32U)S & 0xFFFF));
+
+// if(sys_cfg->pcsNum==2)
+// {
+//    INT32U Available_inductive_reactive_powertotal=sqrt((double)5000 * (double)5000 - (double)p64 * (double)p64);
+
+
+//     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
+//     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
+
+//     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
+//     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
+// }
+// else if(sys_cfg->pcsNum==4)
+// {
+//       INT32U Available_inductive_reactive_powertotal=sqrt((double)10000 * (double)10000 - (double)p64 * (double)p64);
+
+
+//     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
+//     SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
+
+//     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
+//     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
+// }
+   INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+    INT32U Nominal_capctiy = 35560*PCS_num;
+
+    SET_INPUT(NOMINAL_CAPCTIY_H, (INT16U)(Nominal_capctiy >> 16));
+    SET_INPUT(NOMINAL_CAPCTIY_L, (INT16U)(Nominal_capctiy & 0xFFFF));
+ INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+    INT32U Nominal_energy = 50000*BMS_num;
+
+    SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
+    SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));
+
+    INT32S DC_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 110) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 110)+(INT16S)GET_INPUT(2600 + 2 * 300 + 110) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 110))*10;
+    SET_INPUT(DC_POWERH, (INT16U)(DC_power >> 16));
+    SET_INPUT(DC_POWERL, (INT16U)(DC_power & 0xFFFF));
+
+    INT32S DC_current = ((INT16S)GET_INPUT(2600 + 0 * 300 + 115) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 115)+(INT16S)GET_INPUT(2600 + 2 * 300 + 115) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 115))*10;
+    SET_INPUT(DC_CURRENTH, (INT16U)(DC_current >> 16));
+    SET_INPUT(DC_CURRENTL, (INT16U)(DC_current & 0xFFFF));
+
+ INT32U Total_Daily_discharged_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 26)<<16) + GET_INPUT(2600 + 0 * 300 + 27))+((GET_INPUT(2600 + 0 * 300 + 66)<<16) + GET_INPUT(2600 + 0 * 300 + 67))+
+ ((GET_INPUT(2600 + 1 * 300 + 26)<<16) + GET_INPUT(2600 + 1 * 300 + 27))+((GET_INPUT(2600 + 1 * 300 + 66)<<16) + GET_INPUT(2600 + 1 * 300 + 67))+
+ ((GET_INPUT(2600 + 2 * 300 + 26)<<16) + GET_INPUT(2600 + 2 * 300 + 27))+((GET_INPUT(2600 + 2 * 300 + 66)<<16) + GET_INPUT(2600 + 2 * 300 + 67))+
+ ((GET_INPUT(2600 + 3 * 300 + 26)<<16) + GET_INPUT(2600 + 3 * 300 + 27))+((GET_INPUT(2600 + 3 * 300 + 66)<<16) + GET_INPUT(2600 + 3 * 300 + 67))
+ )*10;
+     SET_INPUT(Daily_discharged_EnergyH, (INT16U)(Total_Daily_discharged_Energy >> 16));
+     SET_INPUT(Daily_discharged_EnergyL, (INT16U)(Total_Daily_discharged_Energy & 0xFFFF));
+
+ INT32U Total_Daily_charged_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 28)<<16) + GET_INPUT(2600 + 0 * 300 + 29))+((GET_INPUT(2600 + 0 * 300 + 68)<<16) + GET_INPUT(2600 + 0 * 300 + 69))+
+ ((GET_INPUT(2600 + 1 * 300 + 28)<<16) + GET_INPUT(2600 + 1 * 300 + 29))+((GET_INPUT(2600 + 1 * 300 + 68)<<16) + GET_INPUT(2600 + 1 * 300 + 69))+
+ ((GET_INPUT(2600 + 2 * 300 + 28)<<16) + GET_INPUT(2600 + 2 * 300 + 29))+((GET_INPUT(2600 + 2 * 300 + 68)<<16) + GET_INPUT(2600 + 2 * 300 + 69))+
+ ((GET_INPUT(2600 + 3 * 300 + 28)<<16) + GET_INPUT(2600 + 3 * 300 + 29))+((GET_INPUT(2600 + 3 * 300 + 68)<<16) + GET_INPUT(2600 + 3 * 300 + 69))
+ )*10;
+     SET_INPUT(Daily_charged_EnergyH, (INT16U)(Total_Daily_charged_Energy >> 16));
+     SET_INPUT(Daily_charged_EnergyL, (INT16U)(Total_Daily_charged_Energy & 0xFFFF));
+
+
+ INT32U Total_Total_discharged_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 42)<<16) + GET_INPUT(2600 + 0 * 300 + 43))+((GET_INPUT(2600 + 0 * 300 + 74)<<16) + GET_INPUT(2600 + 0 * 300 + 75))+
+ ((GET_INPUT(2600 + 1 * 300 + 42)<<16) + GET_INPUT(2600 + 1 * 300 + 43))+((GET_INPUT(2600 + 1 * 300 + 74)<<16) + GET_INPUT(2600 + 1 * 300 + 75))+
+ ((GET_INPUT(2600 + 2 * 300 + 42)<<16) + GET_INPUT(2600 + 2 * 300 + 43))+((GET_INPUT(2600 + 2 * 300 + 74)<<16) + GET_INPUT(2600 + 2 * 300 + 75))+
+ ((GET_INPUT(2600 + 3 * 300 + 42)<<16) + GET_INPUT(2600 + 3 * 300 + 43))+((GET_INPUT(2600 + 3 * 300 + 74)<<16) + GET_INPUT(2600 + 3 * 300 + 75))
+ )*10;
+     SET_INPUT(Total_discharged_EnergyH, (INT16U)(Total_Total_discharged_Energy >> 16));
+     SET_INPUT(Total_discharged_EnergyL, (INT16U)(Total_Total_discharged_Energy & 0xFFFF));
+
+ INT32U Total_Total_charged_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 44)<<16) + GET_INPUT(2600 + 0 * 300 + 45))+((GET_INPUT(2600 + 0 * 300 + 76)<<16) + GET_INPUT(2600 + 0 * 300 + 77))+
+ ((GET_INPUT(2600 + 1 * 300 + 44)<<16) + GET_INPUT(2600 + 1 * 300 + 45))+((GET_INPUT(2600 + 1 * 300 + 76)<<16) + GET_INPUT(2600 + 1 * 300 + 77))+
+ ((GET_INPUT(2600 + 2 * 300 + 44)<<16) + GET_INPUT(2600 + 2 * 300 + 45))+((GET_INPUT(2600 + 2 * 300 + 76)<<16) + GET_INPUT(2600 + 2 * 300 + 77))+
+ ((GET_INPUT(2600 + 3 * 300 + 44)<<16) + GET_INPUT(2600 + 3 * 300 + 45))+((GET_INPUT(2600 + 3 * 300 + 76)<<16) + GET_INPUT(2600 + 3 * 300 + 77))
+ )*10;
+     SET_INPUT(Total_charged_EnergyH, (INT16U)(Total_Total_charged_Energy >> 16));
+     SET_INPUT(Total_charged_EnergyL, (INT16U)(Total_Total_charged_Energy & 0xFFFF));
+////
+
+INT32U AC_Total_Daily_discharged_Energy = 
+ (
+    ((GET_INPUT(2600 + 0 * 300 + 70)<<16) + GET_INPUT(2600 + 0 * 300 + 71))+
+    ((GET_INPUT(2600 + 0 * 300 + 82)<<16) + GET_INPUT(2600 + 0 * 300 + 83))+
+    ((GET_INPUT(2600 + 1 * 300 + 70)<<16) + GET_INPUT(2600 + 1 * 300 + 71))+
+    ((GET_INPUT(2600 + 1 * 300 + 82)<<16) + GET_INPUT(2600 + 1 * 300 + 83))+
+    ((GET_INPUT(2600 + 2 * 300 + 70)<<16) + GET_INPUT(2600 + 2 * 300 + 71))+
+    ((GET_INPUT(2600 + 2 * 300 + 82)<<16) + GET_INPUT(2600 + 2 * 300 + 83))+
+
+    ((GET_INPUT(2600 + 3 * 300 + 70)<<16) + GET_INPUT(2600 + 3 * 300 + 71))+
+    ((GET_INPUT(2600 + 3 * 300 + 82)<<16) + GET_INPUT(2600 + 3 * 300 + 83))
+
+
+
+ )*10;
+     SET_INPUT(AC_Daily_discharged_EnergyH, (INT16U)(AC_Total_Daily_discharged_Energy >> 16));
+     SET_INPUT(AC_Daily_discharged_EnergyL, (INT16U)(AC_Total_Daily_discharged_Energy & 0xFFFF));
+
+ INT32U AC_Total_Daily_charged_Energy = 
+ (
+    ((GET_INPUT(2600 + 0 * 300 + 68)<<16) + GET_INPUT(2600 + 0 * 300 + 69))+
+    ((GET_INPUT(2600 + 0 * 300 + 80)<<16) + GET_INPUT(2600 + 0 * 300 + 81))+
+    ((GET_INPUT(2600 + 1 * 300 + 68)<<16) + GET_INPUT(2600 + 1 * 300 + 69))+
+    ((GET_INPUT(2600 + 1 * 300 + 80)<<16) + GET_INPUT(2600 + 1 * 300 + 81))+
+    ((GET_INPUT(2600 + 2 * 300 + 68)<<16) + GET_INPUT(2600 + 2 * 300 + 69))+
+    ((GET_INPUT(2600 + 2 * 300 + 80)<<16) + GET_INPUT(2600 + 2 * 300 + 81))+
+    ((GET_INPUT(2600 + 3 * 300 + 68)<<16) + GET_INPUT(2600 + 3 * 300 + 69))+
+    ((GET_INPUT(2600 + 3 * 300 + 80)<<16) + GET_INPUT(2600 + 3 * 300 + 81))
+ )*10;
+     SET_INPUT(AC_Daily_charged_EnergyH, (INT16U)(AC_Total_Daily_charged_Energy >> 16));
+     SET_INPUT(AC_Daily_charged_EnergyL, (INT16U)(AC_Total_Daily_charged_Energy & 0xFFFF));
+
+
+ INT32U AC_Total_Total_discharged_Energy = 
+ (
+ ((GET_INPUT(2600 + 0 * 300 + 74)<<16) + GET_INPUT(2600 + 0 * 300 + 75))+
+ ((GET_INPUT(2600 + 0 * 300 + 86)<<16) + GET_INPUT(2600 + 0 * 300 + 87))+
+ ((GET_INPUT(2600 + 1 * 300 + 74)<<16) + GET_INPUT(2600 + 1 * 300 + 75))+
+ ((GET_INPUT(2600 + 1 * 300 + 86)<<16) + GET_INPUT(2600 + 1 * 300 + 87))+
+ ((GET_INPUT(2600 + 2 * 300 + 74)<<16) + GET_INPUT(2600 + 2 * 300 + 75))+
+ ((GET_INPUT(2600 + 2 * 300 + 86)<<16) + GET_INPUT(2600 + 2 * 300 + 87))+
+ ((GET_INPUT(2600 + 3 * 300 + 74)<<16) + GET_INPUT(2600 + 3 * 300 + 75))+
+ ((GET_INPUT(2600 + 3 * 300 + 86)<<16) + GET_INPUT(2600 + 3 * 300 + 87))
+ 
+)*10;
+     SET_INPUT(AC_Total_discharged_EnergyH, (INT16U)(AC_Total_Total_discharged_Energy >> 16));
+     SET_INPUT(AC_Total_discharged_EnergyL, (INT16U)(AC_Total_Total_discharged_Energy & 0xFFFF));
+
+ INT32U AC_Total_Total_charged_Energy = 
+ (
+ ((GET_INPUT(2600 + 0 * 300 + 72)<<16) + GET_INPUT(2600 + 0 * 300 + 73))+
+ ((GET_INPUT(2600 + 0 * 300 + 84)<<16) + GET_INPUT(2600 + 0 * 300 + 85))+
+ ((GET_INPUT(2600 + 1 * 300 + 72)<<16) + GET_INPUT(2600 + 1 * 300 + 73))+
+ ((GET_INPUT(2600 + 1 * 300 + 84)<<16) + GET_INPUT(2600 + 1 * 300 + 85))+
+ ((GET_INPUT(2600 + 2 * 300 + 72)<<16) + GET_INPUT(2600 + 2 * 300 + 73))+
+ ((GET_INPUT(2600 + 2 * 300 + 84)<<16) + GET_INPUT(2600 + 2 * 300 + 85))+
+ ((GET_INPUT(2600 + 3 * 300 + 72)<<16) + GET_INPUT(2600 + 3 * 300 + 73))+
+ ((GET_INPUT(2600 + 3 * 300 + 84)<<16) + GET_INPUT(2600 + 3 * 300 + 85))
+
+)*10;
+     SET_INPUT(AC_Total_charged_EnergyH, (INT16U)(AC_Total_Total_charged_Energy >> 16));
+     SET_INPUT(AC_Total_charged_EnergyL, (INT16U)(AC_Total_Total_charged_Energy & 0xFFFF));
+///
+INT32U AC_Daily_Cap_Reactive_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 122)<<16) + GET_INPUT(2600 + 0 * 300 + 123))+
+ ((GET_INPUT(2600 + 1 * 300 + 122)<<16) + GET_INPUT(2600 + 1 * 300 + 123))+
+ ((GET_INPUT(2600 + 2 * 300 + 122)<<16) + GET_INPUT(2600 + 2 * 300 + 123))+
+ ((GET_INPUT(2600 + 3 * 300 + 122)<<16) + GET_INPUT(2600 + 3 * 300 + 123))
+ )*10;
+     SET_INPUT(AC_Daily_Cap_Reactive_EnergyH, (INT16U)(AC_Daily_Cap_Reactive_Energy >> 16));
+     SET_INPUT(AC_Daily_Cap_Reactive_EnergyL, (INT16U)(AC_Daily_Cap_Reactive_Energy & 0xFFFF));
+
+ INT32U AC_Daily_Ind_Reactive_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 124)<<16) + GET_INPUT(2600 + 0 * 300 + 125))+
+ ((GET_INPUT(2600 + 1 * 300 + 124)<<16) + GET_INPUT(2600 + 1 * 300 + 125))+
+ ((GET_INPUT(2600 + 2 * 300 + 124)<<16) + GET_INPUT(2600 + 2 * 300 + 125))+
+ ((GET_INPUT(2600 + 3 * 300 + 124)<<16) + GET_INPUT(2600 + 3 * 300 + 125))
+ )*10;
+     SET_INPUT(AC_Daily_Ind_Reactive_EnergyH, (INT16U)(AC_Daily_Ind_Reactive_Energy >> 16));
+     SET_INPUT(AC_Daily_Ind_Reactive_EnergyL, (INT16U)(AC_Daily_Ind_Reactive_Energy & 0xFFFF));
+
+
+ INT32U AC_Total_Cap_Reactive_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 130)<<16) + GET_INPUT(2600 + 0 * 131 + 107))+
+ ((GET_INPUT(2600 + 1 * 300 + 130)<<16) + GET_INPUT(2600 + 1 * 131 + 107))+
+ ((GET_INPUT(2600 + 2 * 300 + 130)<<16) + GET_INPUT(2600 + 2 * 131 + 107))+
+ ((GET_INPUT(2600 + 3 * 300 + 130)<<16) + GET_INPUT(2600 + 3 * 131 + 107))
+ )*10;
+     SET_INPUT(AC_Total_Cap_Reactive_EnergyH, (INT16U)(AC_Total_Cap_Reactive_Energy >> 16));
+     SET_INPUT(AC_Total_Cap_Reactive_EnergyL, (INT16U)(AC_Total_Cap_Reactive_Energy & 0xFFFF));
+
+ INT32U AC_Total_Ind_Reactive_Energy = 
+ (((GET_INPUT(2600 + 0 * 300 + 132)<<16) + GET_INPUT(2600 + 0 * 300 + 133))+
+ ((GET_INPUT(2600 + 1 * 300 + 132)<<16) + GET_INPUT(2600 + 1 * 300 + 133))+
+ ((GET_INPUT(2600 + 2 * 300 + 132)<<16) + GET_INPUT(2600 + 2 * 300 + 133))+
+ ((GET_INPUT(2600 + 3 * 300 + 132)<<16) + GET_INPUT(2600 + 3 * 300 + 133))
+ )*10;
+     SET_INPUT(AC_Total_Ind_Reactive_EnergyH, (INT16U)(AC_Total_Ind_Reactive_Energy >> 16));
+     SET_INPUT(AC_Total_Ind_Reactive_EnergyL, (INT16U)(AC_Total_Ind_Reactive_Energy & 0xFFFF));
+
+///
+    const char *time_str = get_current_time();
+int ret = sscanf(time_str,
+                 "%u-%u-%u %u:%u:%u",
+                 &year,
+                 &month,
+                 &day,
+                 &hour,
+                 &minute,
+                 &second);
+
+if (ret == 6)
+{
+    SET_INPUT(Year,   (INT16U)year);
+    SET_INPUT(Month,  (INT16U)month);
+    SET_INPUT(Day,    (INT16U)day);
+    SET_INPUT(Hour,   (INT16U)hour);
+    SET_INPUT(Minute, (INT16U)minute);
+    SET_INPUT(Second, (INT16U)second);
+}
+    if((GET_INPUT(27631) == 1)&& (GET_INPUT(27632) == 0))//高压侧开关分闸
+    {
+        SET_INPUT(High_voltage_switch_status,0xEE);
+        led_on();//临时调试使用
+    }
+    else if(GET_INPUT(27631) == 0 && GET_INPUT(27632) == 1)//高压侧开关合闸
+    {
+        SET_INPUT(High_voltage_switch_status,0xAA);
+        led_off();//临时调试使用
     }
     INT32S PCS1_status = ((INT16S)GET_INPUT(2600 + 0 * 300 + 18));
     INT32S PCS2_status = ((INT16S)GET_INPUT(2600 + 1 * 300 + 18));

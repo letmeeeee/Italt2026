@@ -195,13 +195,13 @@ void Modbus_TCP_Write_Single(int socket_fd, INT8U device_id, INT8U cmd_type, INT
         return;
     }
     //发送
-   led_off();
+   //led_off();
     write(socket_fd, SendBuffer, 12);
-  led_on();
+  //led_on();
     //LOG_INFO("socket_fd:%d,device_id:%d,cmd_type:%d,start_addr:%d,value:%d",socket_fd,device_id,cmd_type,start_addr,value);
     //  LOG_INFO("LC send is %s",SendBuffer);
      clock_gettime(CLOCK_MONOTONIC_RAW, &t0);
-     led_on();
+    // led_on();
     memset(LogStr, 0, sizeof(LogStr));
     for (j = 0; (j < sizeof(LogStr)) && (j < 12); j++)
     {

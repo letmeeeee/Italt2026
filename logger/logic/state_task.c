@@ -44,20 +44,36 @@ uint8_t black_end   = 0;
 void Check_Black_State(void)
 {
     static uint8_t last_state = 0;
-
+    sysPara* sys_cfg = SysConf_GetInfo();
     uint8_t current_state = 0;
-
-    /* 当前状态 */
-    if ((GET_HOLD(27000 + 300 * 0 + 21) == 1) ||
-        (GET_HOLD(27000 + 300 * 1 + 21) == 1))
+    if(sys_cfg->pcs_brand[0] == PCS_Taida)
     {
-        current_state = 1;
-    }
-    else
-    {
-        current_state = 0;
-    }
+        /* 当前状态 */
+        if ((GET_HOLD(27000 + 300 * 0 + 21) == 1) ||
+            (GET_HOLD(27000 + 300 * 1 + 21) == 1))
+        {
+            current_state = 1;
+        }
+        else
+        {
+            current_state = 0;
+        }
 
+    }
+    else if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+    {
+
+        /* 当前状态 */
+  if((GET_HOLD(12000+2) == 1U)||(GET_HOLD(12000+2+700) == 1U)||(GET_HOLD(12000+2+1400) == 1U)||(GET_HOLD(12000+2+2100) == 1U))
+        {
+            current_state = 1;
+        }
+        else
+        {
+            current_state = 0;
+        }
+
+    }
     /* 0 -> 1 */
     if ((last_state == 0) && (current_state == 1))
     {
@@ -118,13 +134,16 @@ void State_Task(void)
         }  
 
         }
+     
           if(BusType==S_BUS)
             {
-                system_value();
+                taida_system_value();
+                
             }
             else
             {
-                system_value1();
+               taida_system_value1();
+          
             }
  
         usleep(2 * 1000);      //轮询周期 Polling cycle
@@ -137,7 +156,9 @@ void Trina_State_Task(void)
     sysPara *sys_cfg = SysConf_GetInfo();
     while(1)
     {
-        
+         Check_Black_State();
+       if((GET_HOLD(12000+700*0+2)==0)&&(GET_HOLD(12000+700*1+2)==0)&&(GET_HOLD(12000+700*2+2)==0)&&(GET_HOLD(12000+700*3+2)==0))
+        {
         for(sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
         {
             for(sub_num=0; (sub_num < sys_cfg->subNum) && (sub_num<MAX_SUB_NUM);sub_num++)
@@ -149,6 +170,33 @@ void Trina_State_Task(void)
          
             SYS_Trina_State_Run(SYS_state, sys_num);
         }
+
+        }
+    else if((GET_HOLD(12000+700*0+2)==1)||(GET_HOLD(12000+700*1+2)==1)||(GET_HOLD(12000+700*2+2)==1)||(GET_HOLD(12000+700*3+2)==1))
+    {
+    if (black_start==1) 
+    {
+        black_start = 0;
+
+        SYS_Trina_State_Init(SYS_state, sys_num);
+
+    }
+          //黑启动模式
+            usleep(20 * 1000); 
+    }
+
+        if(BusType==S_BUS)
+        {
+            trina_system_value();
+            
+        }
+        else
+        {
+            trina_system_value1();
+            
+        
+        }
+        UpdateTrinaPCStoEMS();
         usleep(10 * 1000);      //轮询周期 Polling cycle
     }
   

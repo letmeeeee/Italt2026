@@ -16,12 +16,16 @@ static void Trina_DataProcess(unsigned char *ptr, int num)
     INT32U sum = 0;
     INT16U startaddr = 0;
     INT16U dataddr = 0;
+    INT16U slave_addr = 0;
+    INT16U offset_addr03 = 0;
+    INT16U offset_addr04 = 0;
     char str[15] = {0};
     INT8U sys_num=0;
     int index = 0;
     bool is_ok = 0;
     sysPara *sys_cfg = SysConf_GetInfo();
     memcpy(pbuf, ptr, PCS_BUFF_LEN);
+    slave_addr = pbuf[6];
 
     if (pbuf[7] == 0x03 )
     {
@@ -41,7 +45,7 @@ static void Trina_DataProcess(unsigned char *ptr, int num)
         {
             is_ok = false;
         }
-         if(((temp.D16 >= 3000) && (temp.D16 <4000)))
+         if(((temp.D16 >= PCS_Trina_03addr1) && (temp.D16 <PCS_Trina_03addr8)))
         {
             for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
             {
@@ -49,8 +53,31 @@ static void Trina_DataProcess(unsigned char *ptr, int num)
                 RegVal.D8[0] = pbuf[dataddr++]; 
                 index= Trina_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
                 SET_HOLD(index, RegVal.D16);
-              //LOG_INFO("台达：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
-
+            //   LOG_INFO("天合：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
+            } 
+        }
+        else if ((temp.D16 >= PCS_Trina_03addr8) && (temp.D16 < PCS_Trina_03addr9))
+        {
+            switch (slave_addr)
+            {
+            case PCS_Trina_SLAVE_J1_ADDR:
+                offset_addr03 = 0;
+                break;
+            case PCS_Trina_SLAVE_J2_ADDR:
+                offset_addr03 = 40;
+                break;
+            /*其他slave不处理*/
+            default:
+                LOG_INFO("data area: [%d : %d], invalid slave addr: %d", temp.D16, temp.D16 + pbuf[8]/2, slave_addr);
+                return;
+            }
+            for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
+            {
+                RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
+                RegVal.D8[0] = pbuf[dataddr++]; 
+                index= Trina_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
+                SET_HOLD(index+ offset_addr03, RegVal.D16);
+            //   LOG_INFO("天合：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
             } 
         }
 
@@ -73,10 +100,24 @@ static void Trina_DataProcess(unsigned char *ptr, int num)
         {
             is_ok = false;
         }
+        
         //Local Controller Version 1~Relay Ground Trip OCP Value①
         if ((temp.D16 >= 4000) && (temp.D16 <=5000 ))
         {
- 
+             switch (slave_addr)
+            {
+            case PCS_Trina_SLAVE_J1_ADDR:
+                offset_addr04 = 0;
+                break;
+            case PCS_Trina_SLAVE_J2_ADDR:
+                offset_addr04 = 2;
+                break;
+            /*其他slave不处理*/
+            default:
+               // LOG_INFO("data area: [%d : %d], invalid slave addr: %d", temp.D16, temp.D16 + pbuf[8]/2, slave_addr);
+               offset_addr04 = 0;
+               break;
+            }
 
             for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
             {
@@ -84,8 +125,8 @@ static void Trina_DataProcess(unsigned char *ptr, int num)
                 RegVal.D8[0] = pbuf[dataddr++]; 
               
                 index= Trina_INPUT_INDEX(num+1,temp.D16+i);//按照对外协议点表
-                SET_INPUT(index, RegVal.D16);
-             //   LOG_INFO("trina:%d,temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
+                SET_INPUT(index+offset_addr04, RegVal.D16);
+             // LOG_INFO("temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
 
             } 
         }
@@ -130,6 +171,7 @@ static int PCS_Power(const int pcs_num,const int sub_num)
     LOG_INFO("有功清零");
     Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_num],PCS_Trina_SLAVE_ADDR, PCS_Taida_REPower_addr, 0 , CMD_DELAY_200); 
     LOG_INFO("无功清零");
+    return 0;
 }
 /**
  * @brief 台达PCS设备通讯任务线程
@@ -181,6 +223,10 @@ void PCS_Trina_Task(const char *arg)
                 LOG_INFO("PCS-%d 服务端连接失败! ip:%s[port:%d]", pcs_num, sys_cfg->pcs_ip[pcs_num], sys_cfg->pcs_port[pcs_num]);
             }
             sleep(CONNECT_DELAY_TIME);
+           if(GET_INPUT(P2P_mode)==1)
+            { 
+             Set_PCS_Comm(pcs_num, IsNoFault, TRUE);   
+            }
             continue;
         }
         else
@@ -200,7 +246,7 @@ void PCS_Trina_Task(const char *arg)
                 {
                 case 0:
 
-                    sys_num = (pcs_num!= 0) ? 1 : 0;
+                    sys_num = (pcs_num>= 2) ? 1 : 0;
                     pcs_idx1 = sys_num * 2;
                     pcs_idx2 = sys_num * 2 + 1;
                     if(SYS_EVENT_STOP_PCS==Get_Out_Sys(sys_num))
@@ -319,7 +365,7 @@ void PCS_Trina_Task(const char *arg)
                     break;
 
                 case 11:
-                 //   Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_ADDR, MODBUS_READ_TYPE_03, PCS_Trina_03addr5, PCS_Trina_03size5, CMD_DELAY_100);
+                   Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_ADDR, MODBUS_READ_TYPE_03, PCS_Trina_03addr5, PCS_Trina_03size5, CMD_DELAY_100);
                    // LOG_INFO("主从pcs_num：%d",pcs_num);
                     loop++;
                     break;
@@ -336,12 +382,12 @@ void PCS_Trina_Task(const char *arg)
                     break;
 
                 case 14:
-                    Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_ADDR, MODBUS_READ_TYPE_03, PCS_Trina_03addr8, PCS_Trina_03size8, CMD_DELAY_100);
+                    Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_J1_ADDR, MODBUS_READ_TYPE_03, PCS_Trina_03addr8, PCS_Trina_03size8, CMD_DELAY_100);
                    // LOG_INFO("主从pcs_num：%d",pcs_num);
                     loop++;
                     break;
                 case 15:
-                    Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_ADDR, MODBUS_READ_TYPE_03, PCS_Trina_03addr9, PCS_Trina_03size9, CMD_DELAY_100);
+                    Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_J2_ADDR, MODBUS_READ_TYPE_03, PCS_Trina_03addr8, PCS_Trina_03size8, CMD_DELAY_100); //PCS_Trina_03addr9
                     loop++;
                     break;
                 case 16:
@@ -353,6 +399,19 @@ void PCS_Trina_Task(const char *arg)
                 case 17:    
                        
                         Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_ADDR, MODBUS_READ_TYPE_04, PCS_Trina_04addr8, PCS_Trina_04size8, CMD_DELAY_100);
+                    
+ 
+                    loop++;
+                    break;
+                 case 18:
+
+                        Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_J1_ADDR, MODBUS_READ_TYPE_04, PCS_Trina_04addr9, PCS_Trina_04size9, CMD_DELAY_100);
+
+                    loop++;
+                    break;
+                case 19:    
+                       
+                        Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_J2_ADDR, MODBUS_READ_TYPE_04, PCS_Trina_04addr9, PCS_Trina_04size9, CMD_DELAY_100);
                     
  
                     loop++;

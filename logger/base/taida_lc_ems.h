@@ -26,4 +26,5 @@ void Update_Input_Bit_Status(int system_num);
 int LC_EMS_Get_Input_Bit(int addr, int bit);
 void Update_Slave_sysstate2(uint16_t Slave_sys_state2_value,uint16_t addr);
 #define POWER_DEFAULT_RATIO 250
- #endif
+ #endif 
+ 

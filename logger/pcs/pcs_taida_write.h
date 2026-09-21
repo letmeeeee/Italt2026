@@ -26,6 +26,30 @@ void  PCS_TAida_write_Task(const char *_num);
 int Controlword_Bit(uint16_t address, uint8_t val01,int num);
 int PCS_HB_start(int socket, int id, INT16U hb_reg_addr,int num);
 
+// typedef struct {
+//     INT16S P1_out;         // 下发给 PCS1 的功率（放电正、充电负）
+//     INT16S P2_out;         // 下发给 PCS2 的功率
+//     INT16S P3_out;         // 下发给 PCS3 的功率（放电正、充电负）
+//     INT16S P4_out;         // 下发给 PCS4 的功率
+//     INT16S P5_out;         // 下发给 PCS5 的功率（放电正、充电负）
+//     INT16S P6_out;         // 下发给 PCS6 的功率
+//     INT16S P7_out;         // 下发给 PCS7 的功率（放电正、充电负）
+//     INT16S P8_out;         // 下发给 PCS8 的功率
+
+//     INT16S master1bat1_powerate;     // 对主PCS1 的分配比例
+//     INT16S master1bat2_powerate;     
+//     INT16S slave1bat1_powerate;  
+//     INT16S slave1bat2_powerate; 
+//     INT16S master2bat1_powerate;     // 对主PCS2 的分配比例
+//     INT16S master2bat2_powerate;     
+//     INT16S slave2bat1_powerate;  
+//     INT16S slave2bat2_powerate;  
+//     INT16S pcs_r_power1_2;
+//     INT16S pcs_r_power3_4;
+//     INT16S unmet;          
+// } Power_Divider_result_t;
+
+
 typedef struct {
     INT16S P1_out;         // 下发给 PCS1 的功率（放电正、充电负）
     INT16S P2_out;         // 下发给 PCS2 的功率
@@ -46,8 +70,12 @@ typedef struct {
     INT16S slave2bat2_powerate;  
     INT16S pcs_r_power1_2;
     INT16S pcs_r_power3_4;
-    INT16S unmet;          
+    INT16S unmet;   
+    INT16S pcs_r_rate1_2;
+    INT16S pcs_r_rate3_4;   
+    
 } Power_Divider_result_t;
+
 
 typedef struct {
 

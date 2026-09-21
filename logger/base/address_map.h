@@ -186,14 +186,15 @@ int CEM9000_HOLD(INT16S value);
 /**********************************************天合寄存器地址映射 **********************************************************************/  
 
 #define Trina_INPUT_INDEX(pcs_index, address) ( \
-  ((address) >= 4000 && (address) < 4012 ? ((address) - 4000 + 2600+0+300*(pcs_index-1)) : /*硬件版本～MS_FPGA变更版本*/\
+  ((address) >= 4000 && (address) < 4007 ? ((address) - 4000 + 2600+0+300*(pcs_index-1)) : /*硬件版本～MS_FPGA变更版本*/\
+  ((address) >= 4500 && (address) < 4502 ? ((address) - 4500 + 2600+8+300*(pcs_index-1)) : /*J1版本～J2版本*/\
   ((address) >= 4023 && (address) < 4039 ? ((address) - 4023 + 2600+23+300*(pcs_index-1)) : /*DSP故障信息表1～FPGA告警信息表4*/\
   ((address) >= 4050 && (address) < 4063 ? ((address) - 4050 + 2600+50+300*(pcs_index-1)) : /*ARM与控制DSP间的通讯故障1～ARM系统级故障*/\
   ((address) >= 4064 && (address) < 4088 ? ((address) - 4064 + 2600+64+300*(pcs_index-1)) : /*累积充放电量*/\
   ((address) >= 4100 && (address) < 4149 ? ((address) - 4100 + 2600+100+300*(pcs_index-1)) : /*运行状态～电池功率*/\
   ((address) >= 4502 && (address) < 4528 ? ((address) - 4502 + 2600+152+300*(pcs_index-1)) : /*DSP故障信息1～IMD软件版本号*/\
   ((address) >= 4550 && (address) < 4570 ? ((address) - 4550 + 2600+200+300*(pcs_index-1)) : /*电感电流R～ISO2Rn*/\
-  ((address) >= 4580 && (address) < 4626 ? ((address) - 4580 + 2600+230+300*(pcs_index-1)) : -1 ))))))))/*R相风扇速度～ T相IGBT12温度（运行信息）*/\
+  ((address) >= 4580 && (address) < 4626 ? ((address) - 4580 + 2600+230+300*(pcs_index-1)) : -1 )))))))))/*R相风扇速度～ T相IGBT12温度（运行信息）*/\
 )
 
 
@@ -208,6 +209,7 @@ int CEM9000_HOLD(INT16S value);
   ((address) >= 3800 && (address) < 3822 ? ((address) - 3800 + 12000+440+700*(pcs_index-1)) : /*桥臂电流ak~PCC电流T相B*/\
   ((address) >= 3900 && (address) < 3972 ? ((address) - 3900 + 12000+534+700*(pcs_index-1)) :   -1 )))))))))/*交流电感瞬时数值过流～ BUS2绝缘阻抗故障时间*/\
 )
+
 
 
 /***********************************************END************************************************************************************/

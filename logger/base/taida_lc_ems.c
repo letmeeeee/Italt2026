@@ -72,6 +72,8 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
 
     if (sum == 0)
     {
+
+
         return;
     }
 
@@ -123,11 +125,45 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
         value[i] = (int16_t)GET_HOLD(base + 204 + i);
 
         sum += value[i];
+        LOG_INFO("sum %d",sum);
     }
 
     /* 防止除0 */
     if (sum == 0)
     {
+        SET_HOLD(base + 50, POWER_DEFAULT_RATIO);
+        SET_HOLD(base + 46, POWER_DEFAULT_RATIO);
+        SET_HOLD(base + 47, POWER_DEFAULT_RATIO);
+        SET_HOLD(base + 51, POWER_DEFAULT_RATIO);
+        SET_HOLD(base + 48, POWER_DEFAULT_RATIO);
+        SET_HOLD(base + 49, POWER_DEFAULT_RATIO);
+
+    if (pcsnum == 0)
+    {
+  
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 27000+300*0 + 52;
+        pcsreq.value    = 0;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false; 
+                                // 去重，保留最新值
+        Pcs_Write_Enqueue_Dedup_By_Addr(0, &pcsreq);//放入缓冲区中
+     
+    }
+    else if (pcsnum == 1 )
+    {
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 27000+300*1 + 52;
+        pcsreq.value    = 0;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false; 
+                                // 去重，保留最新值
+        Pcs_Write_Enqueue_Dedup_By_Addr(2, &pcsreq);//放入缓冲区中
+
+
+
+    }
+
         return;
     }
 
@@ -152,6 +188,34 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
     /* 防止除0 */
     if (sum == 0)
     {
+        SET_HOLD(base + 50, 500);
+        SET_HOLD(base + 51,500);
+        SET_HOLD(base + 52, sum);  
+    if (pcsnum == 0)
+    {
+  
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 27000+300*0 + 52;
+        pcsreq.value    = 0;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false; 
+                                // 去重，保留最新值
+        Pcs_Write_Enqueue_Dedup_By_Addr(0, &pcsreq);//放入缓冲区中
+     
+    }
+    else if (pcsnum == 1 )
+    {
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 27000+300*1 + 52;
+        pcsreq.value    = 0;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false; 
+                                // 去重，保留最新值
+        Pcs_Write_Enqueue_Dedup_By_Addr(2, &pcsreq);//放入缓冲区中
+
+
+
+    }
         return;
     }
 
@@ -241,6 +305,21 @@ void Update_Input_Bit_Status(int system_num)
         SET_INPUT(base + 212 + i, GET_INPUT(base + 43));
         SET_INPUT(base + 236 + i, sysRdyRef);
     }
+
+    for(int i=0;i<2;i++)
+    {
+        SET_INPUT(base + 228 + i, (int16_t)GET_INPUT(2600 + 16+i));
+        SET_INPUT(base + 229 + i, (int16_t)GET_INPUT(2600 + 16+i+300));
+        SET_INPUT(base + 228 + i+300, (int16_t)GET_INPUT(2600 + 16+i+300*2));
+        SET_INPUT(base + 229 + i+300, (int16_t)GET_INPUT(2600 + 16+i+300*3));
+        SET_INPUT(base + 232 + i, (int16_t)GET_INPUT(2600 + 19)/2);
+        SET_INPUT(base + 234 + i, (int16_t)GET_INPUT(2600 + 19+300)/2);
+        SET_INPUT(base + 232 + i+300, (int16_t)GET_INPUT(2600 + 19+600)/2);
+        SET_INPUT(base + 234 + i+300, (int16_t)GET_INPUT(2600 + 19+900)/2);
+
+
+    }
+
     for(int j=0;j<3;j++)
     {
 

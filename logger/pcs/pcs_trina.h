@@ -6,7 +6,7 @@ void PCS_Trina_Task(const char *arg);
 #define PCS_BUFF_LEN        (300)
 
 #define PCS_Trina_04addr1      (4000)  
-#define PCS_Trina_04size1      (12)    //硬件版本～模块2FPGA版本
+#define PCS_Trina_04size1      (7)    //硬件版本～模块2FPGA版本
 
 #define PCS_Trina_04addr2      (4023)  
 #define PCS_Trina_04size2      (4038-4023+1)    //DSP故障表1～FPGA告警表4
@@ -29,6 +29,8 @@ void PCS_Trina_Task(const char *arg);
 #define PCS_Trina_04addr8      (4580)  
 #define PCS_Trina_04size8      (4625-4580+1)    //IGBT温度
 
+#define PCS_Trina_04addr9     (4500)  
+#define PCS_Trina_04size9     (2)    //J1～J2软件版本
 
 #define PCS_Trina_03addr1      (3000)  
 #define PCS_Trina_03size1      (37)    //并联模式～支路充电分配系数
@@ -43,14 +45,14 @@ void PCS_Trina_Task(const char *arg);
 #define PCS_Trina_03size4      (6)    //年月日设置
 
 #define PCS_Trina_03addr5      (3100)  
-#define PCS_Trina_03size5      (3249-3100+1)    //安规参数
+#define PCS_Trina_03size5      (3224-3100+1)    //安规参数
 
-#define PCS_Trina_03addr6      (3250)  
-#define PCS_Trina_03size6      (3349-3250+1)    //安规参数
+#define PCS_Trina_03addr6      (3225)  
+#define PCS_Trina_03size6      (3349-3225+1)    //安规参数
 
 
 #define PCS_Trina_03addr7      (3350)  
-#define PCS_Trina_03size7      (3409-3350+1)    //
+#define PCS_Trina_03size7      (3410-3350+1)    //(3409-3350+1) 
 
 #define PCS_Trina_03addr8      (3800)  
 #define PCS_Trina_03size8     (3821-3800+1)    //

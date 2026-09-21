@@ -153,6 +153,8 @@ static int PCS_Power(int socket_fd, const int pcs_num,const int sub_num)
     //}
     SET_HOLD(27000+sub_num*300,pcs_set_power[pcs_num][sub_num].DS16);
     Modbus_TCP_Write06_SingleRegist(socket_fd,PCS_PE_SLAVE_ADDR, PCS_PE_ACPower_addr+sub_num, pcs_set_power[pcs_num][sub_num].DS16 , CMD_DELAY_200); //下发功率          
+
+    return 0;
 }
 void PCS_PE_Task(const char *arg)
 {

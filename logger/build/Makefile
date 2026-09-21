@@ -447,6 +447,33 @@ base/timed_work.c.s:
 	$(MAKE) -f CMakeFiles/tems.dir/build.make CMakeFiles/tems.dir/base/timed_work.c.s
 .PHONY : base/timed_work.c.s
 
+base/trina_lc_ems.o: base/trina_lc_ems.c.o
+
+.PHONY : base/trina_lc_ems.o
+
+# target to build an object file
+base/trina_lc_ems.c.o:
+	$(MAKE) -f CMakeFiles/tems.dir/build.make CMakeFiles/tems.dir/base/trina_lc_ems.c.o
+.PHONY : base/trina_lc_ems.c.o
+
+base/trina_lc_ems.i: base/trina_lc_ems.c.i
+
+.PHONY : base/trina_lc_ems.i
+
+# target to preprocess a source file
+base/trina_lc_ems.c.i:
+	$(MAKE) -f CMakeFiles/tems.dir/build.make CMakeFiles/tems.dir/base/trina_lc_ems.c.i
+.PHONY : base/trina_lc_ems.c.i
+
+base/trina_lc_ems.s: base/trina_lc_ems.c.s
+
+.PHONY : base/trina_lc_ems.s
+
+# target to generate assembly for a file
+base/trina_lc_ems.c.s:
+	$(MAKE) -f CMakeFiles/tems.dir/build.make CMakeFiles/tems.dir/base/trina_lc_ems.c.s
+.PHONY : base/trina_lc_ems.c.s
+
 bms/bms_g2pro.o: bms/bms_g2pro.c.o
 
 .PHONY : bms/bms_g2pro.o
@@ -2976,6 +3003,9 @@ help:
 	@echo "... base/timed_work.o"
 	@echo "... base/timed_work.i"
 	@echo "... base/timed_work.s"
+	@echo "... base/trina_lc_ems.o"
+	@echo "... base/trina_lc_ems.i"
+	@echo "... base/trina_lc_ems.s"
 	@echo "... bms/bms_g2pro.o"
 	@echo "... bms/bms_g2pro.i"
 	@echo "... bms/bms_g2pro.s"

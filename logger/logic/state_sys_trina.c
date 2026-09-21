@@ -133,6 +133,7 @@ static void Event_CMD_Time_Out(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_s
 static void Event_CMD_Stop_2_Init_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_Master_slave_Mode_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_Master_slave_Mode_Recovery(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
+
 /* ===================== 状态转移表 ===================== */
 const static StateSYSform state_list[] = {
     /* 当前状态 ************事件 ******************目标状态 ********* 检测函数 **********************************描述 */
@@ -143,7 +144,7 @@ const static StateSYSform state_list[] = {
     //{SYSStopPCS,        SYS_EVENT_WARNING_STOP,         SYSZWARNINGSTOP,    Event_Stop_Check,                   "一般故障停机：PCS停机->一般故障停机"},
     {SYSStopPCS,        SYS_EVENT_STOP_SUB,             SYSStopSUB,         Event_Stop_SUB_Check,               "下发停机：PCS停机->子系统停机"},
    
-    {SYSZWARNINGSTOP,   SYS_WARNING_STOP,               SYSInit,            Event_Master_slave_Mode_Recovery,             "一般故障停机：一般故障停机->一般故障恢复"},
+    {SYSZWARNINGSTOP,   SYS_WARNING_STOP,               SYSInit,            Event_Master_slave_Mode_Recovery,    "一般故障停机：一般故障停机->一般故障恢复"},
    
     {SYSStopSUB,        SYS_EVENT_WAIT_STOPED,          SYSStopped,         Event_Wait_Stopped_Check,           "等待停机：子系统停机->已停机"},
 
@@ -154,9 +155,9 @@ const static StateSYSform state_list[] = {
     //{SYSStopped,        SYS_EVENT_CMD_RESET,            SYSReset,           Event_CMD_Reset_Check,              "重置命令： 重置"},
    // {SYSStopped,      SYS_EVENT_FAULT,                SYSFault,           Event_Fault_Check,                  "故障事件：启动中->故障停机"},
     {SYSStopped,        SYS_EVENT_START_WARN,           SYSWarn,            Event_Start_Warn_Check,             "告警事件：已停机->告警中"},
-    {SYSStopped,        SYS_EVENT_STOPPED_RUN,          SYSRun,             Event_CMD_Run_Check_PCS_Status,   "运行事件：已停机->运行"},//针对用户从台达web去开机的操作
+    {SYSStopped,         SYS_EVENT_SYS_RUN,             SYSRun,             Event_CMD_Run_Check_PCS_Status,   "运行事件：已停机->运行"},//针对用户从台达web去开机的操作
     
-    {SYSStopped,        SYS_EVENT_START_FAULT,          SYSZWARNINGSTOP,    Event_Master_slave_Mode_Check,           "运行事件：已停机->一般故障停机"},
+   // {SYSStopped,        SYS_EVENT_START_FAULT,          SYSZWARNINGSTOP,    Event_Master_slave_Mode_Check,           "运行事件：已停机->一般故障停机"},
    
 
     // {SYSWarn,           SYS_EVENT_START_FAULT,          SYSClearFAULT,      Event_Start_Fault_Check,            "故障事件：启动中->故障清除"},
@@ -165,7 +166,7 @@ const static StateSYSform state_list[] = {
   //  {SYSWarn,           SYS_EVENT_CMD_RESET,            SYSReset,           Event_CMD_Reset_Check,              "重置命令： 重置"},
     {SYSWarn,           SYS_EVENT_WARN_RECOVERY,        SYSStopped,         Event_Start_Warn_Recovery,          "告警事件：告警中->告警恢复"},
     //{SYSWarn,         SYS_EVENT_FAULT,                SYSFault,           Event_Fault_Check,                  "故障事件：启动中->故障停机"},
-    {SYSWarn,        SYS_EVENT_STOPPED_RUN,             SYSRun,              Event_CMD_Run_Check_PCS_Status,   "运行事件：已停机->运行"},//针对用户从台达web去开机的操作
+    {SYSWarn,        SYS_EVENT_SYS_RUN,                SYSRun,              Event_CMD_Run_Check_PCS_Status,   "运行事件：已停机->运行"},//针对用户从台达web去开机的操作
     {SYSReset,          SYS_EVENT_WAIT_RESET,           SYSStopped,         Event_Wait_Reset_Check,             "等待重置：重置->已停机"},
 
    // {SYSStarting,     SYS_EVENT_START_WARN,           SYSWarn,            Event_Start_Warn_Check,             "告警事件：已停机->告警中"},
@@ -188,13 +189,15 @@ const static StateSYSform state_list[] = {
     {SYSStartPCS,       SYS_EVENT_FAULT,                SYSFault,           Event_Fault_Check,                  "故障事件：PCS启动->故障停机"},
     {SYSStartPCS,       SYS_EVENT_SYS_RUN,              SYSPQMode,          Event_SYS_Run_Check,                "系统运行：PCS启动->启动PQ模式"},
     {SYSStartPCS,         SYS_EVENT_ZERO_POWER,         SYSStopping,        Event_CMD_Stop_Check,               "停机命令：PCS启动->停机中"},
-    {SYSStartPCS,            SYS_EVENT_STOP,            SYSInit,            Event_CMD_Stop_2_Init_PCS,          "停机命令：PCS启动->初始化"},
+   // {SYSStartPCS,            SYS_EVENT_STOP,            SYSInit,            Event_CMD_Stop_2_Init_PCS,          "停机命令：PCS启动->初始化"},
+    {SYSStartPCS,          SYS_EVENT_STOP,                 SYSInit,          Event_CMD_Time_Out,                   "超时事件：超时->初始化"},
+
    
      {SYSPQMode,         SYS_EVENT_FAULT,                SYSFault,           Event_Fault_Check,                  "故障事件：启动PQ模式->故障停机"},
     {SYSPQMode,         SYS_EVENT_START_PQ,             SYSSTARTPQ,         Event_SYS_PQ_Check,                 "系统运行：启动PQ模式->PQ模式中"},
    // {SYSPQMode,         SYS_EVENT_WARNING,              SYSZEROPOWER,       Event_Warning_Check,                "一般故障事件：启动PQ模式->一般故障停机"},
     {SYSPQMode,         SYS_EVENT_ZERO_POWER,           SYSStopping,        Event_CMD_Stop_Check,               "停机命令：启动PQ模式->停机中"},
-  //  {SYSPQMode,          SYS_EVENT_STOP,                  SYSInit,          Event_CMD_Time_Out,                   "超时事件：超时->初始化"},
+   {SYSPQMode,          SYS_EVENT_STOP,                 SYSInit,          Event_CMD_Time_Out,                   "超时事件：超时->初始化"},
   //  {SYSPQMode,            SYS_EVENT_STOP,            SYSInit,         Event_CMD_Stop_Check_PCS,               "停机命令：启动PQ模式->停机"},
 
     {SYSSTARTPQ,        SYS_EVENT_FAULT,                SYSFault,           Event_Fault_Check,                  "故障事件：启动PQ模式->故障停机"},
@@ -1097,17 +1100,19 @@ static void Event_CMD_Run_Check_PCS_Status(INT16U *eid, INT8U sys_num, SYS_State
 
     INT8U PCS1_state_run = (INT8U)(((PCS1_state >> 0) & 0x1u) == 1u);
     INT8U PCS2_state_run = (INT8U)(((PCS2_state >> 0) & 0x1u) == 1u);
-
-
+        
+  //  LOG_INFO( "PCS1_state_run:%d,PCS2_state_run:%d", PCS1_state_run, PCS2_state_run);
     if(((PCS1_state_run) ||(PCS2_state_run)))
     {
         last_time[sys_num] = Timer_GetTick();
         *(event_id + sys_num) = SYS_EVENT_SYS_RUN;
+        
     }
 }
 static void Event_Master_slave_Mode_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
 {
     (void)real_state;
+    sysPara *sys_cfg = SysConf_GetInfo();
     INT8U pcs_idx1=0;
     INT8U pcs_idx2=0;
     pcs_idx1 = sys_num * 2;
@@ -1116,12 +1121,15 @@ static void Event_Master_slave_Mode_Check(INT16U *eid, INT8U sys_num, SYS_State_
     INT16U PCS1_Master_slave_Mode       = GET_HOLD(12000 + 700 * pcs_idx1 + 9);
     INT16U PCS2_Master_slave_Mode       = GET_HOLD(12000 + 700 * pcs_idx2 + 9);
 
-
-    if((((PCS1_Master_slave_Mode==0)&&(PCS2_Master_slave_Mode==0)) ||((PCS1_Master_slave_Mode==1)&&(PCS2_Master_slave_Mode==1))))
+    if(sys_cfg->pcsNum>=2)
+    {
+        if((((PCS1_Master_slave_Mode==0)&&(Get_PCS_Comm(pcs_idx1) ==0))&&((PCS2_Master_slave_Mode==0)&&(Get_PCS_Comm(pcs_idx2) ==0)) ||((PCS1_Master_slave_Mode==1)&&(PCS2_Master_slave_Mode==1))))
     {
         last_time[sys_num] = Timer_GetTick();
         *(event_id + sys_num) = SYS_EVENT_START_FAULT;
+    }    
     }
+
 }
 
 static void Event_Master_slave_Mode_Recovery(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
@@ -1131,16 +1139,19 @@ static void Event_Master_slave_Mode_Recovery(INT16U *eid, INT8U sys_num, SYS_Sta
     INT8U pcs_idx2=0;
     pcs_idx1 = sys_num * 2;
     pcs_idx2 = sys_num * 2 + 1;
-
+    sysPara *sys_cfg = SysConf_GetInfo();
     INT16U PCS1_Master_slave_Mode       = GET_HOLD(12000 + 700 * pcs_idx1 + 9);
     INT16U PCS2_Master_slave_Mode       = GET_HOLD(12000 + 700 * pcs_idx2 + 9);
 
-
-    if((((PCS1_Master_slave_Mode==1)&&(PCS2_Master_slave_Mode==0)) ||((PCS1_Master_slave_Mode==0)&&(PCS2_Master_slave_Mode==1))))
+    if(sys_cfg->pcsNum>=2)
+    {
+     if(((PCS1_Master_slave_Mode==1)&&(Get_PCS_Comm(pcs_idx1) ==0))&&((PCS2_Master_slave_Mode==0)&&(Get_PCS_Comm(pcs_idx2) ==0))||(((PCS1_Master_slave_Mode==0)&&(Get_PCS_Comm(pcs_idx1) ==0))&&((PCS2_Master_slave_Mode==1)&&(Get_PCS_Comm(pcs_idx2) ==0))))
     {
         last_time[sys_num] = Timer_GetTick();
         *(event_id + sys_num) = SYS_WARNING_STOP;
+    }   
     }
+
 }
 /**
  * @brief 检查并处理待机命令事件
@@ -1258,7 +1269,27 @@ static void Event_Fault_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
 
     last_time[sys_num] = Timer_GetTick();
     *(eid + sys_num)   = SYS_EVENT_FAULT_STOP;
-    Set_Out_Sys(sys_num, SYS_EVENT_ZERO_POWER); /* 下发 0 功率 */
+
+ INT8U pcs_idx1=0;
+    INT8U pcs_idx2=0;
+    pcs_idx1 = sys_num * 2;
+    pcs_idx2 = sys_num * 2 + 1;
+   
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 12000+700*pcs_idx1+4;
+        pcsreq.value    = 0;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false;
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_idx1, &pcsreq);//放入缓冲区中
+        usleep(500); 
+        PcsWriteReq pcsreq2;
+        pcsreq2.addr     = 12000+700*pcs_idx2+4;
+        pcsreq2.value    = 0;
+        pcsreq2.len      = 1;
+        pcsreq2.is_multi = false;
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_idx2, &pcsreq2);//放入缓冲区中
+        usleep(500); 
+
     Clear_In_Sys(sys_num);
 }
 
@@ -1330,21 +1361,23 @@ static void Event_Stop_PCS_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real
         Clear_Out_Sys(sys_num);
     
 
-         Set_Out_Sys(sys_num, SYS_EVENT_STOP_PCS);
-        // pcs_num = (sys_num!= 0) ? 2 : 0;
-        // pcs_addr = (sys_num!= 0) ? 1 : 0;
-    //  if (pcs_num >= 0)
-    // {
-    //     PcsWriteReq pcsreq;
-    //     pcsreq.addr     = 27000+300*sys_num+103;   
-    //     pcsreq.value    = 0;
-    //     pcsreq.len      = 1;
-    //     pcsreq.is_multi = false;
+         //Set_Out_Sys(sys_num, SYS_EVENT_STOP_PCS);
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 12000+700*pcs_idx1+1;
+        pcsreq.value    = 0;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false;
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_idx1, &pcsreq);//放入缓冲区中
+        usleep(500); 
+        PcsWriteReq pcsreq2;
+        pcsreq2.addr     = 12000+700*pcs_idx2+1;
+        pcsreq2.value    = 0;
+        pcsreq2.len      = 1;
+        pcsreq2.is_multi = false;
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_idx2, &pcsreq2);//放入缓冲区中
+        usleep(500); 
 
-    //     // 去重，保留最新值
-    //     LOG_INFO("addr is %d,num is %d",pcsreq.addr ,pcs_num);
-    //     Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
-    // }
+
         LOG_INFO("发送停机：%d",sys_num);
         *(eid + sys_num)   = SYS_EVENT_STOP_PCS;
     }
@@ -1623,11 +1656,30 @@ static void Event_SYS_PQ_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_s
     (void)real_state;
 
     sysPara *sys_cfg = SysConf_GetInfo();
+        INT8U pcs_idx1=0;
+    INT8U pcs_idx2=0;
+    pcs_idx1 = sys_num * 2;
+    pcs_idx2 = sys_num * 2 + 1;
 
 
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 12000+700*pcs_idx1+3;
+        pcsreq.value    = 3;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false;
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_idx1, &pcsreq);//放入缓冲区中
+        usleep(500); 
+        PcsWriteReq pcsreq2;
+        pcsreq2.addr     = 12000+700*pcs_idx2+3;
+        pcsreq2.value    = 3;
+        pcsreq2.len      = 1;
+        pcsreq2.is_multi = false;
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_idx2, &pcsreq2);//放入缓冲区中
+        usleep(500); 
         last_time[sys_num] = Timer_GetTick();
         *(eid + sys_num)   = SYS_EVENT_START_PQ;
-        Set_Out_Sys(sys_num, SYS_EVENT_START_PQ);  /* 下发 PQ */
+
+
 
 }
 
@@ -1741,7 +1793,7 @@ static void Event_Wait_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
         slave_clean_times[sys_num]=0;
         *(eid + sys_num)   = SYS_EVENT_WAIT_STOPED;
         Clear_Out_Sys(sys_num);
-        LOG_INFO("qing hu");
+        // LOG_INFO("qing hu");
     }
 }
 
@@ -2434,6 +2486,21 @@ static void update_global_SYSTEM_STATUS(void)
  *            * 状态转换执行
  *            * 日志记录
  */
+void SYS_Trina_State_Init(volatile SYS_State_ENUM *state, INT8U sys_num)
+{
+        sysPara *sys_cfg = SysConf_GetInfo();
+
+         for(uint8_t sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+        {
+        Clear_In_Sys(sys_num);
+        Clear_Out_Sys(sys_num);
+        event_id[sys_num]  = 0;
+        last_time[sys_num] = Timer_GetTick();
+        state[sys_num] = SYSInit;  
+        }
+}
+
+
 void SYS_Trina_State_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
 {
 

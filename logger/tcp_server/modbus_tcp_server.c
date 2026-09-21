@@ -103,7 +103,10 @@ static void Hex_To_String(char *out, size_t out_size, const unsigned char *buf, 
 }
 uint16_t PCSnum_calculate(uint16_t address)
 {
-    if(((address >= 12000)&&(address <=(12000+33)))||((address >= 27000)&&(address <=(27000+220))) || ((address >= 15000)&&(address <=(15000+33))))
+       sysPara* sys_cfg = SysConf_GetInfo();
+       if(sys_cfg->pcs_brand[0] == PCS_Taida)
+       {
+       if(((address >= 12000)&&(address <=(12000+33)))||((address >= 27000)&&(address <=(27000+220))) || ((address >= 15000)&&(address <=(15000+33))))
         {
             
             return 0;
@@ -123,10 +126,31 @@ uint16_t PCSnum_calculate(uint16_t address)
             
             return  3;
         }
-        else
+
+    }
+      else if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+       {
+         if(((address >= 27200) && (address <=(27000+201)))||(((address >= 27204) && (address <=(27000+205))))||((address >= 27208) && (address <=(27000+209))))
         {
-            return -1;
+            
+            return 0;
         }
+        else if(((address >= 27202) && (address <=(27000+203)))||(((address >= 27206) && (address <=(27000+207))))||((address >= 27210) && (address <=(27000+211))))
+        {
+            
+            return  1;
+        }
+        else  if(((address >= 27200+300) && (address <=(27000+201+300)))||(((address >= 27204+300) && (address <=(27000+205+300))))||((address >= 27208+300) && (address <=(27000+209+300))))
+        {
+            
+            return  2;
+        }
+        else if(((address >= 27202+300) && (address <=(27000+203+300)))||(((address >= 27206+300) && (address <=(27000+207+300))))||((address >= 27210+300) && (address <=(27000+211+300))))
+        {
+            
+            return  3;
+        }
+       }
 }
 
 uint16_t BMSnum_calculate(uint16_t address)
@@ -431,6 +455,8 @@ static void* Server_Handle_Data(void *arg)
                    }
                      sys_num = (pcsnum>= 2) ? 1 : 0;
                    //  LOG_INFO("pcsnum=%d,sys_num=%d",pcsnum,sys_num);
+                   if(sys_cfg->pcs_brand[0] == PCS_Taida)
+                   {
                    if ((pcsnum >= 0)&&(((Temp.D16<27046+sys_num*300))||(Temp.D16>27052+sys_num*300)))
                     {
                         if(((Temp.D16<=27203+sys_num*300)&&(Temp.D16>=27200+sys_num*300))||(Temp.D16>=27208+sys_num*300&&Temp.D16<=27211+sys_num*300)||(Temp.D16>=27216+sys_num*300&&Temp.D16<=27219+sys_num*300))
@@ -443,7 +469,7 @@ static void* Server_Handle_Data(void *arg)
                                Set_In_Sys(0,SYS_EVENT_CMD_START); 
                             }
                             else if(RegVal.D16==0){
-                                LOG_INFO("111");
+                              //  LOG_INFO("111");
                                Set_In_Sys(0,SYS_EVENT_CMD_STOP); 
                             }
                            
@@ -482,7 +508,25 @@ static void* Server_Handle_Data(void *arg)
                                                 // 去重，保留最新值
                         Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
                         LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, Temp.D16, RegVal.D16);
-                    }                    
+                    } 
+                   }
+                   else if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                   {
+                   if ((pcsnum >= 0)&&(pcsnum<=4))
+                     {
+
+                        LC_EMS_Address=TrinaPCSLCtoEMSaddr(Temp.D16);
+                        PcsWriteReq pcsreq;
+                        pcsreq.addr     = LC_EMS_Address;
+                        pcsreq.value    = RegVal.D16;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false;
+                                                // 去重，保留最新值
+                        Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
+                        LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, Temp.D16, RegVal.D16);
+
+                   }   
+                }                
                     Temp.D16++;
                 }
                 if ((false == is_sub) || (is_print == true))
@@ -555,8 +599,39 @@ static void* Server_Handle_Data(void *arg)
 
                        LC_EMS_Calc_Power_Percent(sys_num);
 
+                        pcsnum = (sys_num>= 1) ? 2 : 0;
+                      int16_t reactive_power_sum=(int16_t)((int32_t)(GET_HOLD(27000+208+300*sys_num)+GET_HOLD(27000+209+300*sys_num)+GET_HOLD(27000+210+300*sys_num)+GET_HOLD(27000+211+300*sys_num)));
+                       LOG_INFO("reactive_power_sum %d",reactive_power_sum);
+                       usleep(500);
+                        PcsWriteReq pcsreq;
+                        pcsreq.addr     = 27000+sys_num*300+53;
+                        pcsreq.value    = reactive_power_sum;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false; 
+                                                // 去重，保留最新值
+                        Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
+                        LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, pcsreq.addr, pcsreq.value);                      
+
 
                }
+
+                 else if((AddrStar<=27211+sys_num*300)&&(AddrStar>=27208+sys_num*300))
+               {
+
+                      // LC_EMS_Calc_Power_Percent(sys_num);
+                       pcsnum = (sys_num>= 1) ? 2 : 0;
+                      int16_t reactive_power_sum=(int16_t)((int32_t)(GET_HOLD(27000+208+300*sys_num)+GET_HOLD(27000+209+300*sys_num)+GET_HOLD(27000+210+300*sys_num)+GET_HOLD(27000+211+300*sys_num)));
+                       LOG_INFO("reactive_power_sum %d",reactive_power_sum);
+                       usleep(500);
+                        PcsWriteReq pcsreq;
+                        pcsreq.addr     = 27000+sys_num*300+53;
+                        pcsreq.value    = reactive_power_sum;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false; 
+                                                // 去重，保留最新值
+                        Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
+                        LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, pcsreq.addr, pcsreq.value);
+               }              
              }
              else
              {
@@ -576,7 +651,36 @@ static void* Server_Handle_Data(void *arg)
                         LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, Temp.D16, RegVal.D16);
                        }
 
+                       pcsnum = (sys_num>= 1) ? 2 : 0;
+                      int16_t reactive_power_sum=(int16_t)((int32_t)(GET_HOLD(27000+208+300*sys_num)+GET_HOLD(27000+209+300*sys_num)+GET_HOLD(27000+210+300*sys_num)+GET_HOLD(27000+211+300*sys_num)));
+                       LOG_INFO("reactive_power_sum %d",reactive_power_sum);
+                       usleep(500);
+                        PcsWriteReq pcsreq;
+                        pcsreq.addr     = 27000+sys_num*300+53;
+                        pcsreq.value    = reactive_power_sum;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false; 
+                                                // 去重，保留最新值
+                        Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
+                        LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, pcsreq.addr, pcsreq.value);
                 }
+                else if((AddrStar<=27211+sys_num*300)&&(AddrStar>=27208+sys_num*300))
+               {
+
+                      // LC_EMS_Calc_Power_Percent(sys_num);
+                       pcsnum = (sys_num>= 1) ? 2 : 0;
+                      int16_t reactive_power_sum=(int16_t)((int32_t)(GET_HOLD(27000+208+300*sys_num)+GET_HOLD(27000+209+300*sys_num)+GET_HOLD(27000+210+300*sys_num)+GET_HOLD(27000+211+300*sys_num)));
+                       LOG_INFO("reactive_power_sum %d",reactive_power_sum);
+                       usleep(500);
+                        PcsWriteReq pcsreq;
+                        pcsreq.addr     = 27000+sys_num*300+53;
+                        pcsreq.value    = reactive_power_sum;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false; 
+                                                // 去重，保留最新值
+                        Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
+                        LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, pcsreq.addr, pcsreq.value);
+               } 
              }
                 // 返信内容
                 sendbuffer[5] = 6;
@@ -723,22 +827,125 @@ static void* Server_Handle_Data(void *arg)
                             Set_In_Sys(0,SYS_EVENT_CMD_START);
                             sleep(5);//MV中两组PCS同时开机，需要等待5秒
                             Set_In_Sys(1,SYS_EVENT_CMD_START);
+                            if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                            {
+                            for(int n=0;n<4;n++)
+                            {
+                            PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+1;
+                            pcsreq.value    = 1;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+
+                            PcsWriteReq pcsreq2;
+                            pcsreq2.addr     = 12000+700*n+3;
+                            pcsreq2.value    = 3;
+                            pcsreq2.len      = 1;
+                            pcsreq2.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq2);//放入缓冲区中
+                            usleep(500); 
+
+
+                            }
+
+
+                           }
                         }
+                       
                         if(RegVal.D16==4) //PCS关机
                         {
                             Set_In_Sys(0,SYS_EVENT_CMD_STOP);
                             Set_In_Sys(1,SYS_EVENT_CMD_STOP);
+                           if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                            {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+4;//0功率
+                            pcsreq.value    = 0;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(5000); 
+
+
+                             PcsWriteReq pcsreq2;
+                            pcsreq2.addr     = 12000+700*n+1;//关机指令
+                            pcsreq2.value    = 0;
+                            pcsreq2.len      = 1;
+                            pcsreq2.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq2);//放入缓冲区中
+                            usleep(500); 
+                            }
+
+
+                            }
                         }
                         else if(RegVal.D16==5) //PCS待机，实际下发为0功率
                         {
                             Set_In_Sys(0,SYS_EVENT_CMD_STANDBY);
                             Set_In_Sys(1,SYS_EVENT_CMD_STANDBY);
+                            if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                            {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+4;
+                            pcsreq.value    = 0;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+                            }
+
+
+                            }
+
+
                         }
                         else if(RegVal.D16==6) //PCS复位，必须在关机状态下复位
                         {
-                            Set_In_Sys(0,SYS_EVENT_CMD_RESET);
-                            Set_In_Sys(1,SYS_EVENT_CMD_RESET);
+                            // Set_In_Sys(0,SYS_EVENT_CMD_RESET);
+                            // Set_In_Sys(1,SYS_EVENT_CMD_RESET);
+                         if(sys_cfg->pcs_brand[0] == PCS_Taida)
+                         {
+                        PcsWriteReq pcsreq;
+                        pcsreq.addr     = 27000;
+                        pcsreq.value    = 1;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false;
+                        Pcs_Write_Enqueue_Dedup_By_Addr(0, &pcsreq);//放入缓冲区中
+                        usleep(50);
+                        //   PcsWriteReq pcsreq;
+                        pcsreq.addr     = 27300;
+                        pcsreq.value    = 1;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false;
+                        Pcs_Write_Enqueue_Dedup_By_Addr(2, &pcsreq);//放入缓冲区中
+                         }
+                       else if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                        {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+8;
+                            pcsreq.value    = 1;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+                            }
+                            
                         }
+
+
+
+                        }
+
+
+
                         break;
                     }
                 else if(Temp.D16 == 7)//黑启动模式
@@ -760,6 +967,67 @@ static void* Server_Handle_Data(void *arg)
     
                         break;
                     }
+                  else if(Temp.D16 == 10)//并离网设置（只针对天合）
+                    {
+
+                        if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                        {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+2;
+                            pcsreq.value    = RegVal.D16;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+                            }
+                            
+                        }
+    
+                        break;
+                    }
+                  else if(Temp.D16 == 11)//运行模式（只针对天合）
+                    {
+
+                        if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                        {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+3;
+                            pcsreq.value    = RegVal.D16;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+                            }
+                            
+                        }
+    
+                        break;
+                    }
+                  else if(Temp.D16 == 12)//黑启动使能（只针对天合）
+                    {
+
+                        if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                        {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+27;
+                            pcsreq.value    = RegVal.D16;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+                            }
+                            
+                        }
+    
+                        break;
+                    }
+
                     // pcsnum 含义：与写线程中的 socket_Taida_Pcs[num] 对应（0、1、2、3 ...）
                     int pcsnum = -1; // 0:PCS1, 1:PCS2, 2:PCS3, 3:PCS4, 4:PCS5, 5:PCS6, 6:PCS7, 7:PCS8
                     if(sys_cfg->pcs_brand[0] == PCS_PE)
@@ -913,7 +1181,7 @@ static void* Server_Handle_Data(void *arg)
                         pcsreq.value    = RegVal.D16;
                         pcsreq.len      = 1;
                         pcsreq.is_multi = false;
-                        led_off();
+                       // led_off();
                         // 去重，保留最新值
                         Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
                         LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, Temp.D16, RegVal.D16);

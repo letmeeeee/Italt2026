@@ -497,25 +497,122 @@ static void* Server_Handle_Data(void *arg)
                             Set_In_Sys(0,SYS_EVENT_CMD_START);
                             sleep(5);//MV中两组PCS同时开机，需要等待5秒
                             Set_In_Sys(1,SYS_EVENT_CMD_START);
+                            if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                            {
+                            for(int n=0;n<4;n++)
+                            {
+                            PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+1;
+                            pcsreq.value    = 1;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+
+                            PcsWriteReq pcsreq2;
+                            pcsreq2.addr     = 12000+700*n+3;
+                            pcsreq2.value    = 3;
+                            pcsreq2.len      = 1;
+                            pcsreq2.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq2);//放入缓冲区中
+                            usleep(500); 
+
+
+                            }
+
+
+                           }
                         }
+                       
                         if(RegVal.D16==4) //PCS关机
                         {
                             Set_In_Sys(0,SYS_EVENT_CMD_STOP);
                             Set_In_Sys(1,SYS_EVENT_CMD_STOP);
+                           if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                            {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+4;//0功率
+                            pcsreq.value    = 0;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(5000); 
+
+
+                             PcsWriteReq pcsreq2;
+                            pcsreq2.addr     = 12000+700*n+1;//关机指令
+                            pcsreq2.value    = 0;
+                            pcsreq2.len      = 1;
+                            pcsreq2.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq2);//放入缓冲区中
+                            usleep(500); 
+                            }
+
+
+                            }
                         }
                         else if(RegVal.D16==5) //PCS待机，实际下发为0功率
                         {
                             Set_In_Sys(0,SYS_EVENT_CMD_STANDBY);
                             Set_In_Sys(1,SYS_EVENT_CMD_STANDBY);
+                            if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                            {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+4;
+                            pcsreq.value    = 0;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+                            }
+
+
+                            }
+
+
                         }
                         else if(RegVal.D16==6) //PCS复位，必须在关机状态下复位
                         {
-                            Set_In_Sys(0,SYS_EVENT_CMD_RESET);
-                            Set_In_Sys(1,SYS_EVENT_CMD_RESET);
+                            // Set_In_Sys(0,SYS_EVENT_CMD_RESET);
+                            // Set_In_Sys(1,SYS_EVENT_CMD_RESET);
+                         if(sys_cfg->pcs_brand[0] == PCS_Taida)
+                         {
+                        PcsWriteReq pcsreq;
+                        pcsreq.addr     = 27000;
+                        pcsreq.value    = 1;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false;
+                        Pcs_Write_Enqueue_Dedup_By_Addr(0, &pcsreq);//放入缓冲区中
+                        usleep(50);
+                        //   PcsWriteReq pcsreq;
+                        pcsreq.addr     = 27300;
+                        pcsreq.value    = 1;
+                        pcsreq.len      = 1;
+                        pcsreq.is_multi = false;
+                        Pcs_Write_Enqueue_Dedup_By_Addr(2, &pcsreq);//放入缓冲区中
+                         }
+                        else if(sys_cfg->pcs_brand[0] == PCS_TRINA)
+                        {
+                            for(int n=0;n<4;n++)
+                            {
+                             PcsWriteReq pcsreq;
+                            pcsreq.addr     = 12000+700*n+8;
+                            pcsreq.value    = 1;
+                            pcsreq.len      = 1;
+                            pcsreq.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
+                            usleep(500); 
+                            }
+                            
+                        }
+
                         }
                         break;
                     }
-
                     // pcsnum 含义：与写线程中的 socket_Taida_Pcs[num] 对应（0、1、2、3 ...）
                     int pcsnum = -1; // 0:PCS1, 1:PCS2, 2:PCS3, 3:PCS4, 4:PCS5, 5:PCS6, 6:PCS7, 7:PCS8
                     if(sys_cfg->pcs_brand[0] == PCS_PE)
