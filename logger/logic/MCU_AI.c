@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'MCU_AI'.
  *
- * Model version                  : 16.18
+ * Model version                  : 16.21
  * Simulink Coder version         : 25.2 (R2025b) 28-Jul-2025
- * C/C++ source code generated on : Mon Aug 24 15:14:57 2026
+ * C/C++ source code generated on : Tue Sep 29 13:49:35 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Generic->32-bit Embedded Processor
@@ -123,12 +123,12 @@ void MCU_AI_step(void)
 {
   int32_T tmp;
   int32_T tmp_0;
+  int32_T tmp_1;
+  int32_T tmp_2;
   real32_T rtb_Add1_k;
-  real32_T rtb_Divide35_py;
   real32_T rtb_Product5;
   real32_T rtb_Subtract4_fk;
   real32_T rtb_Switch17_iq;
-  real32_T rtb_Switch30;
   uint32_T rtb_Switch1_c;
   uint32_T rtb_Switch2_fu;
   uint32_T rtb_Switch3_i;
@@ -261,8 +261,9 @@ void MCU_AI_step(void)
    *  Product: '<S1>/Divide2'
    *  Switch: '<S13>/Switch12'
    */
-  MCU_AI_B.Switch28 = (real32_T)((int32_T)MCU_AI_B.Switch3 >> 1);
-  MCU_AI_B.Min_d = (int32_T)fminf(MCU_AI_B.Switch28, (real32_T)MCU_AI_B.Switch20);
+  MCU_AI_B.Divide38_j = (real32_T)((int32_T)MCU_AI_B.Switch3 >> 1);
+  MCU_AI_B.Min_d = (int32_T)fminf(MCU_AI_B.Divide38_j, (real32_T)
+    MCU_AI_B.Switch20);
 
   /* RelationalOperator: '<S4>/Compare' incorporates:
    *  Constant: '<S4>/Constant'
@@ -285,7 +286,8 @@ void MCU_AI_step(void)
   /* MinMax: '<S14>/Min' incorporates:
    *  Switch: '<S14>/Switch12'
    */
-  MCU_AI_B.Min_h = (int32_T)fminf(MCU_AI_B.Switch28, (real32_T)MCU_AI_B.Switch20);
+  MCU_AI_B.Min_h = (int32_T)fminf(MCU_AI_B.Divide38_j, (real32_T)
+    MCU_AI_B.Switch20);
 
   /* RelationalOperator: '<S5>/Compare' incorporates:
    *  Constant: '<S5>/Constant'
@@ -325,8 +327,9 @@ void MCU_AI_step(void)
    *  Product: '<S1>/Divide8'
    *  Switch: '<S15>/Switch12'
    */
-  rtb_Switch30 = (real32_T)((int32_T)MCU_AI_B.Switch2 >> 1);
-  MCU_AI_B.Min_h1 = (int32_T)fminf(rtb_Switch30, (real32_T)MCU_AI_B.Switch20);
+  MCU_AI_B.Product7_c = (real32_T)((int32_T)MCU_AI_B.Switch2 >> 1);
+  MCU_AI_B.Min_h1 = (int32_T)fminf(MCU_AI_B.Product7_c, (real32_T)
+    MCU_AI_B.Switch20);
 
   /* RelationalOperator: '<S6>/Compare' incorporates:
    *  Constant: '<S6>/Constant'
@@ -349,7 +352,8 @@ void MCU_AI_step(void)
   /* MinMax: '<S16>/Min' incorporates:
    *  Switch: '<S16>/Switch12'
    */
-  MCU_AI_B.Min_kv = (int32_T)fminf(rtb_Switch30, (real32_T)MCU_AI_B.Switch20);
+  MCU_AI_B.Min_kv = (int32_T)fminf(MCU_AI_B.Product7_c, (real32_T)
+    MCU_AI_B.Switch20);
 
   /* RelationalOperator: '<S7>/Compare' incorporates:
    *  Constant: '<S7>/Constant'
@@ -389,8 +393,8 @@ void MCU_AI_step(void)
    *  Product: '<S1>/Divide12'
    *  Switch: '<S17>/Switch12'
    */
-  MCU_AI_B.Divide38_j = (real32_T)((int32_T)MCU_AI_B.Switch1 >> 1);
-  MCU_AI_B.Min_l = (int32_T)fminf(MCU_AI_B.Divide38_j, (real32_T)
+  MCU_AI_B.Divide35_n = (real32_T)((int32_T)MCU_AI_B.Switch1 >> 1);
+  MCU_AI_B.Min_l = (int32_T)fminf(MCU_AI_B.Divide35_n, (real32_T)
     MCU_AI_B.Switch20);
 
   /* RelationalOperator: '<S8>/Compare' incorporates:
@@ -414,7 +418,7 @@ void MCU_AI_step(void)
   /* MinMax: '<S18>/Min' incorporates:
    *  Switch: '<S18>/Switch12'
    */
-  MCU_AI_B.Min_m = (int32_T)fminf(MCU_AI_B.Divide38_j, (real32_T)
+  MCU_AI_B.Min_m = (int32_T)fminf(MCU_AI_B.Divide35_n, (real32_T)
     MCU_AI_B.Switch20);
 
   /* RelationalOperator: '<S9>/Compare' incorporates:
@@ -477,6 +481,24 @@ void MCU_AI_step(void)
    */
   MCU_AI_B.Min4_i = (int32_T)fminf(rtb_Product5, (real32_T)MCU_AI_B.Switch20);
 
+  /* Switch: '<S21>/Switch5' incorporates:
+   *  Constant: '<S21>/Constant7'
+   *  Inport: '<Root>/bms3_max_discharge_power'
+   *  Inport: '<Root>/bms3_soc'
+   *  RelationalOperator: '<S21>/LessThanOrEqual'
+   */
+  if (bms3_soc <= rtb_Min_ju) {
+    MCU_AI_B.Switch20 = 0;
+  } else {
+    MCU_AI_B.Switch20 = bms3_max_discharge_power;
+  }
+
+  /* MinMax: '<S21>/Min4' incorporates:
+   *  Switch: '<S21>/Switch5'
+   */
+  MCU_AI_B.Min4_b = (int32_T)fminf(MCU_AI_B.Divide38_j, (real32_T)
+    MCU_AI_B.Switch20);
+
   /* Switch: '<S22>/Switch5' incorporates:
    *  Constant: '<S22>/Constant7'
    *  Inport: '<Root>/bms4_max_discharge_power'
@@ -492,7 +514,7 @@ void MCU_AI_step(void)
   /* MinMax: '<S22>/Min4' incorporates:
    *  Switch: '<S22>/Switch5'
    */
-  MCU_AI_B.Min4_p = (int32_T)fminf(MCU_AI_B.Switch28, (real32_T)
+  MCU_AI_B.Min4_p = (int32_T)fminf(MCU_AI_B.Divide38_j, (real32_T)
     MCU_AI_B.Switch20);
 
   /* Switch: '<S23>/Switch5' incorporates:
@@ -510,7 +532,26 @@ void MCU_AI_step(void)
   /* MinMax: '<S23>/Min4' incorporates:
    *  Switch: '<S23>/Switch5'
    */
-  MCU_AI_B.Min4_pm = (int32_T)fminf(rtb_Switch30, (real32_T)MCU_AI_B.Switch20);
+  MCU_AI_B.Min4_pm = (int32_T)fminf(MCU_AI_B.Product7_c, (real32_T)
+    MCU_AI_B.Switch20);
+
+  /* Switch: '<S24>/Switch5' incorporates:
+   *  Constant: '<S24>/Constant7'
+   *  Inport: '<Root>/bms6_max_discharge_power'
+   *  Inport: '<Root>/bms6_soc'
+   *  RelationalOperator: '<S24>/LessThanOrEqual'
+   */
+  if (bms6_soc <= rtb_Min_ju) {
+    MCU_AI_B.Switch20 = 0;
+  } else {
+    MCU_AI_B.Switch20 = bms6_max_discharge_power;
+  }
+
+  /* MinMax: '<S24>/Min4' incorporates:
+   *  Switch: '<S24>/Switch5'
+   */
+  MCU_AI_B.Min4_ix = (int32_T)fminf(MCU_AI_B.Product7_c, (real32_T)
+    MCU_AI_B.Switch20);
 
   /* Switch: '<S25>/Switch5' incorporates:
    *  Constant: '<S25>/Constant7'
@@ -527,7 +568,7 @@ void MCU_AI_step(void)
   /* MinMax: '<S25>/Min4' incorporates:
    *  Switch: '<S25>/Switch5'
    */
-  MCU_AI_B.Min4_f = (int32_T)fminf(MCU_AI_B.Divide38_j, (real32_T)
+  MCU_AI_B.Min4_f = (int32_T)fminf(MCU_AI_B.Divide35_n, (real32_T)
     MCU_AI_B.Switch20);
 
   /* Switch: '<S26>/Switch5' incorporates:
@@ -545,7 +586,7 @@ void MCU_AI_step(void)
   /* MinMax: '<S26>/Min4' incorporates:
    *  Switch: '<S26>/Switch5'
    */
-  MCU_AI_B.Min4_l = (int32_T)fminf(MCU_AI_B.Divide38_j, (real32_T)
+  MCU_AI_B.Min4_l = (int32_T)fminf(MCU_AI_B.Divide35_n, (real32_T)
     MCU_AI_B.Switch20);
 
   /* Switch: '<S27>/Switch3' incorporates:
@@ -561,117 +602,117 @@ void MCU_AI_step(void)
    *  Constant: '<S27>/Constant43'
    */
   if (rtb_Compare_m0) {
-    MCU_AI_B.Switch13 = MCU_AI_B.Min_d;
+    MCU_AI_B.Switch17 = MCU_AI_B.Min_d;
   } else {
-    MCU_AI_B.Switch13 = 0;
+    MCU_AI_B.Switch17 = 0;
   }
 
   /* Switch: '<S27>/Switch5' incorporates:
    *  Constant: '<S27>/Constant44'
    */
   if (rtb_Compare_kvd) {
-    MCU_AI_B.Switch15 = MCU_AI_B.Min_h;
+    MCU_AI_B.Switch7 = MCU_AI_B.Min_h;
   } else {
-    MCU_AI_B.Switch15 = 0;
+    MCU_AI_B.Switch7 = 0;
   }
 
   /* Switch: '<S27>/Switch6' incorporates:
    *  Constant: '<S27>/Constant1'
    */
   if (rtb_Compare_ge) {
-    MCU_AI_B.Switch17 = MCU_AI_B.Min_h1;
+    MCU_AI_B.Switch16 = MCU_AI_B.Min_h1;
   } else {
-    MCU_AI_B.Switch17 = 0;
+    MCU_AI_B.Switch16 = 0;
   }
 
   /* Switch: '<S27>/Switch7' incorporates:
    *  Constant: '<S27>/Constant2'
    */
   if (rtb_Compare_hr) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Min_kv;
+    MCU_AI_B.Switch6 = MCU_AI_B.Min_kv;
   } else {
-    MCU_AI_B.Switch7 = 0;
+    MCU_AI_B.Switch6 = 0;
   }
 
   /* Switch: '<S27>/Switch8' incorporates:
    *  Constant: '<S27>/Constant3'
    */
   if (rtb_Compare) {
-    MCU_AI_B.Switch16 = MCU_AI_B.Min_l;
+    MCU_AI_B.Switch5 = MCU_AI_B.Min_l;
   } else {
-    MCU_AI_B.Switch16 = 0;
+    MCU_AI_B.Switch5 = 0;
   }
 
   /* Switch: '<S27>/Switch9' incorporates:
    *  Constant: '<S27>/Constant4'
    */
   if (rtb_Compare_j) {
-    MCU_AI_B.Switch6 = MCU_AI_B.Min_m;
+    MCU_AI_B.Switch19 = MCU_AI_B.Min_m;
   } else {
-    MCU_AI_B.Switch6 = 0;
+    MCU_AI_B.Switch19 = 0;
   }
 
   /* Switch: '<S27>/Switch' incorporates:
    *  Constant: '<S27>/Constant39'
    */
   if (rtb_Compare_ps) {
-    MCU_AI_B.Switch5 = MCU_AI_B.Min4_i;
+    MCU_AI_B.Switch13 = MCU_AI_B.Min4_i;
   } else {
-    MCU_AI_B.Switch5 = 0;
+    MCU_AI_B.Switch13 = 0;
   }
 
   /* Switch: '<S27>/Switch1' incorporates:
    *  Constant: '<S27>/Constant40'
    */
   if (rtb_Compare_m0) {
-    MCU_AI_B.Switch19 = MCU_AI_B.Min_d;
+    MCU_AI_B.Switch15 = MCU_AI_B.Min4_b;
   } else {
-    MCU_AI_B.Switch19 = 0;
+    MCU_AI_B.Switch15 = 0;
   }
 
   /* Switch: '<S27>/Switch2' incorporates:
    *  Constant: '<S27>/Constant41'
    */
   if (rtb_Compare_kvd) {
-    MCU_AI_B.DataTypeConversion4 = MCU_AI_B.Min4_p;
+    MCU_AI_B.Switch14 = MCU_AI_B.Min4_p;
   } else {
-    MCU_AI_B.DataTypeConversion4 = 0;
+    MCU_AI_B.Switch14 = 0;
   }
 
   /* Switch: '<S27>/Switch10' incorporates:
    *  Constant: '<S27>/Constant5'
    */
   if (rtb_Compare_ge) {
-    MCU_AI_B.Switch14 = MCU_AI_B.Min4_pm;
+    tmp = MCU_AI_B.Min4_pm;
   } else {
-    MCU_AI_B.Switch14 = 0;
+    tmp = 0;
   }
 
   /* Switch: '<S27>/Switch11' incorporates:
    *  Constant: '<S27>/Constant6'
    */
   if (rtb_Compare_hr) {
-    MCU_AI_B.DataTypeConversion6_b = MCU_AI_B.Min_kv;
+    tmp_0 = MCU_AI_B.Min4_ix;
   } else {
-    MCU_AI_B.DataTypeConversion6_b = 0;
+    tmp_0 = 0;
   }
 
   /* Switch: '<S27>/Switch12' incorporates:
    *  Constant: '<S27>/Constant7'
    */
   if (rtb_Compare) {
-    tmp = MCU_AI_B.Min4_f;
+    tmp_1 = MCU_AI_B.Min4_f;
   } else {
-    tmp = 0;
+    tmp_1 = 0;
   }
 
   /* Switch: '<S27>/Switch13' incorporates:
    *  Constant: '<S27>/Constant8'
    */
   if (rtb_Compare_j) {
-    tmp_0 = MCU_AI_B.Min4_l;
+    tmp_2 = MCU_AI_B.Min4_l;
   } else {
-    tmp_0 = 0;
+    tmp_2 = 0;
   }
 
   /* MinMax: '<S27>/Max' incorporates:
@@ -696,14 +737,13 @@ void MCU_AI_step(void)
    *  Switch: '<S27>/Switch9'
    */
   rtb_Subtract4_fk = fmaxf(fmaxf(-(((((((real32_T)(MCU_AI_B.Min +
-    MCU_AI_B.Switch20) + (real32_T)MCU_AI_B.Switch13) + (real32_T)
-    MCU_AI_B.Switch15) + (real32_T)MCU_AI_B.Switch17) + (real32_T)
+    MCU_AI_B.Switch20) + (real32_T)MCU_AI_B.Switch17) + (real32_T)
     MCU_AI_B.Switch7) + (real32_T)MCU_AI_B.Switch16) + (real32_T)
-    MCU_AI_B.Switch6), -MCU_AI_B.Switch9_f), fminf(fminf(rtb_Add1_k,
-    MCU_AI_B.Switch9_f), ((((((real32_T)(MCU_AI_B.Min4 + MCU_AI_B.Switch5) +
-    (real32_T)MCU_AI_B.Switch19) + (real32_T)MCU_AI_B.DataTypeConversion4) +
-    (real32_T)MCU_AI_B.Switch14) + (real32_T)MCU_AI_B.DataTypeConversion6_b) +
-    (real32_T)tmp) + (real32_T)tmp_0));
+    MCU_AI_B.Switch6) + (real32_T)MCU_AI_B.Switch5) + (real32_T)
+    MCU_AI_B.Switch19), -MCU_AI_B.Switch9_f), fminf(fminf(rtb_Add1_k,
+    MCU_AI_B.Switch9_f), ((((((real32_T)(MCU_AI_B.Min4 + MCU_AI_B.Switch13) +
+    (real32_T)MCU_AI_B.Switch15) + (real32_T)MCU_AI_B.Switch14) + (real32_T)tmp)
+    + (real32_T)tmp_0) + (real32_T)tmp_1) + (real32_T)tmp_2));
 
   /* RelationalOperator: '<S10>/Compare' incorporates:
    *  Constant: '<S10>/Constant'
@@ -717,9 +757,9 @@ void MCU_AI_step(void)
    *  Sum: '<S32>/Subtract4'
    */
   if (rtb_Compare_bq) {
-    rtb_Divide35_py = (real32_T)bms1_soc - (real32_T)rtb_Min_ju;
+    MCU_AI_B.Divide35_n = (real32_T)bms1_soc - (real32_T)rtb_Min_ju;
   } else {
-    rtb_Divide35_py = (real32_T)rtb_Max - (real32_T)bms1_soc;
+    MCU_AI_B.Divide35_n = (real32_T)rtb_Max - (real32_T)bms1_soc;
   }
 
   /* End of Switch: '<S32>/Switch12' */
@@ -729,10 +769,10 @@ void MCU_AI_step(void)
    *  Constant: '<S32>/Constant1'
    *  RelationalOperator: '<S257>/Compare'
    */
-  if (rtb_Divide35_py <= 0.0F) {
+  if (MCU_AI_B.Divide35_n <= 0.0F) {
     MCU_AI_B.Switch20 = 0;
   } else {
-    MCU_AI_B.Switch20 = (int32_T)rtb_Divide35_py;
+    MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide35_n;
   }
 
   /* End of Switch: '<S32>/Switch20' */
@@ -1135,7 +1175,7 @@ void MCU_AI_step(void)
    *  Switch: '<S227>/Switch17'
    */
   MCU_AI_B.Divide38_j = (real32_T)MCU_AI_B.Switch7 + (real32_T)MCU_AI_B.Switch16;
-  rtb_Divide35_py = MCU_AI_B.Divide38_j;
+  MCU_AI_B.Divide35_n = MCU_AI_B.Divide38_j;
 
   /* Switch: '<S227>/Switch1' incorporates:
    *  Constant: '<S227>/Constant2'
@@ -1144,7 +1184,7 @@ void MCU_AI_step(void)
    *  Sum: '<S227>/Add9'
    */
   if (MCU_AI_B.Divide38_j <= 1.0F) {
-    rtb_Divide35_py = 1.0F;
+    MCU_AI_B.Divide35_n = 1.0F;
   }
 
   /* End of Switch: '<S227>/Switch1' */
@@ -1205,7 +1245,7 @@ void MCU_AI_step(void)
    *  Constant: '<S251>/Constant'
    *  RelationalOperator: '<S251>/Compare'
    */
-  if (rtb_Divide35_py <= 1.0F) {
+  if (MCU_AI_B.Divide35_n <= 1.0F) {
     rtb_Product5 = 0.0F;
   } else {
     /* Product: '<S31>/Divide38' incorporates:
@@ -1254,7 +1294,7 @@ void MCU_AI_step(void)
 
   /* Product: '<S227>/Divide36' */
   MCU_AI_B.Divide38_j = (real32_T)MCU_AI_B.Switch16 * rtb_Product5 /
-    rtb_Divide35_py;
+    MCU_AI_B.Divide35_n;
 
   /* Switch: '<S255>/Switch2' incorporates:
    *  Product: '<S227>/Product2'
@@ -1506,7 +1546,7 @@ void MCU_AI_step(void)
   /* End of Switch: '<S31>/Switch2' */
 
   /* DataTypeConversion: '<S31>/Data Type Conversion4' */
-  MCU_AI_B.DataTypeConversion4 = rtb_Switch5_h;
+  MCU_AI_B.Switch13 = rtb_Switch5_h;
 
   /* Switch: '<S28>/Switch27' incorporates:
    *  Constant: '<S28>/Constant54'
@@ -1530,24 +1570,6 @@ void MCU_AI_step(void)
   }
 
   /* End of Switch: '<S28>/Switch27' */
-
-  /* Switch: '<S21>/Switch5' incorporates:
-   *  Constant: '<S21>/Constant7'
-   *  Inport: '<Root>/bms3_max_discharge_power'
-   *  Inport: '<Root>/bms3_soc'
-   *  RelationalOperator: '<S21>/LessThanOrEqual'
-   */
-  if (bms3_soc <= rtb_Min_ju) {
-    MCU_AI_B.Switch20 = 0;
-  } else {
-    MCU_AI_B.Switch20 = bms3_max_discharge_power;
-  }
-
-  /* MinMax: '<S21>/Min4' incorporates:
-   *  Switch: '<S21>/Switch5'
-   */
-  MCU_AI_B.Switch13 = (int32_T)fminf(MCU_AI_B.Switch28, (real32_T)
-    MCU_AI_B.Switch20);
 
   /* Sum: '<S225>/Add9' */
   MCU_AI_B.Divide38_j = (real32_T)MCU_AI_B.Switch14 + (real32_T)
@@ -1579,7 +1601,7 @@ void MCU_AI_step(void)
     /* Sum: '<S1>/Add5' incorporates:
      *  Switch: '<S225>/Switch17'
      */
-    MCU_AI_B.Switch9_f = (real32_T)(MCU_AI_B.Switch13 + MCU_AI_B.Min4_p);
+    MCU_AI_B.Switch9_f = (real32_T)(MCU_AI_B.Min4_b + MCU_AI_B.Min4_p);
 
     /* Switch: '<S229>/Switch2' incorporates:
      *  RelationalOperator: '<S229>/LowerRelop1'
@@ -1629,8 +1651,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S242>/UpperRelop'
    *  Switch: '<S242>/Switch'
    */
-  if (MCU_AI_B.Divide36_a > MCU_AI_B.Switch13) {
-    MCU_AI_B.Divide36_a = (real32_T)MCU_AI_B.Switch13;
+  if (MCU_AI_B.Divide36_a > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Divide36_a = (real32_T)MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Divide36_a < -(real32_T)MCU_AI_B.Min_d) {
     /* Switch: '<S242>/Switch' incorporates:
      *  Product: '<S225>/Product1'
@@ -1693,7 +1715,7 @@ void MCU_AI_step(void)
      *  Product: '<S28>/Product12'
      */
     if (rtb_Compare_bq) {
-      MCU_AI_B.Switch20 = MCU_AI_B.Switch13;
+      MCU_AI_B.Switch20 = MCU_AI_B.Min4_b;
     } else {
       MCU_AI_B.Switch20 = -MCU_AI_B.Min_d;
     }
@@ -1754,7 +1776,7 @@ void MCU_AI_step(void)
   /* End of Switch: '<S31>/Switch4' */
 
   /* DataTypeConversion: '<S31>/Data Type Conversion6' */
-  MCU_AI_B.DataTypeConversion6_b = rtb_Switch5_h;
+  MCU_AI_B.Switch15 = rtb_Switch5_h;
 
   /* Switch: '<S28>/Switch29' incorporates:
    *  Constant: '<S28>/Constant28'
@@ -1779,62 +1801,40 @@ void MCU_AI_step(void)
 
   /* End of Switch: '<S28>/Switch29' */
 
-  /* Sum: '<S226>/Add9' incorporates:
-   *  Sum: '<S31>/Add11'
-   *  Switch: '<S226>/Switch17'
-   */
-  MCU_AI_B.Switch9_f = (real32_T)MCU_AI_B.Switch5 + (real32_T)MCU_AI_B.Switch6;
-  MCU_AI_B.Divide38_j = MCU_AI_B.Switch9_f;
+  /* Sum: '<S226>/Add9' */
+  MCU_AI_B.Divide38_j = (real32_T)MCU_AI_B.Switch5 + (real32_T)MCU_AI_B.Switch6;
 
   /* Switch: '<S226>/Switch1' incorporates:
    *  Constant: '<S226>/Constant2'
    *  Constant: '<S244>/Constant'
    *  RelationalOperator: '<S244>/Compare'
-   *  Sum: '<S226>/Add9'
-   */
-  if (MCU_AI_B.Switch9_f <= 1.0F) {
-    MCU_AI_B.Divide38_j = 1.0F;
-  }
-
-  /* End of Switch: '<S226>/Switch1' */
-
-  /* Switch: '<S24>/Switch5' incorporates:
-   *  Constant: '<S24>/Constant7'
-   *  Inport: '<Root>/bms6_max_discharge_power'
-   *  Inport: '<Root>/bms6_soc'
-   *  RelationalOperator: '<S24>/LessThanOrEqual'
-   */
-  if (bms6_soc <= rtb_Min_ju) {
-    MCU_AI_B.Switch20 = 0;
-  } else {
-    MCU_AI_B.Switch20 = bms6_max_discharge_power;
-  }
-
-  /* MinMax: '<S24>/Min4' incorporates:
-   *  Switch: '<S24>/Switch5'
-   */
-  MCU_AI_B.Switch15 = (int32_T)fminf(rtb_Switch30, (real32_T)MCU_AI_B.Switch20);
-
-  /* Switch: '<S226>/Switch17' incorporates:
-   *  Constant: '<S226>/Constant55'
-   *  Constant: '<S245>/Constant'
-   *  RelationalOperator: '<S245>/Compare'
    */
   if (MCU_AI_B.Divide38_j <= 1.0F) {
+    MCU_AI_B.Divide38_j = 1.0F;
+
+    /* Switch: '<S226>/Switch17' incorporates:
+     *  Constant: '<S226>/Constant2'
+     *  Constant: '<S226>/Constant55'
+     */
     MCU_AI_B.Switch9_f = 0.0F;
   } else {
     /* Product: '<S31>/Divide37' incorporates:
      *  Constant: '<S31>/Constant4'
      *  Product: '<S31>/Product9'
+     *  Sum: '<S31>/Add11'
+     *  Switch: '<S226>/Switch17'
      */
-    MCU_AI_B.Divide36_a = MCU_AI_B.Switch9_f * 0.5F * (real32_T)
+    MCU_AI_B.Divide36_a = MCU_AI_B.Divide38_j * 0.5F * (real32_T)
       MCU_AI_B.Switch17 / MCU_AI_B.Product8;
 
-    /* Sum: '<S1>/Add8' */
-    MCU_AI_B.Switch9_f = (real32_T)(MCU_AI_B.Min4_pm + MCU_AI_B.Switch15);
+    /* Sum: '<S1>/Add8' incorporates:
+     *  Switch: '<S226>/Switch17'
+     */
+    MCU_AI_B.Switch9_f = (real32_T)(MCU_AI_B.Min4_pm + MCU_AI_B.Min4_ix);
 
     /* Switch: '<S230>/Switch2' incorporates:
      *  RelationalOperator: '<S230>/LowerRelop1'
+     *  Switch: '<S226>/Switch17'
      */
     if (!(MCU_AI_B.Divide36_a > MCU_AI_B.Switch9_f)) {
       /* Product: '<S31>/Product3' incorporates:
@@ -1859,6 +1859,7 @@ void MCU_AI_step(void)
      *  Constant: '<S31>/Constant19'
      *  Product: '<S31>/Product12'
      *  RelationalOperator: '<S222>/Compare'
+     *  Switch: '<S226>/Switch17'
      */
     if ((real32_T)MCU_AI_B.Switch19 * MCU_AI_B.Switch9_f < 0.0F) {
       MCU_AI_B.Switch9_f = 0.0F;
@@ -1866,6 +1867,8 @@ void MCU_AI_step(void)
 
     /* End of Switch: '<S31>/Switch13' */
   }
+
+  /* End of Switch: '<S226>/Switch1' */
 
   /* Product: '<S226>/Divide35' */
   MCU_AI_B.Divide36_a = (real32_T)MCU_AI_B.Switch5 * MCU_AI_B.Switch9_f /
@@ -1946,9 +1949,9 @@ void MCU_AI_step(void)
       MCU_AI_B.Switch20 = -MCU_AI_B.Min_h1;
     }
 
-    rtb_Switch30 = (real32_T)MCU_AI_B.Switch20 - (real32_T)rtb_Switch5_h;
+    MCU_AI_B.Product8 = (real32_T)MCU_AI_B.Switch20 - (real32_T)rtb_Switch5_h;
   } else {
-    rtb_Switch30 = 0.0F;
+    MCU_AI_B.Product8 = 0.0F;
   }
 
   /* End of Switch: '<S28>/Switch30' */
@@ -1963,8 +1966,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S249>/UpperRelop'
    *  Switch: '<S249>/Switch'
    */
-  if (MCU_AI_B.Divide38_j > MCU_AI_B.Switch15) {
-    MCU_AI_B.Divide38_j = (real32_T)MCU_AI_B.Switch15;
+  if (MCU_AI_B.Divide38_j > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Divide38_j = (real32_T)MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Divide38_j < -(real32_T)MCU_AI_B.Min_kv) {
     /* Switch: '<S249>/Switch' incorporates:
      *  Product: '<S226>/Product2'
@@ -2015,7 +2018,7 @@ void MCU_AI_step(void)
      *  Product: '<S28>/Product15'
      */
     if (rtb_Compare_bq) {
-      MCU_AI_B.Switch20 = MCU_AI_B.Switch15;
+      MCU_AI_B.Switch20 = MCU_AI_B.Min4_ix;
     } else {
       MCU_AI_B.Switch20 = -MCU_AI_B.Min_kv;
     }
@@ -2028,7 +2031,8 @@ void MCU_AI_step(void)
   /* End of Switch: '<S28>/Switch31' */
 
   /* Product: '<S227>/Divide35' */
-  rtb_Divide35_py = (real32_T)MCU_AI_B.Switch7 * rtb_Product5 / rtb_Divide35_py;
+  MCU_AI_B.Divide35_n = (real32_T)MCU_AI_B.Switch7 * rtb_Product5 /
+    MCU_AI_B.Divide35_n;
 
   /* Switch: '<S254>/Switch2' incorporates:
    *  Product: '<S227>/Product1'
@@ -2036,13 +2040,13 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S254>/UpperRelop'
    *  Switch: '<S254>/Switch'
    */
-  if (rtb_Divide35_py > MCU_AI_B.Min4_f) {
-    rtb_Divide35_py = (real32_T)MCU_AI_B.Min4_f;
-  } else if (rtb_Divide35_py < -(real32_T)MCU_AI_B.Min_l) {
+  if (MCU_AI_B.Divide35_n > MCU_AI_B.Min4_f) {
+    MCU_AI_B.Divide35_n = (real32_T)MCU_AI_B.Min4_f;
+  } else if (MCU_AI_B.Divide35_n < -(real32_T)MCU_AI_B.Min_l) {
     /* Switch: '<S254>/Switch' incorporates:
      *  Product: '<S227>/Product1'
      */
-    rtb_Divide35_py = -(real32_T)MCU_AI_B.Min_l;
+    MCU_AI_B.Divide35_n = -(real32_T)MCU_AI_B.Min_l;
   }
 
   /* End of Switch: '<S254>/Switch2' */
@@ -2053,8 +2057,8 @@ void MCU_AI_step(void)
    *  Product: '<S227>/Product10'
    *  RelationalOperator: '<S252>/Compare'
    */
-  if (MCU_AI_B.Product7_c * rtb_Divide35_py < 0.0F) {
-    rtb_Divide35_py = 0.0F;
+  if (MCU_AI_B.Product7_c * MCU_AI_B.Divide35_n < 0.0F) {
+    MCU_AI_B.Divide35_n = 0.0F;
   }
 
   /* End of Switch: '<S227>/Switch11' */
@@ -2066,10 +2070,10 @@ void MCU_AI_step(void)
    *  DataTypeConversion: '<S31>/Data Type Conversion12'
    *  RelationalOperator: '<S218>/Compare'
    */
-  if (fabsf(rtb_Divide35_py) <= 0.1F) {
+  if (fabsf(MCU_AI_B.Divide35_n) <= 0.1F) {
     rtb_Switch5_h = 0;
   } else {
-    rtb_Switch5_h = (int16_T)rtb_Divide35_py;
+    rtb_Switch5_h = (int16_T)MCU_AI_B.Divide35_n;
   }
 
   /* End of Switch: '<S31>/Switch7' */
@@ -2093,9 +2097,9 @@ void MCU_AI_step(void)
       MCU_AI_B.Switch20 = -MCU_AI_B.Min_l;
     }
 
-    MCU_AI_B.Product8 = (real32_T)MCU_AI_B.Switch20 - (real32_T)rtb_Switch5_h;
+    MCU_AI_B.Switch32 = (real32_T)MCU_AI_B.Switch20 - (real32_T)rtb_Switch5_h;
   } else {
-    MCU_AI_B.Product8 = 0.0F;
+    MCU_AI_B.Switch32 = 0.0F;
   }
 
   /* End of Switch: '<S28>/Switch32' */
@@ -2124,15 +2128,15 @@ void MCU_AI_step(void)
   /* End of Switch: '<S28>/Switch33' */
 
   /* Sum: '<S28>/Add1' */
-  rtb_Divide35_py = ((((((MCU_AI_B.Subtract1 + MCU_AI_B.Switch27) +
-    MCU_AI_B.Switch28) + MCU_AI_B.Switch29) + rtb_Switch30) + MCU_AI_B.Switch6_i)
-                     + MCU_AI_B.Product8) + MCU_AI_B.Switch9_f;
+  MCU_AI_B.Divide35_n = ((((((MCU_AI_B.Subtract1 + MCU_AI_B.Switch27) +
+    MCU_AI_B.Switch28) + MCU_AI_B.Switch29) + MCU_AI_B.Product8) +
+    MCU_AI_B.Switch6_i) + MCU_AI_B.Switch32) + MCU_AI_B.Switch9_f;
 
   /* RelationalOperator: '<S42>/Compare' incorporates:
    *  Abs: '<S28>/Abs8'
    *  Constant: '<S42>/Constant'
    */
-  rtb_Compare_ps = (fabsf(rtb_Divide35_py) <= 0.4F);
+  rtb_Compare_ps = (fabsf(MCU_AI_B.Divide35_n) <= 0.4F);
 
   /* Product: '<S31>/Product5' incorporates:
    *  DataTypeConversion: '<S31>/Data Type Conversion13'
@@ -2140,8 +2144,8 @@ void MCU_AI_step(void)
    *  Sum: '<S31>/Subtract4'
    */
   rtb_Product5 = (real32_T)MCU_AI_B.Switch17 - (((((((rtb_Add1_k + (real32_T)
-    MCU_AI_B.DataTypeConversion4) + (real32_T)MCU_AI_B.Switch14) + (real32_T)
-    MCU_AI_B.DataTypeConversion6_b) + (real32_T)MCU_AI_B.Switch5) + (real32_T)
+    MCU_AI_B.Switch13) + (real32_T)MCU_AI_B.Switch14) + (real32_T)
+    MCU_AI_B.Switch15) + (real32_T)MCU_AI_B.Switch5) + (real32_T)
     MCU_AI_B.Switch6) + (real32_T)rtb_Switch5_h) + (real32_T)MCU_AI_B.Switch16);
 
   /* Switch: '<S31>/Switch9' incorporates:
@@ -2177,17 +2181,17 @@ void MCU_AI_step(void)
     }
 
     /* End of Switch: '<S28>/Switch18' */
-    rtb_Divide35_py = 0.0F;
+    MCU_AI_B.Divide35_n = 0.0F;
   } else {
-    rtb_Switch17_iq = rtb_Divide35_py;
-    rtb_Divide35_py = (real32_T)rtb_Switch5_h * MCU_AI_B.Switch9_f /
-      rtb_Divide35_py;
+    rtb_Switch17_iq = MCU_AI_B.Divide35_n;
+    MCU_AI_B.Divide35_n = (real32_T)rtb_Switch5_h * MCU_AI_B.Switch9_f /
+      MCU_AI_B.Divide35_n;
   }
 
   /* End of Switch: '<S28>/Switch17' */
 
   /* Sum: '<S28>/Add9' */
-  rtb_Divide35_py += (real32_T)MCU_AI_B.Switch16;
+  MCU_AI_B.Divide35_n += (real32_T)MCU_AI_B.Switch16;
 
   /* Switch: '<S28>/Switch36' incorporates:
    *  Constant: '<S28>/Constant38'
@@ -2207,8 +2211,8 @@ void MCU_AI_step(void)
    *  Product: '<S28>/Product5'
    *  RelationalOperator: '<S50>/Compare'
    */
-  if (rtb_Product5 * rtb_Divide35_py < 0.0F) {
-    rtb_Divide35_py = 0.0F;
+  if (rtb_Product5 * MCU_AI_B.Divide35_n < 0.0F) {
+    MCU_AI_B.Divide35_n = 0.0F;
   }
 
   /* End of Switch: '<S28>/Switch41' */
@@ -2218,14 +2222,14 @@ void MCU_AI_step(void)
    *  Constant: '<S40>/Constant'
    *  RelationalOperator: '<S40>/Compare'
    */
-  if (fabsf(rtb_Divide35_py) <= 0.1F) {
+  if (fabsf(MCU_AI_B.Divide35_n) <= 0.1F) {
     /* DataTypeConversion: '<S28>/Data Type Conversion15' */
-    rtb_Divide35_py = 0.0F;
+    MCU_AI_B.Divide35_n = 0.0F;
   } else {
     /* DataTypeConversion: '<S28>/Data Type Conversion15' incorporates:
      *  DataTypeConversion: '<S28>/Data Type Conversion7'
      */
-    rtb_Divide35_py = (int16_T)rtb_Divide35_py;
+    MCU_AI_B.Divide35_n = (int16_T)MCU_AI_B.Divide35_n;
   }
 
   /* End of Switch: '<S28>/Switch16' */
@@ -2291,7 +2295,7 @@ void MCU_AI_step(void)
   /* End of Switch: '<S28>/Switch20' */
 
   /* Sum: '<S28>/Add3' */
-  MCU_AI_B.Product7_c += (real32_T)MCU_AI_B.DataTypeConversion4;
+  MCU_AI_B.Product7_c += (real32_T)MCU_AI_B.Switch13;
 
   /* Switch: '<S28>/Switch39' incorporates:
    *  Constant: '<S28>/Constant34'
@@ -2383,7 +2387,7 @@ void MCU_AI_step(void)
   /* End of Switch: '<S28>/Switch22' */
 
   /* Sum: '<S28>/Add5' */
-  MCU_AI_B.Divide36_a += (real32_T)MCU_AI_B.DataTypeConversion6_b;
+  MCU_AI_B.Divide36_a += (real32_T)MCU_AI_B.Switch15;
 
   /* Switch: '<S28>/Switch37' incorporates:
    *  Constant: '<S28>/Constant36'
@@ -2422,7 +2426,7 @@ void MCU_AI_step(void)
   if (rtb_Compare_ps) {
     rtb_Add1_k = 0.0F;
   } else {
-    rtb_Add1_k = (real32_T)rtb_Switch5_h * rtb_Switch30 / rtb_Switch17_iq;
+    rtb_Add1_k = (real32_T)rtb_Switch5_h * MCU_AI_B.Product8 / rtb_Switch17_iq;
   }
 
   /* End of Switch: '<S28>/Switch23' */
@@ -2511,15 +2515,16 @@ void MCU_AI_step(void)
    *  Product: '<S28>/Divide10'
    */
   if (rtb_Compare_ps) {
-    rtb_Switch30 = 0.0F;
+    MCU_AI_B.Subtract1 = 0.0F;
   } else {
-    rtb_Switch30 = (real32_T)rtb_Switch5_h * MCU_AI_B.Product8 / rtb_Switch17_iq;
+    MCU_AI_B.Subtract1 = (real32_T)rtb_Switch5_h * MCU_AI_B.Switch32 /
+      rtb_Switch17_iq;
   }
 
   /* End of Switch: '<S28>/Switch25' */
 
   /* Sum: '<S28>/Add8' */
-  rtb_Switch30 += (real32_T)MCU_AI_B.Switch7;
+  MCU_AI_B.Subtract1 += (real32_T)MCU_AI_B.Switch7;
 
   /* Switch: '<S28>/Switch40' incorporates:
    *  Constant: '<S28>/Constant41'
@@ -2527,8 +2532,8 @@ void MCU_AI_step(void)
    *  Product: '<S28>/Product4'
    *  RelationalOperator: '<S49>/Compare'
    */
-  if (rtb_Product5 * rtb_Switch30 < 0.0F) {
-    rtb_Switch30 = 0.0F;
+  if (rtb_Product5 * MCU_AI_B.Subtract1 < 0.0F) {
+    MCU_AI_B.Subtract1 = 0.0F;
   }
 
   /* End of Switch: '<S28>/Switch40' */
@@ -2540,10 +2545,10 @@ void MCU_AI_step(void)
    *  DataTypeConversion: '<S28>/Data Type Conversion6'
    *  RelationalOperator: '<S39>/Compare'
    */
-  if (fabsf(rtb_Switch30) <= 0.1F) {
+  if (fabsf(MCU_AI_B.Subtract1) <= 0.1F) {
     rtb_Switch5_h = 0;
   } else {
-    rtb_Switch5_h = (int16_T)rtb_Switch30;
+    rtb_Switch5_h = (int16_T)MCU_AI_B.Subtract1;
   }
 
   /* End of Switch: '<S28>/Switch15' */
@@ -2558,7 +2563,7 @@ void MCU_AI_step(void)
   rtb_Subtract4_fk -= ((((((MCU_AI_B.Divide38_j + MCU_AI_B.Product7_c) +
     MCU_AI_B.Switch9_f) + MCU_AI_B.Divide36_a) + rtb_Add1_k) +
                         MCU_AI_B.Switch6_i) + (real32_T)rtb_Switch5_h) +
-    rtb_Divide35_py;
+    MCU_AI_B.Divide35_n;
 
   /* Switch: '<S28>/Switch34' incorporates:
    *  Abs: '<S28>/Abs9'
@@ -2578,7 +2583,7 @@ void MCU_AI_step(void)
   /* Sum: '<S59>/Add4' incorporates:
    *  DataTypeConversion: '<S28>/Data Type Conversion12'
    */
-  rtb_Subtract4_fk = rtb_Divide35_py + (real32_T)rtb_Switch5_h;
+  rtb_Subtract4_fk = MCU_AI_B.Divide35_n + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S72>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S72>/UpperRelop'
@@ -2604,13 +2609,13 @@ void MCU_AI_step(void)
   /* Sum: '<S59>/Add3' incorporates:
    *  DataTypeConversion: '<S28>/Data Type Conversion12'
    */
-  rtb_Switch30 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S70>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S70>/UpperRelop'
    *  Switch: '<S70>/Switch2'
    */
-  MCU_AI_B.Switch17 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch17 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S70>/Switch2' incorporates:
    *  Product: '<S59>/Product7'
@@ -2630,13 +2635,13 @@ void MCU_AI_step(void)
   /* Sum: '<S59>/Add2' incorporates:
    *  DataTypeConversion: '<S28>/Data Type Conversion12'
    */
-  MCU_AI_B.Switch28 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch27 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S69>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S69>/UpperRelop'
    *  Switch: '<S69>/Switch2'
    */
-  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch28;
+  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch27;
 
   /* Switch: '<S69>/Switch2' incorporates:
    *  Product: '<S59>/Product6'
@@ -2644,8 +2649,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S69>/UpperRelop'
    *  Switch: '<S69>/Switch'
    */
-  if (MCU_AI_B.Switch7 > MCU_AI_B.Switch15) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Switch15;
+  if (MCU_AI_B.Switch7 > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Switch7 = MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Switch7 < -MCU_AI_B.Min_kv) {
     /* Switch: '<S69>/Switch' incorporates:
      *  Product: '<S59>/Product6'
@@ -2656,13 +2661,13 @@ void MCU_AI_step(void)
   /* Sum: '<S59>/Add1' incorporates:
    *  DataTypeConversion: '<S28>/Data Type Conversion12'
    */
-  MCU_AI_B.Subtract1 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S68>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S68>/UpperRelop'
    *  Switch: '<S68>/Switch2'
    */
-  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Subtract1;
+  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Switch28;
 
   /* Switch: '<S68>/Switch2' incorporates:
    *  Product: '<S59>/Product5'
@@ -2682,13 +2687,13 @@ void MCU_AI_step(void)
   /* Sum: '<S59>/Add8' incorporates:
    *  DataTypeConversion: '<S28>/Data Type Conversion12'
    */
-  MCU_AI_B.Switch27 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch29 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S75>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S75>/UpperRelop'
    *  Switch: '<S75>/Switch2'
    */
-  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch27;
+  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch29;
 
   /* Switch: '<S75>/Switch2' incorporates:
    *  Product: '<S59>/Product4'
@@ -2708,13 +2713,13 @@ void MCU_AI_step(void)
   /* Sum: '<S59>/Add7' incorporates:
    *  DataTypeConversion: '<S28>/Data Type Conversion12'
    */
-  MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Product8 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S74>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S74>/UpperRelop'
    *  Switch: '<S74>/Switch2'
    */
-  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Switch29;
+  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Product8;
 
   /* Switch: '<S74>/Switch2' incorporates:
    *  Product: '<S59>/Product3'
@@ -2722,8 +2727,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S74>/UpperRelop'
    *  Switch: '<S74>/Switch'
    */
-  if (MCU_AI_B.Switch5 > MCU_AI_B.Switch13) {
-    MCU_AI_B.Switch5 = MCU_AI_B.Switch13;
+  if (MCU_AI_B.Switch5 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch5 = MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch5 < -MCU_AI_B.Min_d) {
     /* Switch: '<S74>/Switch' incorporates:
      *  Product: '<S59>/Product3'
@@ -2734,13 +2739,13 @@ void MCU_AI_step(void)
   /* Sum: '<S59>/Add6' incorporates:
    *  DataTypeConversion: '<S28>/Data Type Conversion12'
    */
-  MCU_AI_B.Product8 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch32 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S73>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S73>/UpperRelop'
    *  Switch: '<S73>/Switch2'
    */
-  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Product8;
+  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Switch32;
 
   /* Switch: '<S73>/Switch2' incorporates:
    *  Product: '<S59>/Product2'
@@ -2766,7 +2771,7 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S71>/UpperRelop'
    *  Switch: '<S71>/Switch2'
    */
-  MCU_AI_B.DataTypeConversion4 = (int32_T)rtb_Switch17_iq;
+  MCU_AI_B.Switch13 = (int32_T)rtb_Switch17_iq;
 
   /* Switch: '<S71>/Switch2' incorporates:
    *  Product: '<S59>/Product1'
@@ -2774,13 +2779,13 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S71>/UpperRelop'
    *  Switch: '<S71>/Switch'
    */
-  if (MCU_AI_B.DataTypeConversion4 > MCU_AI_B.Min4) {
-    MCU_AI_B.DataTypeConversion4 = MCU_AI_B.Min4;
-  } else if (MCU_AI_B.DataTypeConversion4 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch13 > MCU_AI_B.Min4) {
+    MCU_AI_B.Switch13 = MCU_AI_B.Min4;
+  } else if (MCU_AI_B.Switch13 < -MCU_AI_B.Min) {
     /* Switch: '<S71>/Switch' incorporates:
      *  Product: '<S59>/Product1'
      */
-    MCU_AI_B.DataTypeConversion4 = -MCU_AI_B.Min;
+    MCU_AI_B.Switch13 = -MCU_AI_B.Min;
   }
 
   /* SwitchCase: '<S59>/Switch Case' incorporates:
@@ -2799,8 +2804,8 @@ void MCU_AI_step(void)
      *  ActionPort: '<S76>/Action Port'
      */
     MCU_A_SwitchCaseActionSubsystem(rtb_Switch17_iq - (real32_T)
-      MCU_AI_B.DataTypeConversion4, (real32_T)MCU_AI_B.DataTypeConversion4,
-      &MCU_AI_B.Merge, &MCU_AI_B.Merge2);
+      MCU_AI_B.Switch13, (real32_T)MCU_AI_B.Switch13, &MCU_AI_B.Merge,
+      &MCU_AI_B.Merge2);
 
     /* End of Outputs for SubSystem: '<S59>/Switch Case Action Subsystem' */
     break;
@@ -2809,7 +2814,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S59>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S77>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch32 - (real32_T)
       MCU_AI_B.Switch19, (real32_T)MCU_AI_B.Switch19, &MCU_AI_B.Merge,
       &MCU_AI_B.Merge2);
 
@@ -2820,7 +2825,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S59>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S78>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
       MCU_AI_B.Switch5, (real32_T)MCU_AI_B.Switch5, &MCU_AI_B.Merge,
       &MCU_AI_B.Merge2);
 
@@ -2831,7 +2836,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S59>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S79>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
       MCU_AI_B.Switch6, (real32_T)MCU_AI_B.Switch6, &MCU_AI_B.Merge,
       &MCU_AI_B.Merge2);
 
@@ -2842,7 +2847,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S59>/Switch Case Action Subsystem4' incorporates:
      *  ActionPort: '<S80>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
       MCU_AI_B.Switch16, (real32_T)MCU_AI_B.Switch16, &MCU_AI_B.Merge,
       &MCU_AI_B.Merge2);
 
@@ -2853,7 +2858,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S59>/Switch Case Action Subsystem5' incorporates:
      *  ActionPort: '<S81>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
       MCU_AI_B.Switch7, (real32_T)MCU_AI_B.Switch7, &MCU_AI_B.Merge,
       &MCU_AI_B.Merge2);
 
@@ -2864,8 +2869,9 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S59>/Switch Case Action Subsystem6' incorporates:
      *  ActionPort: '<S82>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - (real32_T)MCU_AI_B.Switch17,
-      (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge, &MCU_AI_B.Merge2);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+      MCU_AI_B.Switch17, (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge,
+      &MCU_AI_B.Merge2);
 
     /* End of Outputs for SubSystem: '<S59>/Switch Case Action Subsystem6' */
     break;
@@ -2902,7 +2908,7 @@ void MCU_AI_step(void)
   /* Sum: '<S60>/Add4' incorporates:
    *  DataTypeConversion: '<S59>/Data Type Conversion7'
    */
-  rtb_Subtract4_fk = rtb_Divide35_py + (real32_T)rtb_Switch5_h;
+  rtb_Subtract4_fk = MCU_AI_B.Divide35_n + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S89>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S89>/UpperRelop'
@@ -2928,13 +2934,13 @@ void MCU_AI_step(void)
   /* Sum: '<S60>/Add3' incorporates:
    *  DataTypeConversion: '<S59>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S87>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S87>/UpperRelop'
    *  Switch: '<S87>/Switch2'
    */
-  MCU_AI_B.Switch17 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch17 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S87>/Switch2' incorporates:
    *  Product: '<S60>/Product7'
@@ -2954,13 +2960,13 @@ void MCU_AI_step(void)
   /* Sum: '<S60>/Add2' incorporates:
    *  DataTypeConversion: '<S59>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch28 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch27 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S86>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S86>/UpperRelop'
    *  Switch: '<S86>/Switch2'
    */
-  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch28;
+  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch27;
 
   /* Switch: '<S86>/Switch2' incorporates:
    *  Product: '<S60>/Product6'
@@ -2968,8 +2974,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S86>/UpperRelop'
    *  Switch: '<S86>/Switch'
    */
-  if (MCU_AI_B.Switch7 > MCU_AI_B.Switch15) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Switch15;
+  if (MCU_AI_B.Switch7 > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Switch7 = MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Switch7 < -MCU_AI_B.Min_kv) {
     /* Switch: '<S86>/Switch' incorporates:
      *  Product: '<S60>/Product6'
@@ -2980,13 +2986,13 @@ void MCU_AI_step(void)
   /* Sum: '<S60>/Add1' incorporates:
    *  DataTypeConversion: '<S59>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S85>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S85>/UpperRelop'
    *  Switch: '<S85>/Switch2'
    */
-  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Subtract1;
+  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Switch28;
 
   /* Switch: '<S85>/Switch2' incorporates:
    *  Product: '<S60>/Product5'
@@ -3006,13 +3012,13 @@ void MCU_AI_step(void)
   /* Sum: '<S60>/Add8' incorporates:
    *  DataTypeConversion: '<S59>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch27 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch29 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S92>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S92>/UpperRelop'
    *  Switch: '<S92>/Switch2'
    */
-  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch27;
+  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch29;
 
   /* Switch: '<S92>/Switch2' incorporates:
    *  Product: '<S60>/Product4'
@@ -3032,13 +3038,13 @@ void MCU_AI_step(void)
   /* Sum: '<S60>/Add7' incorporates:
    *  DataTypeConversion: '<S59>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Product8 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S91>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S91>/UpperRelop'
    *  Switch: '<S91>/Switch2'
    */
-  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Switch29;
+  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Product8;
 
   /* Switch: '<S91>/Switch2' incorporates:
    *  Product: '<S60>/Product3'
@@ -3046,8 +3052,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S91>/UpperRelop'
    *  Switch: '<S91>/Switch'
    */
-  if (MCU_AI_B.Switch5 > MCU_AI_B.Switch13) {
-    MCU_AI_B.Switch5 = MCU_AI_B.Switch13;
+  if (MCU_AI_B.Switch5 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch5 = MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch5 < -MCU_AI_B.Min_d) {
     /* Switch: '<S91>/Switch' incorporates:
      *  Product: '<S60>/Product3'
@@ -3058,13 +3064,13 @@ void MCU_AI_step(void)
   /* Sum: '<S60>/Add6' incorporates:
    *  DataTypeConversion: '<S59>/Data Type Conversion7'
    */
-  MCU_AI_B.Product8 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch32 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S90>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S90>/UpperRelop'
    *  Switch: '<S90>/Switch2'
    */
-  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Product8;
+  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Switch32;
 
   /* Switch: '<S90>/Switch2' incorporates:
    *  Product: '<S60>/Product2'
@@ -3090,7 +3096,7 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S88>/UpperRelop'
    *  Switch: '<S88>/Switch2'
    */
-  MCU_AI_B.DataTypeConversion4 = (int32_T)rtb_Switch17_iq;
+  MCU_AI_B.Switch13 = (int32_T)rtb_Switch17_iq;
 
   /* Switch: '<S88>/Switch2' incorporates:
    *  Product: '<S60>/Product1'
@@ -3098,13 +3104,13 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S88>/UpperRelop'
    *  Switch: '<S88>/Switch'
    */
-  if (MCU_AI_B.DataTypeConversion4 > MCU_AI_B.Min4) {
-    MCU_AI_B.DataTypeConversion4 = MCU_AI_B.Min4;
-  } else if (MCU_AI_B.DataTypeConversion4 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch13 > MCU_AI_B.Min4) {
+    MCU_AI_B.Switch13 = MCU_AI_B.Min4;
+  } else if (MCU_AI_B.Switch13 < -MCU_AI_B.Min) {
     /* Switch: '<S88>/Switch' incorporates:
      *  Product: '<S60>/Product1'
      */
-    MCU_AI_B.DataTypeConversion4 = -MCU_AI_B.Min;
+    MCU_AI_B.Switch13 = -MCU_AI_B.Min;
   }
 
   /* SwitchCase: '<S60>/Switch Case' incorporates:
@@ -3123,8 +3129,8 @@ void MCU_AI_step(void)
      *  ActionPort: '<S93>/Action Port'
      */
     MCU_A_SwitchCaseActionSubsystem(rtb_Switch17_iq - (real32_T)
-      MCU_AI_B.DataTypeConversion4, (real32_T)MCU_AI_B.DataTypeConversion4,
-      &MCU_AI_B.Merge_g, &MCU_AI_B.Merge2_f);
+      MCU_AI_B.Switch13, (real32_T)MCU_AI_B.Switch13, &MCU_AI_B.Merge_g,
+      &MCU_AI_B.Merge2_f);
 
     /* End of Outputs for SubSystem: '<S60>/Switch Case Action Subsystem' */
     break;
@@ -3133,7 +3139,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S60>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S94>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch32 - (real32_T)
       MCU_AI_B.Switch19, (real32_T)MCU_AI_B.Switch19, &MCU_AI_B.Merge_g,
       &MCU_AI_B.Merge2_f);
 
@@ -3144,7 +3150,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S60>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S95>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
       MCU_AI_B.Switch5, (real32_T)MCU_AI_B.Switch5, &MCU_AI_B.Merge_g,
       &MCU_AI_B.Merge2_f);
 
@@ -3155,7 +3161,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S60>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S96>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
       MCU_AI_B.Switch6, (real32_T)MCU_AI_B.Switch6, &MCU_AI_B.Merge_g,
       &MCU_AI_B.Merge2_f);
 
@@ -3166,7 +3172,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S60>/Switch Case Action Subsystem4' incorporates:
      *  ActionPort: '<S97>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
       MCU_AI_B.Switch16, (real32_T)MCU_AI_B.Switch16, &MCU_AI_B.Merge_g,
       &MCU_AI_B.Merge2_f);
 
@@ -3177,7 +3183,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S60>/Switch Case Action Subsystem5' incorporates:
      *  ActionPort: '<S98>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
       MCU_AI_B.Switch7, (real32_T)MCU_AI_B.Switch7, &MCU_AI_B.Merge_g,
       &MCU_AI_B.Merge2_f);
 
@@ -3188,8 +3194,9 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S60>/Switch Case Action Subsystem6' incorporates:
      *  ActionPort: '<S99>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - (real32_T)MCU_AI_B.Switch17,
-      (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_g, &MCU_AI_B.Merge2_f);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+      MCU_AI_B.Switch17, (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_g,
+      &MCU_AI_B.Merge2_f);
 
     /* End of Outputs for SubSystem: '<S60>/Switch Case Action Subsystem6' */
     break;
@@ -3226,7 +3233,7 @@ void MCU_AI_step(void)
   /* Sum: '<S61>/Add4' incorporates:
    *  DataTypeConversion: '<S60>/Data Type Conversion7'
    */
-  rtb_Subtract4_fk = rtb_Divide35_py + (real32_T)rtb_Switch5_h;
+  rtb_Subtract4_fk = MCU_AI_B.Divide35_n + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S106>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S106>/UpperRelop'
@@ -3252,13 +3259,13 @@ void MCU_AI_step(void)
   /* Sum: '<S61>/Add3' incorporates:
    *  DataTypeConversion: '<S60>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S104>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S104>/UpperRelop'
    *  Switch: '<S104>/Switch2'
    */
-  MCU_AI_B.Switch17 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch17 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S104>/Switch2' incorporates:
    *  Product: '<S61>/Product7'
@@ -3278,13 +3285,13 @@ void MCU_AI_step(void)
   /* Sum: '<S61>/Add2' incorporates:
    *  DataTypeConversion: '<S60>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch28 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch27 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S103>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S103>/UpperRelop'
    *  Switch: '<S103>/Switch2'
    */
-  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch28;
+  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch27;
 
   /* Switch: '<S103>/Switch2' incorporates:
    *  Product: '<S61>/Product6'
@@ -3292,8 +3299,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S103>/UpperRelop'
    *  Switch: '<S103>/Switch'
    */
-  if (MCU_AI_B.Switch7 > MCU_AI_B.Switch15) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Switch15;
+  if (MCU_AI_B.Switch7 > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Switch7 = MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Switch7 < -MCU_AI_B.Min_kv) {
     /* Switch: '<S103>/Switch' incorporates:
      *  Product: '<S61>/Product6'
@@ -3304,13 +3311,13 @@ void MCU_AI_step(void)
   /* Sum: '<S61>/Add1' incorporates:
    *  DataTypeConversion: '<S60>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S102>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S102>/UpperRelop'
    *  Switch: '<S102>/Switch2'
    */
-  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Subtract1;
+  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Switch28;
 
   /* Switch: '<S102>/Switch2' incorporates:
    *  Product: '<S61>/Product5'
@@ -3330,13 +3337,13 @@ void MCU_AI_step(void)
   /* Sum: '<S61>/Add8' incorporates:
    *  DataTypeConversion: '<S60>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch27 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch29 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S109>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S109>/UpperRelop'
    *  Switch: '<S109>/Switch2'
    */
-  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch27;
+  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch29;
 
   /* Switch: '<S109>/Switch2' incorporates:
    *  Product: '<S61>/Product4'
@@ -3356,13 +3363,13 @@ void MCU_AI_step(void)
   /* Sum: '<S61>/Add7' incorporates:
    *  DataTypeConversion: '<S60>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Product8 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S108>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S108>/UpperRelop'
    *  Switch: '<S108>/Switch2'
    */
-  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Switch29;
+  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Product8;
 
   /* Switch: '<S108>/Switch2' incorporates:
    *  Product: '<S61>/Product3'
@@ -3370,8 +3377,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S108>/UpperRelop'
    *  Switch: '<S108>/Switch'
    */
-  if (MCU_AI_B.Switch5 > MCU_AI_B.Switch13) {
-    MCU_AI_B.Switch5 = MCU_AI_B.Switch13;
+  if (MCU_AI_B.Switch5 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch5 = MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch5 < -MCU_AI_B.Min_d) {
     /* Switch: '<S108>/Switch' incorporates:
      *  Product: '<S61>/Product3'
@@ -3382,13 +3389,13 @@ void MCU_AI_step(void)
   /* Sum: '<S61>/Add6' incorporates:
    *  DataTypeConversion: '<S60>/Data Type Conversion7'
    */
-  MCU_AI_B.Product8 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch32 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S107>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S107>/UpperRelop'
    *  Switch: '<S107>/Switch2'
    */
-  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Product8;
+  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Switch32;
 
   /* Switch: '<S107>/Switch2' incorporates:
    *  Product: '<S61>/Product2'
@@ -3414,7 +3421,7 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S105>/UpperRelop'
    *  Switch: '<S105>/Switch2'
    */
-  MCU_AI_B.DataTypeConversion4 = (int32_T)rtb_Switch17_iq;
+  MCU_AI_B.Switch13 = (int32_T)rtb_Switch17_iq;
 
   /* Switch: '<S105>/Switch2' incorporates:
    *  Product: '<S61>/Product1'
@@ -3422,13 +3429,13 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S105>/UpperRelop'
    *  Switch: '<S105>/Switch'
    */
-  if (MCU_AI_B.DataTypeConversion4 > MCU_AI_B.Min4) {
-    MCU_AI_B.DataTypeConversion4 = MCU_AI_B.Min4;
-  } else if (MCU_AI_B.DataTypeConversion4 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch13 > MCU_AI_B.Min4) {
+    MCU_AI_B.Switch13 = MCU_AI_B.Min4;
+  } else if (MCU_AI_B.Switch13 < -MCU_AI_B.Min) {
     /* Switch: '<S105>/Switch' incorporates:
      *  Product: '<S61>/Product1'
      */
-    MCU_AI_B.DataTypeConversion4 = -MCU_AI_B.Min;
+    MCU_AI_B.Switch13 = -MCU_AI_B.Min;
   }
 
   /* SwitchCase: '<S61>/Switch Case' incorporates:
@@ -3447,8 +3454,8 @@ void MCU_AI_step(void)
      *  ActionPort: '<S110>/Action Port'
      */
     MCU_A_SwitchCaseActionSubsystem(rtb_Switch17_iq - (real32_T)
-      MCU_AI_B.DataTypeConversion4, (real32_T)MCU_AI_B.DataTypeConversion4,
-      &MCU_AI_B.Merge_d, &MCU_AI_B.Merge2_g);
+      MCU_AI_B.Switch13, (real32_T)MCU_AI_B.Switch13, &MCU_AI_B.Merge_d,
+      &MCU_AI_B.Merge2_g);
 
     /* End of Outputs for SubSystem: '<S61>/Switch Case Action Subsystem' */
     break;
@@ -3457,7 +3464,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S61>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S111>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch32 - (real32_T)
       MCU_AI_B.Switch19, (real32_T)MCU_AI_B.Switch19, &MCU_AI_B.Merge_d,
       &MCU_AI_B.Merge2_g);
 
@@ -3468,7 +3475,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S61>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S112>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
       MCU_AI_B.Switch5, (real32_T)MCU_AI_B.Switch5, &MCU_AI_B.Merge_d,
       &MCU_AI_B.Merge2_g);
 
@@ -3479,7 +3486,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S61>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S113>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
       MCU_AI_B.Switch6, (real32_T)MCU_AI_B.Switch6, &MCU_AI_B.Merge_d,
       &MCU_AI_B.Merge2_g);
 
@@ -3490,7 +3497,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S61>/Switch Case Action Subsystem4' incorporates:
      *  ActionPort: '<S114>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
       MCU_AI_B.Switch16, (real32_T)MCU_AI_B.Switch16, &MCU_AI_B.Merge_d,
       &MCU_AI_B.Merge2_g);
 
@@ -3501,7 +3508,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S61>/Switch Case Action Subsystem5' incorporates:
      *  ActionPort: '<S115>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
       MCU_AI_B.Switch7, (real32_T)MCU_AI_B.Switch7, &MCU_AI_B.Merge_d,
       &MCU_AI_B.Merge2_g);
 
@@ -3512,8 +3519,9 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S61>/Switch Case Action Subsystem6' incorporates:
      *  ActionPort: '<S116>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - (real32_T)MCU_AI_B.Switch17,
-      (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_d, &MCU_AI_B.Merge2_g);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+      MCU_AI_B.Switch17, (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_d,
+      &MCU_AI_B.Merge2_g);
 
     /* End of Outputs for SubSystem: '<S61>/Switch Case Action Subsystem6' */
     break;
@@ -3550,7 +3558,7 @@ void MCU_AI_step(void)
   /* Sum: '<S62>/Add4' incorporates:
    *  DataTypeConversion: '<S61>/Data Type Conversion7'
    */
-  rtb_Subtract4_fk = rtb_Divide35_py + (real32_T)rtb_Switch5_h;
+  rtb_Subtract4_fk = MCU_AI_B.Divide35_n + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S123>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S123>/UpperRelop'
@@ -3576,13 +3584,13 @@ void MCU_AI_step(void)
   /* Sum: '<S62>/Add3' incorporates:
    *  DataTypeConversion: '<S61>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S121>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S121>/UpperRelop'
    *  Switch: '<S121>/Switch2'
    */
-  MCU_AI_B.Switch17 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch17 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S121>/Switch2' incorporates:
    *  Product: '<S62>/Product7'
@@ -3602,13 +3610,13 @@ void MCU_AI_step(void)
   /* Sum: '<S62>/Add2' incorporates:
    *  DataTypeConversion: '<S61>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch28 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch27 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S120>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S120>/UpperRelop'
    *  Switch: '<S120>/Switch2'
    */
-  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch28;
+  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch27;
 
   /* Switch: '<S120>/Switch2' incorporates:
    *  Product: '<S62>/Product6'
@@ -3616,8 +3624,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S120>/UpperRelop'
    *  Switch: '<S120>/Switch'
    */
-  if (MCU_AI_B.Switch7 > MCU_AI_B.Switch15) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Switch15;
+  if (MCU_AI_B.Switch7 > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Switch7 = MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Switch7 < -MCU_AI_B.Min_kv) {
     /* Switch: '<S120>/Switch' incorporates:
      *  Product: '<S62>/Product6'
@@ -3628,13 +3636,13 @@ void MCU_AI_step(void)
   /* Sum: '<S62>/Add1' incorporates:
    *  DataTypeConversion: '<S61>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S119>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S119>/UpperRelop'
    *  Switch: '<S119>/Switch2'
    */
-  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Subtract1;
+  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Switch28;
 
   /* Switch: '<S119>/Switch2' incorporates:
    *  Product: '<S62>/Product5'
@@ -3654,13 +3662,13 @@ void MCU_AI_step(void)
   /* Sum: '<S62>/Add8' incorporates:
    *  DataTypeConversion: '<S61>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch27 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch29 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S126>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S126>/UpperRelop'
    *  Switch: '<S126>/Switch2'
    */
-  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch27;
+  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch29;
 
   /* Switch: '<S126>/Switch2' incorporates:
    *  Product: '<S62>/Product4'
@@ -3680,13 +3688,13 @@ void MCU_AI_step(void)
   /* Sum: '<S62>/Add7' incorporates:
    *  DataTypeConversion: '<S61>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Product8 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S125>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S125>/UpperRelop'
    *  Switch: '<S125>/Switch2'
    */
-  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Switch29;
+  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Product8;
 
   /* Switch: '<S125>/Switch2' incorporates:
    *  Product: '<S62>/Product3'
@@ -3694,8 +3702,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S125>/UpperRelop'
    *  Switch: '<S125>/Switch'
    */
-  if (MCU_AI_B.Switch5 > MCU_AI_B.Switch13) {
-    MCU_AI_B.Switch5 = MCU_AI_B.Switch13;
+  if (MCU_AI_B.Switch5 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch5 = MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch5 < -MCU_AI_B.Min_d) {
     /* Switch: '<S125>/Switch' incorporates:
      *  Product: '<S62>/Product3'
@@ -3706,13 +3714,13 @@ void MCU_AI_step(void)
   /* Sum: '<S62>/Add6' incorporates:
    *  DataTypeConversion: '<S61>/Data Type Conversion7'
    */
-  MCU_AI_B.Product8 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch32 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S124>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S124>/UpperRelop'
    *  Switch: '<S124>/Switch2'
    */
-  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Product8;
+  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Switch32;
 
   /* Switch: '<S124>/Switch2' incorporates:
    *  Product: '<S62>/Product2'
@@ -3738,7 +3746,7 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S122>/UpperRelop'
    *  Switch: '<S122>/Switch2'
    */
-  MCU_AI_B.DataTypeConversion4 = (int32_T)rtb_Switch17_iq;
+  MCU_AI_B.Switch13 = (int32_T)rtb_Switch17_iq;
 
   /* Switch: '<S122>/Switch2' incorporates:
    *  Product: '<S62>/Product1'
@@ -3746,13 +3754,13 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S122>/UpperRelop'
    *  Switch: '<S122>/Switch'
    */
-  if (MCU_AI_B.DataTypeConversion4 > MCU_AI_B.Min4) {
-    MCU_AI_B.DataTypeConversion4 = MCU_AI_B.Min4;
-  } else if (MCU_AI_B.DataTypeConversion4 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch13 > MCU_AI_B.Min4) {
+    MCU_AI_B.Switch13 = MCU_AI_B.Min4;
+  } else if (MCU_AI_B.Switch13 < -MCU_AI_B.Min) {
     /* Switch: '<S122>/Switch' incorporates:
      *  Product: '<S62>/Product1'
      */
-    MCU_AI_B.DataTypeConversion4 = -MCU_AI_B.Min;
+    MCU_AI_B.Switch13 = -MCU_AI_B.Min;
   }
 
   /* SwitchCase: '<S62>/Switch Case' incorporates:
@@ -3771,8 +3779,8 @@ void MCU_AI_step(void)
      *  ActionPort: '<S127>/Action Port'
      */
     MCU_A_SwitchCaseActionSubsystem(rtb_Switch17_iq - (real32_T)
-      MCU_AI_B.DataTypeConversion4, (real32_T)MCU_AI_B.DataTypeConversion4,
-      &MCU_AI_B.Merge_gg, &MCU_AI_B.Merge2_a);
+      MCU_AI_B.Switch13, (real32_T)MCU_AI_B.Switch13, &MCU_AI_B.Merge_gg,
+      &MCU_AI_B.Merge2_a);
 
     /* End of Outputs for SubSystem: '<S62>/Switch Case Action Subsystem' */
     break;
@@ -3781,7 +3789,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S62>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S128>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch32 - (real32_T)
       MCU_AI_B.Switch19, (real32_T)MCU_AI_B.Switch19, &MCU_AI_B.Merge_gg,
       &MCU_AI_B.Merge2_a);
 
@@ -3792,7 +3800,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S62>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S129>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
       MCU_AI_B.Switch5, (real32_T)MCU_AI_B.Switch5, &MCU_AI_B.Merge_gg,
       &MCU_AI_B.Merge2_a);
 
@@ -3803,7 +3811,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S62>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S130>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
       MCU_AI_B.Switch6, (real32_T)MCU_AI_B.Switch6, &MCU_AI_B.Merge_gg,
       &MCU_AI_B.Merge2_a);
 
@@ -3814,7 +3822,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S62>/Switch Case Action Subsystem4' incorporates:
      *  ActionPort: '<S131>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
       MCU_AI_B.Switch16, (real32_T)MCU_AI_B.Switch16, &MCU_AI_B.Merge_gg,
       &MCU_AI_B.Merge2_a);
 
@@ -3825,7 +3833,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S62>/Switch Case Action Subsystem5' incorporates:
      *  ActionPort: '<S132>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
       MCU_AI_B.Switch7, (real32_T)MCU_AI_B.Switch7, &MCU_AI_B.Merge_gg,
       &MCU_AI_B.Merge2_a);
 
@@ -3836,8 +3844,9 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S62>/Switch Case Action Subsystem6' incorporates:
      *  ActionPort: '<S133>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - (real32_T)MCU_AI_B.Switch17,
-      (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_gg, &MCU_AI_B.Merge2_a);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+      MCU_AI_B.Switch17, (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_gg,
+      &MCU_AI_B.Merge2_a);
 
     /* End of Outputs for SubSystem: '<S62>/Switch Case Action Subsystem6' */
     break;
@@ -3874,7 +3883,7 @@ void MCU_AI_step(void)
   /* Sum: '<S63>/Add4' incorporates:
    *  DataTypeConversion: '<S62>/Data Type Conversion7'
    */
-  rtb_Subtract4_fk = rtb_Divide35_py + (real32_T)rtb_Switch5_h;
+  rtb_Subtract4_fk = MCU_AI_B.Divide35_n + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S140>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S140>/UpperRelop'
@@ -3900,13 +3909,13 @@ void MCU_AI_step(void)
   /* Sum: '<S63>/Add3' incorporates:
    *  DataTypeConversion: '<S62>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S138>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S138>/UpperRelop'
    *  Switch: '<S138>/Switch2'
    */
-  MCU_AI_B.Switch17 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch17 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S138>/Switch2' incorporates:
    *  Product: '<S63>/Product7'
@@ -3926,13 +3935,13 @@ void MCU_AI_step(void)
   /* Sum: '<S63>/Add2' incorporates:
    *  DataTypeConversion: '<S62>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch28 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch27 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S137>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S137>/UpperRelop'
    *  Switch: '<S137>/Switch2'
    */
-  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch28;
+  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch27;
 
   /* Switch: '<S137>/Switch2' incorporates:
    *  Product: '<S63>/Product6'
@@ -3940,8 +3949,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S137>/UpperRelop'
    *  Switch: '<S137>/Switch'
    */
-  if (MCU_AI_B.Switch7 > MCU_AI_B.Switch15) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Switch15;
+  if (MCU_AI_B.Switch7 > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Switch7 = MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Switch7 < -MCU_AI_B.Min_kv) {
     /* Switch: '<S137>/Switch' incorporates:
      *  Product: '<S63>/Product6'
@@ -3952,13 +3961,13 @@ void MCU_AI_step(void)
   /* Sum: '<S63>/Add1' incorporates:
    *  DataTypeConversion: '<S62>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S136>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S136>/UpperRelop'
    *  Switch: '<S136>/Switch2'
    */
-  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Subtract1;
+  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Switch28;
 
   /* Switch: '<S136>/Switch2' incorporates:
    *  Product: '<S63>/Product5'
@@ -3978,13 +3987,13 @@ void MCU_AI_step(void)
   /* Sum: '<S63>/Add8' incorporates:
    *  DataTypeConversion: '<S62>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch27 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch29 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S143>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S143>/UpperRelop'
    *  Switch: '<S143>/Switch2'
    */
-  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch27;
+  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch29;
 
   /* Switch: '<S143>/Switch2' incorporates:
    *  Product: '<S63>/Product4'
@@ -4004,13 +4013,13 @@ void MCU_AI_step(void)
   /* Sum: '<S63>/Add7' incorporates:
    *  DataTypeConversion: '<S62>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Product8 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S142>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S142>/UpperRelop'
    *  Switch: '<S142>/Switch2'
    */
-  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Switch29;
+  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Product8;
 
   /* Switch: '<S142>/Switch2' incorporates:
    *  Product: '<S63>/Product3'
@@ -4018,8 +4027,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S142>/UpperRelop'
    *  Switch: '<S142>/Switch'
    */
-  if (MCU_AI_B.Switch5 > MCU_AI_B.Switch13) {
-    MCU_AI_B.Switch5 = MCU_AI_B.Switch13;
+  if (MCU_AI_B.Switch5 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch5 = MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch5 < -MCU_AI_B.Min_d) {
     /* Switch: '<S142>/Switch' incorporates:
      *  Product: '<S63>/Product3'
@@ -4030,13 +4039,13 @@ void MCU_AI_step(void)
   /* Sum: '<S63>/Add6' incorporates:
    *  DataTypeConversion: '<S62>/Data Type Conversion7'
    */
-  MCU_AI_B.Product8 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch32 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S141>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S141>/UpperRelop'
    *  Switch: '<S141>/Switch2'
    */
-  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Product8;
+  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Switch32;
 
   /* Switch: '<S141>/Switch2' incorporates:
    *  Product: '<S63>/Product2'
@@ -4062,7 +4071,7 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S139>/UpperRelop'
    *  Switch: '<S139>/Switch2'
    */
-  MCU_AI_B.DataTypeConversion4 = (int32_T)rtb_Switch17_iq;
+  MCU_AI_B.Switch13 = (int32_T)rtb_Switch17_iq;
 
   /* Switch: '<S139>/Switch2' incorporates:
    *  Product: '<S63>/Product1'
@@ -4070,13 +4079,13 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S139>/UpperRelop'
    *  Switch: '<S139>/Switch'
    */
-  if (MCU_AI_B.DataTypeConversion4 > MCU_AI_B.Min4) {
-    MCU_AI_B.DataTypeConversion4 = MCU_AI_B.Min4;
-  } else if (MCU_AI_B.DataTypeConversion4 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch13 > MCU_AI_B.Min4) {
+    MCU_AI_B.Switch13 = MCU_AI_B.Min4;
+  } else if (MCU_AI_B.Switch13 < -MCU_AI_B.Min) {
     /* Switch: '<S139>/Switch' incorporates:
      *  Product: '<S63>/Product1'
      */
-    MCU_AI_B.DataTypeConversion4 = -MCU_AI_B.Min;
+    MCU_AI_B.Switch13 = -MCU_AI_B.Min;
   }
 
   /* SwitchCase: '<S63>/Switch Case' incorporates:
@@ -4095,8 +4104,8 @@ void MCU_AI_step(void)
      *  ActionPort: '<S144>/Action Port'
      */
     MCU_A_SwitchCaseActionSubsystem(rtb_Switch17_iq - (real32_T)
-      MCU_AI_B.DataTypeConversion4, (real32_T)MCU_AI_B.DataTypeConversion4,
-      &MCU_AI_B.Merge_p, &MCU_AI_B.Merge2_o);
+      MCU_AI_B.Switch13, (real32_T)MCU_AI_B.Switch13, &MCU_AI_B.Merge_p,
+      &MCU_AI_B.Merge2_o);
 
     /* End of Outputs for SubSystem: '<S63>/Switch Case Action Subsystem' */
     break;
@@ -4105,7 +4114,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S63>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S145>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch32 - (real32_T)
       MCU_AI_B.Switch19, (real32_T)MCU_AI_B.Switch19, &MCU_AI_B.Merge_p,
       &MCU_AI_B.Merge2_o);
 
@@ -4116,7 +4125,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S63>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S146>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
       MCU_AI_B.Switch5, (real32_T)MCU_AI_B.Switch5, &MCU_AI_B.Merge_p,
       &MCU_AI_B.Merge2_o);
 
@@ -4127,7 +4136,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S63>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S147>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
       MCU_AI_B.Switch6, (real32_T)MCU_AI_B.Switch6, &MCU_AI_B.Merge_p,
       &MCU_AI_B.Merge2_o);
 
@@ -4138,7 +4147,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S63>/Switch Case Action Subsystem4' incorporates:
      *  ActionPort: '<S148>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
       MCU_AI_B.Switch16, (real32_T)MCU_AI_B.Switch16, &MCU_AI_B.Merge_p,
       &MCU_AI_B.Merge2_o);
 
@@ -4149,7 +4158,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S63>/Switch Case Action Subsystem5' incorporates:
      *  ActionPort: '<S149>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
       MCU_AI_B.Switch7, (real32_T)MCU_AI_B.Switch7, &MCU_AI_B.Merge_p,
       &MCU_AI_B.Merge2_o);
 
@@ -4160,8 +4169,9 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S63>/Switch Case Action Subsystem6' incorporates:
      *  ActionPort: '<S150>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - (real32_T)MCU_AI_B.Switch17,
-      (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_p, &MCU_AI_B.Merge2_o);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+      MCU_AI_B.Switch17, (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_p,
+      &MCU_AI_B.Merge2_o);
 
     /* End of Outputs for SubSystem: '<S63>/Switch Case Action Subsystem6' */
     break;
@@ -4198,7 +4208,7 @@ void MCU_AI_step(void)
   /* Sum: '<S64>/Add4' incorporates:
    *  DataTypeConversion: '<S63>/Data Type Conversion7'
    */
-  rtb_Subtract4_fk = rtb_Divide35_py + (real32_T)rtb_Switch5_h;
+  rtb_Subtract4_fk = MCU_AI_B.Divide35_n + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S157>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S157>/UpperRelop'
@@ -4224,13 +4234,13 @@ void MCU_AI_step(void)
   /* Sum: '<S64>/Add3' incorporates:
    *  DataTypeConversion: '<S63>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S155>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S155>/UpperRelop'
    *  Switch: '<S155>/Switch2'
    */
-  MCU_AI_B.Switch17 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch17 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S155>/Switch2' incorporates:
    *  Product: '<S64>/Product7'
@@ -4250,13 +4260,13 @@ void MCU_AI_step(void)
   /* Sum: '<S64>/Add2' incorporates:
    *  DataTypeConversion: '<S63>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch28 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch27 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S154>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S154>/UpperRelop'
    *  Switch: '<S154>/Switch2'
    */
-  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch28;
+  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch27;
 
   /* Switch: '<S154>/Switch2' incorporates:
    *  Product: '<S64>/Product6'
@@ -4264,8 +4274,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S154>/UpperRelop'
    *  Switch: '<S154>/Switch'
    */
-  if (MCU_AI_B.Switch7 > MCU_AI_B.Switch15) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Switch15;
+  if (MCU_AI_B.Switch7 > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Switch7 = MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Switch7 < -MCU_AI_B.Min_kv) {
     /* Switch: '<S154>/Switch' incorporates:
      *  Product: '<S64>/Product6'
@@ -4276,13 +4286,13 @@ void MCU_AI_step(void)
   /* Sum: '<S64>/Add1' incorporates:
    *  DataTypeConversion: '<S63>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S153>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S153>/UpperRelop'
    *  Switch: '<S153>/Switch2'
    */
-  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Subtract1;
+  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Switch28;
 
   /* Switch: '<S153>/Switch2' incorporates:
    *  Product: '<S64>/Product5'
@@ -4302,13 +4312,13 @@ void MCU_AI_step(void)
   /* Sum: '<S64>/Add8' incorporates:
    *  DataTypeConversion: '<S63>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch27 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch29 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S160>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S160>/UpperRelop'
    *  Switch: '<S160>/Switch2'
    */
-  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch27;
+  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch29;
 
   /* Switch: '<S160>/Switch2' incorporates:
    *  Product: '<S64>/Product4'
@@ -4328,13 +4338,13 @@ void MCU_AI_step(void)
   /* Sum: '<S64>/Add7' incorporates:
    *  DataTypeConversion: '<S63>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Product8 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S159>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S159>/UpperRelop'
    *  Switch: '<S159>/Switch2'
    */
-  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Switch29;
+  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Product8;
 
   /* Switch: '<S159>/Switch2' incorporates:
    *  Product: '<S64>/Product3'
@@ -4342,8 +4352,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S159>/UpperRelop'
    *  Switch: '<S159>/Switch'
    */
-  if (MCU_AI_B.Switch5 > MCU_AI_B.Switch13) {
-    MCU_AI_B.Switch5 = MCU_AI_B.Switch13;
+  if (MCU_AI_B.Switch5 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch5 = MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch5 < -MCU_AI_B.Min_d) {
     /* Switch: '<S159>/Switch' incorporates:
      *  Product: '<S64>/Product3'
@@ -4354,13 +4364,13 @@ void MCU_AI_step(void)
   /* Sum: '<S64>/Add6' incorporates:
    *  DataTypeConversion: '<S63>/Data Type Conversion7'
    */
-  MCU_AI_B.Product8 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch32 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S158>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S158>/UpperRelop'
    *  Switch: '<S158>/Switch2'
    */
-  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Product8;
+  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Switch32;
 
   /* Switch: '<S158>/Switch2' incorporates:
    *  Product: '<S64>/Product2'
@@ -4386,7 +4396,7 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S156>/UpperRelop'
    *  Switch: '<S156>/Switch2'
    */
-  MCU_AI_B.DataTypeConversion4 = (int32_T)rtb_Switch17_iq;
+  MCU_AI_B.Switch13 = (int32_T)rtb_Switch17_iq;
 
   /* Switch: '<S156>/Switch2' incorporates:
    *  Product: '<S64>/Product1'
@@ -4394,13 +4404,13 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S156>/UpperRelop'
    *  Switch: '<S156>/Switch'
    */
-  if (MCU_AI_B.DataTypeConversion4 > MCU_AI_B.Min4) {
-    MCU_AI_B.DataTypeConversion4 = MCU_AI_B.Min4;
-  } else if (MCU_AI_B.DataTypeConversion4 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch13 > MCU_AI_B.Min4) {
+    MCU_AI_B.Switch13 = MCU_AI_B.Min4;
+  } else if (MCU_AI_B.Switch13 < -MCU_AI_B.Min) {
     /* Switch: '<S156>/Switch' incorporates:
      *  Product: '<S64>/Product1'
      */
-    MCU_AI_B.DataTypeConversion4 = -MCU_AI_B.Min;
+    MCU_AI_B.Switch13 = -MCU_AI_B.Min;
   }
 
   /* SwitchCase: '<S64>/Switch Case' incorporates:
@@ -4419,8 +4429,8 @@ void MCU_AI_step(void)
      *  ActionPort: '<S161>/Action Port'
      */
     MCU_A_SwitchCaseActionSubsystem(rtb_Switch17_iq - (real32_T)
-      MCU_AI_B.DataTypeConversion4, (real32_T)MCU_AI_B.DataTypeConversion4,
-      &MCU_AI_B.Merge_gi, &MCU_AI_B.Merge2_gk);
+      MCU_AI_B.Switch13, (real32_T)MCU_AI_B.Switch13, &MCU_AI_B.Merge_gi,
+      &MCU_AI_B.Merge2_gk);
 
     /* End of Outputs for SubSystem: '<S64>/Switch Case Action Subsystem' */
     break;
@@ -4429,7 +4439,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S64>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S162>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch32 - (real32_T)
       MCU_AI_B.Switch19, (real32_T)MCU_AI_B.Switch19, &MCU_AI_B.Merge_gi,
       &MCU_AI_B.Merge2_gk);
 
@@ -4440,7 +4450,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S64>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S163>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
       MCU_AI_B.Switch5, (real32_T)MCU_AI_B.Switch5, &MCU_AI_B.Merge_gi,
       &MCU_AI_B.Merge2_gk);
 
@@ -4451,7 +4461,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S64>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S164>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
       MCU_AI_B.Switch6, (real32_T)MCU_AI_B.Switch6, &MCU_AI_B.Merge_gi,
       &MCU_AI_B.Merge2_gk);
 
@@ -4462,7 +4472,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S64>/Switch Case Action Subsystem4' incorporates:
      *  ActionPort: '<S165>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
       MCU_AI_B.Switch16, (real32_T)MCU_AI_B.Switch16, &MCU_AI_B.Merge_gi,
       &MCU_AI_B.Merge2_gk);
 
@@ -4473,7 +4483,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S64>/Switch Case Action Subsystem5' incorporates:
      *  ActionPort: '<S166>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
       MCU_AI_B.Switch7, (real32_T)MCU_AI_B.Switch7, &MCU_AI_B.Merge_gi,
       &MCU_AI_B.Merge2_gk);
 
@@ -4484,8 +4494,9 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S64>/Switch Case Action Subsystem6' incorporates:
      *  ActionPort: '<S167>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - (real32_T)MCU_AI_B.Switch17,
-      (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_gi, &MCU_AI_B.Merge2_gk);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+      MCU_AI_B.Switch17, (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_gi,
+      &MCU_AI_B.Merge2_gk);
 
     /* End of Outputs for SubSystem: '<S64>/Switch Case Action Subsystem6' */
     break;
@@ -4522,7 +4533,7 @@ void MCU_AI_step(void)
   /* Sum: '<S65>/Add4' incorporates:
    *  DataTypeConversion: '<S64>/Data Type Conversion7'
    */
-  rtb_Subtract4_fk = rtb_Divide35_py + (real32_T)rtb_Switch5_h;
+  rtb_Subtract4_fk = MCU_AI_B.Divide35_n + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S174>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S174>/UpperRelop'
@@ -4548,13 +4559,13 @@ void MCU_AI_step(void)
   /* Sum: '<S65>/Add3' incorporates:
    *  DataTypeConversion: '<S64>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S172>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S172>/UpperRelop'
    *  Switch: '<S172>/Switch2'
    */
-  MCU_AI_B.Switch17 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch17 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S172>/Switch2' incorporates:
    *  Product: '<S65>/Product7'
@@ -4574,13 +4585,13 @@ void MCU_AI_step(void)
   /* Sum: '<S65>/Add2' incorporates:
    *  DataTypeConversion: '<S64>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch28 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch27 = MCU_AI_B.Switch6_i + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S171>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S171>/UpperRelop'
    *  Switch: '<S171>/Switch2'
    */
-  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch28;
+  MCU_AI_B.Switch7 = (int32_T)MCU_AI_B.Switch27;
 
   /* Switch: '<S171>/Switch2' incorporates:
    *  Product: '<S65>/Product6'
@@ -4588,8 +4599,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S171>/UpperRelop'
    *  Switch: '<S171>/Switch'
    */
-  if (MCU_AI_B.Switch7 > MCU_AI_B.Switch15) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Switch15;
+  if (MCU_AI_B.Switch7 > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Switch7 = MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Switch7 < -MCU_AI_B.Min_kv) {
     /* Switch: '<S171>/Switch' incorporates:
      *  Product: '<S65>/Product6'
@@ -4600,13 +4611,13 @@ void MCU_AI_step(void)
   /* Sum: '<S65>/Add1' incorporates:
    *  DataTypeConversion: '<S64>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Add1_k + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S170>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S170>/UpperRelop'
    *  Switch: '<S170>/Switch2'
    */
-  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Subtract1;
+  MCU_AI_B.Switch16 = (int32_T)MCU_AI_B.Switch28;
 
   /* Switch: '<S170>/Switch2' incorporates:
    *  Product: '<S65>/Product5'
@@ -4626,13 +4637,13 @@ void MCU_AI_step(void)
   /* Sum: '<S65>/Add8' incorporates:
    *  DataTypeConversion: '<S64>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch27 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch29 = MCU_AI_B.Divide36_a + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S177>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S177>/UpperRelop'
    *  Switch: '<S177>/Switch2'
    */
-  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch27;
+  MCU_AI_B.Switch6 = (int32_T)MCU_AI_B.Switch29;
 
   /* Switch: '<S177>/Switch2' incorporates:
    *  Product: '<S65>/Product4'
@@ -4652,13 +4663,13 @@ void MCU_AI_step(void)
   /* Sum: '<S65>/Add7' incorporates:
    *  DataTypeConversion: '<S64>/Data Type Conversion7'
    */
-  MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Product8 = MCU_AI_B.Switch9_f + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S176>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S176>/UpperRelop'
    *  Switch: '<S176>/Switch2'
    */
-  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Switch29;
+  MCU_AI_B.Switch5 = (int32_T)MCU_AI_B.Product8;
 
   /* Switch: '<S176>/Switch2' incorporates:
    *  Product: '<S65>/Product3'
@@ -4666,8 +4677,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S176>/UpperRelop'
    *  Switch: '<S176>/Switch'
    */
-  if (MCU_AI_B.Switch5 > MCU_AI_B.Switch13) {
-    MCU_AI_B.Switch5 = MCU_AI_B.Switch13;
+  if (MCU_AI_B.Switch5 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch5 = MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch5 < -MCU_AI_B.Min_d) {
     /* Switch: '<S176>/Switch' incorporates:
      *  Product: '<S65>/Product3'
@@ -4678,13 +4689,13 @@ void MCU_AI_step(void)
   /* Sum: '<S65>/Add6' incorporates:
    *  DataTypeConversion: '<S64>/Data Type Conversion7'
    */
-  MCU_AI_B.Product8 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch32 = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S175>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S175>/UpperRelop'
    *  Switch: '<S175>/Switch2'
    */
-  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Product8;
+  MCU_AI_B.Switch19 = (int32_T)MCU_AI_B.Switch32;
 
   /* Switch: '<S175>/Switch2' incorporates:
    *  Product: '<S65>/Product2'
@@ -4710,7 +4721,7 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S173>/UpperRelop'
    *  Switch: '<S173>/Switch2'
    */
-  MCU_AI_B.DataTypeConversion4 = (int32_T)rtb_Switch17_iq;
+  MCU_AI_B.Switch13 = (int32_T)rtb_Switch17_iq;
 
   /* Switch: '<S173>/Switch2' incorporates:
    *  Product: '<S65>/Product1'
@@ -4718,13 +4729,13 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S173>/UpperRelop'
    *  Switch: '<S173>/Switch'
    */
-  if (MCU_AI_B.DataTypeConversion4 > MCU_AI_B.Min4) {
-    MCU_AI_B.DataTypeConversion4 = MCU_AI_B.Min4;
-  } else if (MCU_AI_B.DataTypeConversion4 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch13 > MCU_AI_B.Min4) {
+    MCU_AI_B.Switch13 = MCU_AI_B.Min4;
+  } else if (MCU_AI_B.Switch13 < -MCU_AI_B.Min) {
     /* Switch: '<S173>/Switch' incorporates:
      *  Product: '<S65>/Product1'
      */
-    MCU_AI_B.DataTypeConversion4 = -MCU_AI_B.Min;
+    MCU_AI_B.Switch13 = -MCU_AI_B.Min;
   }
 
   /* SwitchCase: '<S65>/Switch Case' incorporates:
@@ -4743,8 +4754,8 @@ void MCU_AI_step(void)
      *  ActionPort: '<S178>/Action Port'
      */
     MCU_A_SwitchCaseActionSubsystem(rtb_Switch17_iq - (real32_T)
-      MCU_AI_B.DataTypeConversion4, (real32_T)MCU_AI_B.DataTypeConversion4,
-      &MCU_AI_B.Merge_i, &MCU_AI_B.Merge2_e);
+      MCU_AI_B.Switch13, (real32_T)MCU_AI_B.Switch13, &MCU_AI_B.Merge_i,
+      &MCU_AI_B.Merge2_e);
 
     /* End of Outputs for SubSystem: '<S65>/Switch Case Action Subsystem' */
     break;
@@ -4753,7 +4764,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S65>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S179>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch32 - (real32_T)
       MCU_AI_B.Switch19, (real32_T)MCU_AI_B.Switch19, &MCU_AI_B.Merge_i,
       &MCU_AI_B.Merge2_e);
 
@@ -4764,7 +4775,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S65>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S180>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product8 - (real32_T)
       MCU_AI_B.Switch5, (real32_T)MCU_AI_B.Switch5, &MCU_AI_B.Merge_i,
       &MCU_AI_B.Merge2_e);
 
@@ -4775,7 +4786,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S65>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S181>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch29 - (real32_T)
       MCU_AI_B.Switch6, (real32_T)MCU_AI_B.Switch6, &MCU_AI_B.Merge_i,
       &MCU_AI_B.Merge2_e);
 
@@ -4786,7 +4797,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S65>/Switch Case Action Subsystem4' incorporates:
      *  ActionPort: '<S182>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
       MCU_AI_B.Switch16, (real32_T)MCU_AI_B.Switch16, &MCU_AI_B.Merge_i,
       &MCU_AI_B.Merge2_e);
 
@@ -4797,7 +4808,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S65>/Switch Case Action Subsystem5' incorporates:
      *  ActionPort: '<S183>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch27 - (real32_T)
       MCU_AI_B.Switch7, (real32_T)MCU_AI_B.Switch7, &MCU_AI_B.Merge_i,
       &MCU_AI_B.Merge2_e);
 
@@ -4808,8 +4819,9 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S65>/Switch Case Action Subsystem6' incorporates:
      *  ActionPort: '<S184>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - (real32_T)MCU_AI_B.Switch17,
-      (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_i, &MCU_AI_B.Merge2_e);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - (real32_T)
+      MCU_AI_B.Switch17, (real32_T)MCU_AI_B.Switch17, &MCU_AI_B.Merge_i,
+      &MCU_AI_B.Merge2_e);
 
     /* End of Outputs for SubSystem: '<S65>/Switch Case Action Subsystem6' */
     break;
@@ -4846,13 +4858,13 @@ void MCU_AI_step(void)
   /* Sum: '<S66>/Add4' incorporates:
    *  DataTypeConversion: '<S65>/Data Type Conversion7'
    */
-  rtb_Divide35_py += (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Divide35_n += (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S191>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S191>/UpperRelop'
    *  Switch: '<S191>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Divide35_py;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide35_n;
 
   /* Switch: '<S191>/Switch2' incorporates:
    *  Product: '<S66>/Product8'
@@ -4912,8 +4924,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S188>/UpperRelop'
    *  Switch: '<S188>/Switch'
    */
-  if (MCU_AI_B.Min_l > MCU_AI_B.Switch15) {
-    MCU_AI_B.Min_l = MCU_AI_B.Switch15;
+  if (MCU_AI_B.Min_l > MCU_AI_B.Min4_ix) {
+    MCU_AI_B.Min_l = MCU_AI_B.Min4_ix;
   } else if (MCU_AI_B.Min_l < -MCU_AI_B.Min_kv) {
     /* Switch: '<S188>/Switch' incorporates:
      *  Product: '<S66>/Product6'
@@ -4990,8 +5002,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S193>/UpperRelop'
    *  Switch: '<S193>/Switch'
    */
-  if (MCU_AI_B.Min_h > MCU_AI_B.Switch13) {
-    MCU_AI_B.Min_h = MCU_AI_B.Switch13;
+  if (MCU_AI_B.Min_h > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Min_h = MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Min_h < -MCU_AI_B.Min_d) {
     /* Switch: '<S193>/Switch' incorporates:
      *  Product: '<S66>/Product3'
@@ -5141,7 +5153,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S66>/Switch Case Action Subsystem7' incorporates:
      *  ActionPort: '<S202>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Divide35_py - (real32_T)
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide35_n - (real32_T)
       MCU_AI_B.Switch20, (real32_T)MCU_AI_B.Switch20, &rtb_Subtract4_fk,
       &MCU_AI_B.Merge2_gm);
 
@@ -5403,6 +5415,24 @@ void MCU_AI_step(void)
   MCU_AI_B.Min_d = (int32_T)fminf((real32_T)rtb_Switch3_i, (real32_T)
     MCU_AI_B.Switch20);
 
+  /* Switch: '<S275>/Switch5' incorporates:
+   *  Constant: '<S275>/Constant7'
+   *  Inport: '<Root>/bms3_max_discharge_power'
+   *  Inport: '<Root>/bms3_soc'
+   *  RelationalOperator: '<S275>/LessThanOrEqual'
+   */
+  if (bms3_soc <= rtb_Min_ju) {
+    MCU_AI_B.Switch20 = 0;
+  } else {
+    MCU_AI_B.Switch20 = bms3_max_discharge_power;
+  }
+
+  /* MinMax: '<S275>/Min4' incorporates:
+   *  Switch: '<S275>/Switch5'
+   */
+  MCU_AI_B.Min4_b = (int32_T)fminf((real32_T)rtb_Switch2_fu, (real32_T)
+    MCU_AI_B.Switch20);
+
   /* Switch: '<S276>/Switch5' incorporates:
    *  Constant: '<S276>/Constant7'
    *  Inport: '<Root>/bms4_max_discharge_power'
@@ -5434,45 +5464,45 @@ void MCU_AI_step(void)
    *  Constant: '<S277>/Constant43'
    */
   if (rtb_Compare_bq) {
-    MCU_AI_B.Switch13 = MCU_AI_B.Min_k;
+    MCU_AI_B.Switch17 = MCU_AI_B.Min_k;
   } else {
-    MCU_AI_B.Switch13 = 0;
+    MCU_AI_B.Switch17 = 0;
   }
 
   /* Switch: '<S277>/Switch5' incorporates:
    *  Constant: '<S277>/Constant44'
    */
   if (rtb_Compare_h2) {
-    MCU_AI_B.Switch15 = MCU_AI_B.Min4_i;
+    MCU_AI_B.Switch7 = MCU_AI_B.Min4_i;
   } else {
-    MCU_AI_B.Switch15 = 0;
+    MCU_AI_B.Switch7 = 0;
   }
 
   /* Switch: '<S277>/Switch' incorporates:
    *  Constant: '<S277>/Constant39'
    */
   if (rtb_Compare_fx) {
-    MCU_AI_B.Switch17 = MCU_AI_B.Min_d;
+    MCU_AI_B.Switch16 = MCU_AI_B.Min_d;
   } else {
-    MCU_AI_B.Switch17 = 0;
+    MCU_AI_B.Switch16 = 0;
   }
 
   /* Switch: '<S277>/Switch1' incorporates:
    *  Constant: '<S277>/Constant40'
    */
   if (rtb_Compare_bq) {
-    MCU_AI_B.Switch7 = MCU_AI_B.Min_k;
+    MCU_AI_B.Switch6 = MCU_AI_B.Min4_b;
   } else {
-    MCU_AI_B.Switch7 = 0;
+    MCU_AI_B.Switch6 = 0;
   }
 
   /* Switch: '<S277>/Switch2' incorporates:
    *  Constant: '<S277>/Constant41'
    */
   if (rtb_Compare_h2) {
-    MCU_AI_B.Switch16 = MCU_AI_B.Min_h;
+    MCU_AI_B.Switch5 = MCU_AI_B.Min_h;
   } else {
-    MCU_AI_B.Switch16 = 0;
+    MCU_AI_B.Switch5 = 0;
   }
 
   /* MinMax: '<S277>/Max' incorporates:
@@ -5488,16 +5518,16 @@ void MCU_AI_step(void)
    *  Switch: '<S277>/Switch4'
    *  Switch: '<S277>/Switch5'
    */
-  rtb_Divide35_py = fmaxf(fmaxf(-((((real32_T)MCU_AI_B.Min + (real32_T)
-    MCU_AI_B.Switch20) + (real32_T)MCU_AI_B.Switch13) + (real32_T)
-    MCU_AI_B.Switch15), -rtb_Product5), fminf(fminf(MCU_AI_B.Product7_c,
-    rtb_Product5), ((MCU_AI_B.Switch9_f + (real32_T)MCU_AI_B.Switch17) +
-                    (real32_T)MCU_AI_B.Switch7) + (real32_T)MCU_AI_B.Switch16));
+  MCU_AI_B.Divide35_n = fmaxf(fmaxf(-((((real32_T)MCU_AI_B.Min + (real32_T)
+    MCU_AI_B.Switch20) + (real32_T)MCU_AI_B.Switch17) + (real32_T)
+    MCU_AI_B.Switch7), -rtb_Product5), fminf(fminf(MCU_AI_B.Product7_c,
+    rtb_Product5), ((MCU_AI_B.Switch9_f + (real32_T)MCU_AI_B.Switch16) +
+                    (real32_T)MCU_AI_B.Switch6) + (real32_T)MCU_AI_B.Switch5));
 
   /* RelationalOperator: '<S268>/Compare' incorporates:
    *  Constant: '<S268>/Constant'
    */
-  rtb_Compare_mi = (rtb_Divide35_py >= 0.0F);
+  rtb_Compare_mi = (MCU_AI_B.Divide35_n >= 0.0F);
 
   /* Switch: '<S282>/Switch12' incorporates:
    *  DataTypeConversion: '<S2>/Data Type Conversion10'
@@ -5738,7 +5768,7 @@ void MCU_AI_step(void)
   if (MCU_AI_B.Product7_c <= 1.0F) {
     MCU_AI_B.Divide36_a = 0.0F;
   } else {
-    MCU_AI_B.Divide36_a = rtb_Divide35_py;
+    MCU_AI_B.Divide36_a = MCU_AI_B.Divide35_n;
   }
 
   /* End of Switch: '<S281>/Switch17' */
@@ -5858,16 +5888,16 @@ void MCU_AI_step(void)
    *  Product: '<S278>/Product10'
    */
   if (rtb_Compare_mi) {
-    MCU_AI_B.Switch28 = MCU_AI_B.Switch9_f;
+    MCU_AI_B.Switch27 = MCU_AI_B.Switch9_f;
   } else {
-    MCU_AI_B.Switch28 = -(real32_T)MCU_AI_B.Min;
+    MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min;
   }
 
   /* Sum: '<S278>/Subtract1' incorporates:
    *  DataTypeConversion: '<S281>/Data Type Conversion'
    *  Switch: '<S278>/Switch12'
    */
-  rtb_Add1_k = MCU_AI_B.Switch28 - (real32_T)rtb_Switch5_h;
+  rtb_Add1_k = MCU_AI_B.Switch27 - (real32_T)rtb_Switch5_h;
 
   /* Product: '<S281>/Divide36' */
   MCU_AI_B.Divide38_j = MCU_AI_B.Divide38_j * MCU_AI_B.Divide36_a /
@@ -5931,35 +5961,17 @@ void MCU_AI_step(void)
      *  Product: '<S278>/Product11'
      */
     if (rtb_Compare_mi) {
-      MCU_AI_B.Switch28 = (real32_T)MCU_AI_B.Min_d;
+      MCU_AI_B.Switch27 = (real32_T)MCU_AI_B.Min_d;
     } else {
-      MCU_AI_B.Switch28 = -(real32_T)MCU_AI_B.Min4;
+      MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min4;
     }
 
-    rtb_Switch30 = MCU_AI_B.Switch28 - (real32_T)rtb_Switch5_h;
+    MCU_AI_B.Subtract1 = MCU_AI_B.Switch27 - (real32_T)rtb_Switch5_h;
   } else {
-    rtb_Switch30 = 0.0F;
+    MCU_AI_B.Subtract1 = 0.0F;
   }
 
   /* End of Switch: '<S278>/Switch27' */
-
-  /* Switch: '<S275>/Switch5' incorporates:
-   *  Constant: '<S275>/Constant7'
-   *  Inport: '<Root>/bms3_max_discharge_power'
-   *  Inport: '<Root>/bms3_soc'
-   *  RelationalOperator: '<S275>/LessThanOrEqual'
-   */
-  if (bms3_soc <= rtb_Min_ju) {
-    MCU_AI_B.Switch20 = 0;
-  } else {
-    MCU_AI_B.Switch20 = bms3_max_discharge_power;
-  }
-
-  /* MinMax: '<S275>/Min4' incorporates:
-   *  Switch: '<S275>/Switch5'
-   */
-  MCU_AI_B.Min4_pm = (int32_T)fminf((real32_T)rtb_Switch2_fu, (real32_T)
-    MCU_AI_B.Switch20);
 
   /* Product: '<S281>/Divide37' */
   MCU_AI_B.Divide38_j = rtb_Subtract4_fk * MCU_AI_B.Divide36_a /
@@ -5971,8 +5983,8 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S356>/UpperRelop'
    *  Switch: '<S356>/Switch'
    */
-  if (MCU_AI_B.Divide38_j > MCU_AI_B.Min4_pm) {
-    MCU_AI_B.Divide38_j = (real32_T)MCU_AI_B.Min4_pm;
+  if (MCU_AI_B.Divide38_j > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Divide38_j = (real32_T)MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Divide38_j < -(real32_T)MCU_AI_B.Min_k) {
     /* Switch: '<S356>/Switch' incorporates:
      *  Product: '<S281>/Product3'
@@ -6010,7 +6022,7 @@ void MCU_AI_step(void)
   /* End of Switch: '<S281>/Switch3' */
 
   /* DataTypeConversion: '<S281>/Data Type Conversion5' */
-  MCU_AI_B.Min_kv = rtb_Switch5_h;
+  MCU_AI_B.Min4_pm = rtb_Switch5_h;
 
   /* Switch: '<S278>/Switch28' incorporates:
    *  Constant: '<S278>/Constant27'
@@ -6023,12 +6035,12 @@ void MCU_AI_step(void)
      *  Product: '<S278>/Product12'
      */
     if (rtb_Compare_mi) {
-      MCU_AI_B.Switch28 = (real32_T)MCU_AI_B.Min4_pm;
+      MCU_AI_B.Switch27 = (real32_T)MCU_AI_B.Min4_b;
     } else {
-      MCU_AI_B.Switch28 = -(real32_T)MCU_AI_B.Min_k;
+      MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min_k;
     }
 
-    MCU_AI_B.Switch6_i = MCU_AI_B.Switch28 - (real32_T)rtb_Switch5_h;
+    MCU_AI_B.Switch6_i = MCU_AI_B.Switch27 - (real32_T)rtb_Switch5_h;
   } else {
     MCU_AI_B.Switch6_i = 0.0F;
   }
@@ -6045,12 +6057,12 @@ void MCU_AI_step(void)
      *  Product: '<S278>/Product13'
      */
     if (rtb_Compare_mi) {
-      MCU_AI_B.Switch28 = (real32_T)MCU_AI_B.Min_h;
+      MCU_AI_B.Switch27 = (real32_T)MCU_AI_B.Min_h;
     } else {
-      MCU_AI_B.Switch28 = -(real32_T)MCU_AI_B.Min4_i;
+      MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min4_i;
     }
 
-    MCU_AI_B.Product7_c = MCU_AI_B.Switch28 - (real32_T)MCU_AI_B.Min4_p;
+    MCU_AI_B.Product7_c = MCU_AI_B.Switch27 - (real32_T)MCU_AI_B.Min4_p;
   } else {
     MCU_AI_B.Product7_c = 0.0F;
   }
@@ -6058,8 +6070,8 @@ void MCU_AI_step(void)
   /* End of Switch: '<S278>/Switch29' */
 
   /* Sum: '<S278>/Add1' */
-  MCU_AI_B.Divide38_j = ((rtb_Add1_k + rtb_Switch30) + MCU_AI_B.Switch6_i) +
-    MCU_AI_B.Product7_c;
+  MCU_AI_B.Divide38_j = ((rtb_Add1_k + MCU_AI_B.Subtract1) + MCU_AI_B.Switch6_i)
+    + MCU_AI_B.Product7_c;
 
   /* RelationalOperator: '<S288>/Compare' incorporates:
    *  Abs: '<S278>/Abs8'
@@ -6215,7 +6227,7 @@ void MCU_AI_step(void)
   if (rtb_Compare_ps) {
     rtb_Subtract4_fk = 0.0F;
   } else {
-    rtb_Subtract4_fk = (real32_T)rtb_Switch5_h * rtb_Switch30 /
+    rtb_Subtract4_fk = (real32_T)rtb_Switch5_h * MCU_AI_B.Subtract1 /
       MCU_AI_B.Divide36_a;
   }
 
@@ -6268,7 +6280,7 @@ void MCU_AI_step(void)
   /* End of Switch: '<S278>/Switch21' */
 
   /* Sum: '<S278>/Add4' */
-  MCU_AI_B.Divide36_a += (real32_T)MCU_AI_B.Min_kv;
+  MCU_AI_B.Divide36_a += (real32_T)MCU_AI_B.Min4_pm;
 
   /* Switch: '<S278>/Switch13' incorporates:
    *  Constant: '<S278>/Constant13'
@@ -6304,8 +6316,8 @@ void MCU_AI_step(void)
    *  DataTypeConversion: '<S278>/Data Type Conversion5'
    *  Sum: '<S278>/Add6'
    */
-  rtb_Divide35_py -= ((rtb_Product5 + rtb_Subtract4_fk) + (real32_T)
-                      rtb_Switch5_h) + MCU_AI_B.Divide38_j;
+  MCU_AI_B.Divide35_n -= ((rtb_Product5 + rtb_Subtract4_fk) + (real32_T)
+    rtb_Switch5_h) + MCU_AI_B.Divide38_j;
 
   /* Switch: '<S278>/Switch1' incorporates:
    *  Abs: '<S278>/Abs4'
@@ -6314,10 +6326,10 @@ void MCU_AI_step(void)
    *  DataTypeConversion: '<S278>/Data Type Conversion8'
    *  RelationalOperator: '<S287>/Compare'
    */
-  if (fabsf(rtb_Divide35_py) <= 0.1F) {
+  if (fabsf(MCU_AI_B.Divide35_n) <= 0.1F) {
     rtb_Switch5_h = 0;
   } else {
-    rtb_Switch5_h = (int16_T)rtb_Divide35_py;
+    rtb_Switch5_h = (int16_T)MCU_AI_B.Divide35_n;
   }
 
   /* End of Switch: '<S278>/Switch1' */
@@ -6325,13 +6337,13 @@ void MCU_AI_step(void)
   /* Sum: '<S297>/Add8' incorporates:
    *  DataTypeConversion: '<S278>/Data Type Conversion7'
    */
-  rtb_Divide35_py = MCU_AI_B.Divide38_j + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Divide35_n = MCU_AI_B.Divide38_j + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S305>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S305>/UpperRelop'
    *  Switch: '<S305>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Divide35_py;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide35_n;
 
   /* Switch: '<S305>/Switch2' incorporates:
    *  Product: '<S297>/Product4'
@@ -6340,26 +6352,26 @@ void MCU_AI_step(void)
    *  Switch: '<S305>/Switch'
    */
   if (MCU_AI_B.Switch20 > MCU_AI_B.Min_h) {
-    MCU_AI_B.Divide36_a = (real32_T)MCU_AI_B.Min_h;
+    rtb_Add1_k = (real32_T)MCU_AI_B.Min_h;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min4_i) {
     /* Switch: '<S305>/Switch' incorporates:
      *  Product: '<S297>/Product4'
      */
-    MCU_AI_B.Divide36_a = -(real32_T)MCU_AI_B.Min4_i;
+    rtb_Add1_k = -(real32_T)MCU_AI_B.Min4_i;
   } else {
-    MCU_AI_B.Divide36_a = rtb_Divide35_py;
+    rtb_Add1_k = MCU_AI_B.Divide35_n;
   }
 
   /* Sum: '<S297>/Add7' incorporates:
    *  DataTypeConversion: '<S278>/Data Type Conversion7'
    */
-  rtb_Add1_k = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Divide36_a = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S304>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S304>/UpperRelop'
    *  Switch: '<S304>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Add1_k;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide36_a;
 
   /* Switch: '<S304>/Switch2' incorporates:
    *  Product: '<S297>/Product3'
@@ -6367,27 +6379,27 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S304>/UpperRelop'
    *  Switch: '<S304>/Switch'
    */
-  if (MCU_AI_B.Switch20 > MCU_AI_B.Min4_pm) {
-    MCU_AI_B.Switch6_i = (real32_T)MCU_AI_B.Min4_pm;
+  if (MCU_AI_B.Switch20 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch6_i = (real32_T)MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min_k) {
     /* Switch: '<S304>/Switch' incorporates:
      *  Product: '<S297>/Product3'
      */
     MCU_AI_B.Switch6_i = -(real32_T)MCU_AI_B.Min_k;
   } else {
-    MCU_AI_B.Switch6_i = rtb_Add1_k;
+    MCU_AI_B.Switch6_i = MCU_AI_B.Divide36_a;
   }
 
   /* Sum: '<S297>/Add6' incorporates:
    *  DataTypeConversion: '<S278>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Subtract4_fk + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Subtract4_fk + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S303>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S303>/UpperRelop'
    *  Switch: '<S303>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S303>/Switch2' incorporates:
    *  Product: '<S297>/Product2'
@@ -6396,20 +6408,20 @@ void MCU_AI_step(void)
    *  Switch: '<S303>/Switch'
    */
   if (MCU_AI_B.Switch20 > MCU_AI_B.Min_d) {
-    MCU_AI_B.Switch28 = (real32_T)MCU_AI_B.Min_d;
+    MCU_AI_B.Switch27 = (real32_T)MCU_AI_B.Min_d;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min4) {
     /* Switch: '<S303>/Switch' incorporates:
      *  Product: '<S297>/Product2'
      */
-    MCU_AI_B.Switch28 = -(real32_T)MCU_AI_B.Min4;
+    MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min4;
   } else {
-    MCU_AI_B.Switch28 = rtb_Switch30;
+    MCU_AI_B.Switch27 = MCU_AI_B.Subtract1;
   }
 
   /* Sum: '<S297>/Add' incorporates:
    *  DataTypeConversion: '<S278>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* Switch: '<S302>/Switch2' incorporates:
    *  Product: '<S297>/Product1'
@@ -6417,15 +6429,15 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S302>/UpperRelop'
    *  Switch: '<S302>/Switch'
    */
-  if (MCU_AI_B.Subtract1 > MCU_AI_B.Switch9_f) {
-    MCU_AI_B.Switch27 = MCU_AI_B.Switch9_f;
-  } else if ((int32_T)MCU_AI_B.Subtract1 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch28 > MCU_AI_B.Switch9_f) {
+    MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f;
+  } else if ((int32_T)MCU_AI_B.Switch28 < -MCU_AI_B.Min) {
     /* Switch: '<S302>/Switch' incorporates:
      *  Product: '<S297>/Product1'
      */
-    MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min;
+    MCU_AI_B.Switch29 = -(real32_T)MCU_AI_B.Min;
   } else {
-    MCU_AI_B.Switch27 = MCU_AI_B.Subtract1;
+    MCU_AI_B.Switch29 = MCU_AI_B.Switch28;
   }
 
   /* End of Switch: '<S302>/Switch2' */
@@ -6441,8 +6453,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S297>/Switch Case Action Subsystem' incorporates:
      *  ActionPort: '<S306>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - MCU_AI_B.Switch27,
-      MCU_AI_B.Switch27, &MCU_AI_B.Merge_go, &MCU_AI_B.Merge2_d);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - MCU_AI_B.Switch29,
+      MCU_AI_B.Switch29, &MCU_AI_B.Merge_go, &MCU_AI_B.Merge2_d);
 
     /* End of Outputs for SubSystem: '<S297>/Switch Case Action Subsystem' */
     break;
@@ -6451,8 +6463,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S297>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S307>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - MCU_AI_B.Switch28,
-      MCU_AI_B.Switch28, &MCU_AI_B.Merge_go, &MCU_AI_B.Merge2_d);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - MCU_AI_B.Switch27,
+      MCU_AI_B.Switch27, &MCU_AI_B.Merge_go, &MCU_AI_B.Merge2_d);
 
     /* End of Outputs for SubSystem: '<S297>/Switch Case Action Subsystem1' */
     break;
@@ -6461,7 +6473,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S297>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S308>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Add1_k - MCU_AI_B.Switch6_i,
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide36_a - MCU_AI_B.Switch6_i,
       MCU_AI_B.Switch6_i, &MCU_AI_B.Merge_go, &MCU_AI_B.Merge2_d);
 
     /* End of Outputs for SubSystem: '<S297>/Switch Case Action Subsystem2' */
@@ -6471,8 +6483,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S297>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S309>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Divide35_py - MCU_AI_B.Divide36_a,
-      MCU_AI_B.Divide36_a, &MCU_AI_B.Merge_go, &MCU_AI_B.Merge2_d);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide35_n - rtb_Add1_k, rtb_Add1_k,
+      &MCU_AI_B.Merge_go, &MCU_AI_B.Merge2_d);
 
     /* End of Outputs for SubSystem: '<S297>/Switch Case Action Subsystem3' */
     break;
@@ -6498,13 +6510,13 @@ void MCU_AI_step(void)
   /* Sum: '<S298>/Add8' incorporates:
    *  DataTypeConversion: '<S297>/Data Type Conversion7'
    */
-  rtb_Divide35_py = MCU_AI_B.Divide38_j + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Divide35_n = MCU_AI_B.Divide38_j + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S314>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S314>/UpperRelop'
    *  Switch: '<S314>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Divide35_py;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide35_n;
 
   /* Switch: '<S314>/Switch2' incorporates:
    *  Product: '<S298>/Product4'
@@ -6513,26 +6525,26 @@ void MCU_AI_step(void)
    *  Switch: '<S314>/Switch'
    */
   if (MCU_AI_B.Switch20 > MCU_AI_B.Min_h) {
-    MCU_AI_B.Divide36_a = (real32_T)MCU_AI_B.Min_h;
+    rtb_Add1_k = (real32_T)MCU_AI_B.Min_h;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min4_i) {
     /* Switch: '<S314>/Switch' incorporates:
      *  Product: '<S298>/Product4'
      */
-    MCU_AI_B.Divide36_a = -(real32_T)MCU_AI_B.Min4_i;
+    rtb_Add1_k = -(real32_T)MCU_AI_B.Min4_i;
   } else {
-    MCU_AI_B.Divide36_a = rtb_Divide35_py;
+    rtb_Add1_k = MCU_AI_B.Divide35_n;
   }
 
   /* Sum: '<S298>/Add7' incorporates:
    *  DataTypeConversion: '<S297>/Data Type Conversion7'
    */
-  rtb_Add1_k = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Divide36_a = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S313>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S313>/UpperRelop'
    *  Switch: '<S313>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Add1_k;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide36_a;
 
   /* Switch: '<S313>/Switch2' incorporates:
    *  Product: '<S298>/Product3'
@@ -6540,27 +6552,27 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S313>/UpperRelop'
    *  Switch: '<S313>/Switch'
    */
-  if (MCU_AI_B.Switch20 > MCU_AI_B.Min4_pm) {
-    MCU_AI_B.Switch6_i = (real32_T)MCU_AI_B.Min4_pm;
+  if (MCU_AI_B.Switch20 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch6_i = (real32_T)MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min_k) {
     /* Switch: '<S313>/Switch' incorporates:
      *  Product: '<S298>/Product3'
      */
     MCU_AI_B.Switch6_i = -(real32_T)MCU_AI_B.Min_k;
   } else {
-    MCU_AI_B.Switch6_i = rtb_Add1_k;
+    MCU_AI_B.Switch6_i = MCU_AI_B.Divide36_a;
   }
 
   /* Sum: '<S298>/Add6' incorporates:
    *  DataTypeConversion: '<S297>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Subtract4_fk + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Subtract4_fk + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S312>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S312>/UpperRelop'
    *  Switch: '<S312>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S312>/Switch2' incorporates:
    *  Product: '<S298>/Product2'
@@ -6569,20 +6581,20 @@ void MCU_AI_step(void)
    *  Switch: '<S312>/Switch'
    */
   if (MCU_AI_B.Switch20 > MCU_AI_B.Min_d) {
-    MCU_AI_B.Switch28 = (real32_T)MCU_AI_B.Min_d;
+    MCU_AI_B.Switch27 = (real32_T)MCU_AI_B.Min_d;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min4) {
     /* Switch: '<S312>/Switch' incorporates:
      *  Product: '<S298>/Product2'
      */
-    MCU_AI_B.Switch28 = -(real32_T)MCU_AI_B.Min4;
+    MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min4;
   } else {
-    MCU_AI_B.Switch28 = rtb_Switch30;
+    MCU_AI_B.Switch27 = MCU_AI_B.Subtract1;
   }
 
   /* Sum: '<S298>/Add' incorporates:
    *  DataTypeConversion: '<S297>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* Switch: '<S311>/Switch2' incorporates:
    *  Product: '<S298>/Product1'
@@ -6590,15 +6602,15 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S311>/UpperRelop'
    *  Switch: '<S311>/Switch'
    */
-  if (MCU_AI_B.Subtract1 > MCU_AI_B.Switch9_f) {
-    MCU_AI_B.Switch27 = MCU_AI_B.Switch9_f;
-  } else if ((int32_T)MCU_AI_B.Subtract1 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch28 > MCU_AI_B.Switch9_f) {
+    MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f;
+  } else if ((int32_T)MCU_AI_B.Switch28 < -MCU_AI_B.Min) {
     /* Switch: '<S311>/Switch' incorporates:
      *  Product: '<S298>/Product1'
      */
-    MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min;
+    MCU_AI_B.Switch29 = -(real32_T)MCU_AI_B.Min;
   } else {
-    MCU_AI_B.Switch27 = MCU_AI_B.Subtract1;
+    MCU_AI_B.Switch29 = MCU_AI_B.Switch28;
   }
 
   /* End of Switch: '<S311>/Switch2' */
@@ -6614,8 +6626,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S298>/Switch Case Action Subsystem' incorporates:
      *  ActionPort: '<S315>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - MCU_AI_B.Switch27,
-      MCU_AI_B.Switch27, &MCU_AI_B.Merge_j, &MCU_AI_B.Merge2_oe);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - MCU_AI_B.Switch29,
+      MCU_AI_B.Switch29, &MCU_AI_B.Merge_j, &MCU_AI_B.Merge2_oe);
 
     /* End of Outputs for SubSystem: '<S298>/Switch Case Action Subsystem' */
     break;
@@ -6624,8 +6636,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S298>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S316>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - MCU_AI_B.Switch28,
-      MCU_AI_B.Switch28, &MCU_AI_B.Merge_j, &MCU_AI_B.Merge2_oe);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - MCU_AI_B.Switch27,
+      MCU_AI_B.Switch27, &MCU_AI_B.Merge_j, &MCU_AI_B.Merge2_oe);
 
     /* End of Outputs for SubSystem: '<S298>/Switch Case Action Subsystem1' */
     break;
@@ -6634,7 +6646,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S298>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S317>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Add1_k - MCU_AI_B.Switch6_i,
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide36_a - MCU_AI_B.Switch6_i,
       MCU_AI_B.Switch6_i, &MCU_AI_B.Merge_j, &MCU_AI_B.Merge2_oe);
 
     /* End of Outputs for SubSystem: '<S298>/Switch Case Action Subsystem2' */
@@ -6644,8 +6656,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S298>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S318>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Divide35_py - MCU_AI_B.Divide36_a,
-      MCU_AI_B.Divide36_a, &MCU_AI_B.Merge_j, &MCU_AI_B.Merge2_oe);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide35_n - rtb_Add1_k, rtb_Add1_k,
+      &MCU_AI_B.Merge_j, &MCU_AI_B.Merge2_oe);
 
     /* End of Outputs for SubSystem: '<S298>/Switch Case Action Subsystem3' */
     break;
@@ -6671,13 +6683,13 @@ void MCU_AI_step(void)
   /* Sum: '<S299>/Add8' incorporates:
    *  DataTypeConversion: '<S298>/Data Type Conversion7'
    */
-  rtb_Divide35_py = MCU_AI_B.Divide38_j + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Divide35_n = MCU_AI_B.Divide38_j + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S323>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S323>/UpperRelop'
    *  Switch: '<S323>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Divide35_py;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide35_n;
 
   /* Switch: '<S323>/Switch2' incorporates:
    *  Product: '<S299>/Product4'
@@ -6686,26 +6698,26 @@ void MCU_AI_step(void)
    *  Switch: '<S323>/Switch'
    */
   if (MCU_AI_B.Switch20 > MCU_AI_B.Min_h) {
-    MCU_AI_B.Divide36_a = (real32_T)MCU_AI_B.Min_h;
+    rtb_Add1_k = (real32_T)MCU_AI_B.Min_h;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min4_i) {
     /* Switch: '<S323>/Switch' incorporates:
      *  Product: '<S299>/Product4'
      */
-    MCU_AI_B.Divide36_a = -(real32_T)MCU_AI_B.Min4_i;
+    rtb_Add1_k = -(real32_T)MCU_AI_B.Min4_i;
   } else {
-    MCU_AI_B.Divide36_a = rtb_Divide35_py;
+    rtb_Add1_k = MCU_AI_B.Divide35_n;
   }
 
   /* Sum: '<S299>/Add7' incorporates:
    *  DataTypeConversion: '<S298>/Data Type Conversion7'
    */
-  rtb_Add1_k = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Divide36_a = MCU_AI_B.Product7_c + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S322>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S322>/UpperRelop'
    *  Switch: '<S322>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Add1_k;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide36_a;
 
   /* Switch: '<S322>/Switch2' incorporates:
    *  Product: '<S299>/Product3'
@@ -6713,27 +6725,27 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S322>/UpperRelop'
    *  Switch: '<S322>/Switch'
    */
-  if (MCU_AI_B.Switch20 > MCU_AI_B.Min4_pm) {
-    MCU_AI_B.Switch6_i = (real32_T)MCU_AI_B.Min4_pm;
+  if (MCU_AI_B.Switch20 > MCU_AI_B.Min4_b) {
+    MCU_AI_B.Switch6_i = (real32_T)MCU_AI_B.Min4_b;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min_k) {
     /* Switch: '<S322>/Switch' incorporates:
      *  Product: '<S299>/Product3'
      */
     MCU_AI_B.Switch6_i = -(real32_T)MCU_AI_B.Min_k;
   } else {
-    MCU_AI_B.Switch6_i = rtb_Add1_k;
+    MCU_AI_B.Switch6_i = MCU_AI_B.Divide36_a;
   }
 
   /* Sum: '<S299>/Add6' incorporates:
    *  DataTypeConversion: '<S298>/Data Type Conversion7'
    */
-  rtb_Switch30 = rtb_Subtract4_fk + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Subtract1 = rtb_Subtract4_fk + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S321>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S321>/UpperRelop'
    *  Switch: '<S321>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Switch30;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Subtract1;
 
   /* Switch: '<S321>/Switch2' incorporates:
    *  Product: '<S299>/Product2'
@@ -6742,20 +6754,20 @@ void MCU_AI_step(void)
    *  Switch: '<S321>/Switch'
    */
   if (MCU_AI_B.Switch20 > MCU_AI_B.Min_d) {
-    MCU_AI_B.Switch28 = (real32_T)MCU_AI_B.Min_d;
+    MCU_AI_B.Switch27 = (real32_T)MCU_AI_B.Min_d;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min4) {
     /* Switch: '<S321>/Switch' incorporates:
      *  Product: '<S299>/Product2'
      */
-    MCU_AI_B.Switch28 = -(real32_T)MCU_AI_B.Min4;
+    MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min4;
   } else {
-    MCU_AI_B.Switch28 = rtb_Switch30;
+    MCU_AI_B.Switch27 = MCU_AI_B.Subtract1;
   }
 
   /* Sum: '<S299>/Add' incorporates:
    *  DataTypeConversion: '<S298>/Data Type Conversion7'
    */
-  MCU_AI_B.Subtract1 = rtb_Product5 + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Switch28 = rtb_Product5 + (real32_T)rtb_Switch5_h;
 
   /* Switch: '<S320>/Switch2' incorporates:
    *  Product: '<S299>/Product1'
@@ -6763,15 +6775,15 @@ void MCU_AI_step(void)
    *  RelationalOperator: '<S320>/UpperRelop'
    *  Switch: '<S320>/Switch'
    */
-  if (MCU_AI_B.Subtract1 > MCU_AI_B.Switch9_f) {
-    MCU_AI_B.Switch27 = MCU_AI_B.Switch9_f;
-  } else if ((int32_T)MCU_AI_B.Subtract1 < -MCU_AI_B.Min) {
+  if (MCU_AI_B.Switch28 > MCU_AI_B.Switch9_f) {
+    MCU_AI_B.Switch29 = MCU_AI_B.Switch9_f;
+  } else if ((int32_T)MCU_AI_B.Switch28 < -MCU_AI_B.Min) {
     /* Switch: '<S320>/Switch' incorporates:
      *  Product: '<S299>/Product1'
      */
-    MCU_AI_B.Switch27 = -(real32_T)MCU_AI_B.Min;
+    MCU_AI_B.Switch29 = -(real32_T)MCU_AI_B.Min;
   } else {
-    MCU_AI_B.Switch27 = MCU_AI_B.Subtract1;
+    MCU_AI_B.Switch29 = MCU_AI_B.Switch28;
   }
 
   /* End of Switch: '<S320>/Switch2' */
@@ -6787,8 +6799,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S299>/Switch Case Action Subsystem' incorporates:
      *  ActionPort: '<S324>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - MCU_AI_B.Switch27,
-      MCU_AI_B.Switch27, &MCU_AI_B.Merge_dp, &MCU_AI_B.Merge2_c);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Switch28 - MCU_AI_B.Switch29,
+      MCU_AI_B.Switch29, &MCU_AI_B.Merge_dp, &MCU_AI_B.Merge2_c);
 
     /* End of Outputs for SubSystem: '<S299>/Switch Case Action Subsystem' */
     break;
@@ -6797,8 +6809,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S299>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S325>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Switch30 - MCU_AI_B.Switch28,
-      MCU_AI_B.Switch28, &MCU_AI_B.Merge_dp, &MCU_AI_B.Merge2_c);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Subtract1 - MCU_AI_B.Switch27,
+      MCU_AI_B.Switch27, &MCU_AI_B.Merge_dp, &MCU_AI_B.Merge2_c);
 
     /* End of Outputs for SubSystem: '<S299>/Switch Case Action Subsystem1' */
     break;
@@ -6807,7 +6819,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S299>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S326>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Add1_k - MCU_AI_B.Switch6_i,
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide36_a - MCU_AI_B.Switch6_i,
       MCU_AI_B.Switch6_i, &MCU_AI_B.Merge_dp, &MCU_AI_B.Merge2_c);
 
     /* End of Outputs for SubSystem: '<S299>/Switch Case Action Subsystem2' */
@@ -6817,8 +6829,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S299>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S327>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Divide35_py - MCU_AI_B.Divide36_a,
-      MCU_AI_B.Divide36_a, &MCU_AI_B.Merge_dp, &MCU_AI_B.Merge2_c);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide35_n - rtb_Add1_k, rtb_Add1_k,
+      &MCU_AI_B.Merge_dp, &MCU_AI_B.Merge2_c);
 
     /* End of Outputs for SubSystem: '<S299>/Switch Case Action Subsystem3' */
     break;
@@ -6859,14 +6871,14 @@ void MCU_AI_step(void)
    *  Switch: '<S332>/Switch'
    */
   if (MCU_AI_B.Switch20 > MCU_AI_B.Min_h) {
-    rtb_Divide35_py = (real32_T)MCU_AI_B.Min_h;
+    MCU_AI_B.Divide35_n = (real32_T)MCU_AI_B.Min_h;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min4_i) {
     /* Switch: '<S332>/Switch' incorporates:
      *  Product: '<S300>/Product4'
      */
-    rtb_Divide35_py = -(real32_T)MCU_AI_B.Min4_i;
+    MCU_AI_B.Divide35_n = -(real32_T)MCU_AI_B.Min4_i;
   } else {
-    rtb_Divide35_py = MCU_AI_B.Divide38_j;
+    MCU_AI_B.Divide35_n = MCU_AI_B.Divide38_j;
   }
 
   /* Sum: '<S300>/Add7' incorporates:
@@ -6887,26 +6899,26 @@ void MCU_AI_step(void)
    *  Switch: '<S331>/Switch'
    */
   if (MCU_AI_B.Switch20 > MCU_AI_B.Min_d) {
-    MCU_AI_B.Divide36_a = (real32_T)MCU_AI_B.Min_d;
+    rtb_Add1_k = (real32_T)MCU_AI_B.Min_d;
   } else if (MCU_AI_B.Switch20 < -MCU_AI_B.Min_k) {
     /* Switch: '<S331>/Switch' incorporates:
      *  Product: '<S300>/Product3'
      */
-    MCU_AI_B.Divide36_a = -(real32_T)MCU_AI_B.Min_k;
+    rtb_Add1_k = -(real32_T)MCU_AI_B.Min_k;
   } else {
-    MCU_AI_B.Divide36_a = MCU_AI_B.Product7_c;
+    rtb_Add1_k = MCU_AI_B.Product7_c;
   }
 
   /* Sum: '<S300>/Add6' incorporates:
    *  DataTypeConversion: '<S299>/Data Type Conversion7'
    */
-  rtb_Add1_k = rtb_Subtract4_fk + (real32_T)rtb_Switch5_h;
+  MCU_AI_B.Divide36_a = rtb_Subtract4_fk + (real32_T)rtb_Switch5_h;
 
   /* RelationalOperator: '<S330>/LowerRelop1' incorporates:
    *  RelationalOperator: '<S330>/UpperRelop'
    *  Switch: '<S330>/Switch2'
    */
-  MCU_AI_B.Switch20 = (int32_T)rtb_Add1_k;
+  MCU_AI_B.Switch20 = (int32_T)MCU_AI_B.Divide36_a;
 
   /* Switch: '<S330>/Switch2' incorporates:
    *  Product: '<S300>/Product2'
@@ -6922,7 +6934,7 @@ void MCU_AI_step(void)
      */
     MCU_AI_B.Switch6_i = -(real32_T)MCU_AI_B.Min4;
   } else {
-    MCU_AI_B.Switch6_i = rtb_Add1_k;
+    MCU_AI_B.Switch6_i = MCU_AI_B.Divide36_a;
   }
 
   /* Sum: '<S300>/Add' incorporates:
@@ -6970,7 +6982,7 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S300>/Switch Case Action Subsystem1' incorporates:
      *  ActionPort: '<S334>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(rtb_Add1_k - MCU_AI_B.Switch6_i,
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide36_a - MCU_AI_B.Switch6_i,
       MCU_AI_B.Switch6_i, &rtb_Subtract4_fk, &MCU_AI_B.Merge2_b);
 
     /* End of Outputs for SubSystem: '<S300>/Switch Case Action Subsystem1' */
@@ -6980,8 +6992,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S300>/Switch Case Action Subsystem2' incorporates:
      *  ActionPort: '<S335>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product7_c - MCU_AI_B.Divide36_a,
-      MCU_AI_B.Divide36_a, &rtb_Subtract4_fk, &MCU_AI_B.Merge2_b);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Product7_c - rtb_Add1_k, rtb_Add1_k,
+      &rtb_Subtract4_fk, &MCU_AI_B.Merge2_b);
 
     /* End of Outputs for SubSystem: '<S300>/Switch Case Action Subsystem2' */
     break;
@@ -6990,8 +7002,8 @@ void MCU_AI_step(void)
     /* Outputs for IfAction SubSystem: '<S300>/Switch Case Action Subsystem3' incorporates:
      *  ActionPort: '<S336>/Action Port'
      */
-    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide38_j - rtb_Divide35_py,
-      rtb_Divide35_py, &rtb_Subtract4_fk, &MCU_AI_B.Merge2_b);
+    MCU_A_SwitchCaseActionSubsystem(MCU_AI_B.Divide38_j - MCU_AI_B.Divide35_n,
+      MCU_AI_B.Divide35_n, &rtb_Subtract4_fk, &MCU_AI_B.Merge2_b);
 
     /* End of Outputs for SubSystem: '<S300>/Switch Case Action Subsystem3' */
     break;
@@ -7011,7 +7023,7 @@ void MCU_AI_step(void)
 
   /* Selector: '<S279>/Selector' */
   MCU_AI_B.Product7_c = MCU_AI_B.fv1[(int32_T)MCU_AI_B.Sort1_o2_f[0] - 1];
-  MCU_AI_B.Divide36_a = MCU_AI_B.fv1[(int32_T)MCU_AI_B.Sort1_o2_f[1] - 1];
+  rtb_Add1_k = MCU_AI_B.fv1[(int32_T)MCU_AI_B.Sort1_o2_f[1] - 1];
   MCU_AI_B.Divide38_j = MCU_AI_B.fv1[(int32_T)MCU_AI_B.Sort1_o2_f[2] - 1];
   MCU_AI_B.Switch9_f = MCU_AI_B.fv1[(int32_T)MCU_AI_B.Sort1_o2_f[3] - 1];
 
@@ -7142,7 +7154,7 @@ void MCU_AI_step(void)
       /* Outport: '<Root>/pcs2_power' incorporates:
        *  DataTypeConversion: '<S279>/Data Type Conversion1'
        */
-      pcs2_power = (int16_T)rt_roundf_snf(MCU_AI_B.Divide36_a);
+      pcs2_power = (int16_T)rt_roundf_snf(rtb_Add1_k);
     }
 
     /* End of Switch: '<S279>/Switch2' */
@@ -7220,7 +7232,7 @@ void MCU_AI_step(void)
    *  Constant: '<S280>/Constant9'
    *  Switch: '<S339>/Switch2'
    */
-  rtb_Divide35_py = (real32_T)MCU_AI_B.Switch20 * 0.01F;
+  MCU_AI_B.Divide35_n = (real32_T)MCU_AI_B.Switch20 * 0.01F;
 
   /* MinMax: '<S280>/Min8' incorporates:
    *  DataTypeConversion: '<S280>/Data Type Conversion4'
@@ -7232,10 +7244,10 @@ void MCU_AI_step(void)
    *  Product: '<S280>/Product8'
    *  Product: '<S280>/Product9'
    */
-  MCU_AI_B.Product7_c = fminf(fminf(fminf(rtb_Divide35_py * (real32_T)
-    MCU_AI_B.Switch4_d, rtb_Divide35_py * (real32_T)rtb_Switch3_i),
-    rtb_Divide35_py * (real32_T)rtb_Switch2_fu), rtb_Divide35_py * (real32_T)
-    rtb_Switch1_c);
+  MCU_AI_B.Product7_c = fminf(fminf(fminf(MCU_AI_B.Divide35_n * (real32_T)
+    MCU_AI_B.Switch4, MCU_AI_B.Divide35_n * (real32_T)MCU_AI_B.Switch3),
+    MCU_AI_B.Divide35_n * (real32_T)MCU_AI_B.Switch2), MCU_AI_B.Divide35_n *
+    (real32_T)MCU_AI_B.Switch1);
 
   /* Switch: '<S280>/Switch9' incorporates:
    *  Constant: '<S280>/Constant1'
@@ -7262,15 +7274,15 @@ void MCU_AI_step(void)
     /* Math: '<S280>/Square2' incorporates:
      *  DataTypeConversion: '<S280>/Data Type Conversion1'
      */
-    rtb_Divide35_py = (real32_T)rtb_Switch3_i * (real32_T)rtb_Switch3_i;
+    MCU_AI_B.Divide35_n = (real32_T)rtb_Switch3_i * (real32_T)rtb_Switch3_i;
 
     /* Sqrt: '<S280>/Sqrt1' incorporates:
      *  Math: '<S280>/Square3'
      *  MinMax: '<S280>/Min5'
      *  Sum: '<S280>/Subtract2'
      */
-    rtb_Divide35_py = sqrtf(rtb_Divide35_py - fminf(rtb_Divide35_py,
-      MCU_AI_B.Divide36_a * MCU_AI_B.Divide36_a));
+    MCU_AI_B.Divide35_n = sqrtf(MCU_AI_B.Divide35_n - fminf(MCU_AI_B.Divide35_n,
+      rtb_Add1_k * rtb_Add1_k));
 
     /* Switch: '<S342>/Switch2' incorporates:
      *  RelationalOperator: '<S342>/LowerRelop1'
@@ -7282,11 +7294,12 @@ void MCU_AI_step(void)
     /* Switch: '<S340>/Switch2' incorporates:
      *  RelationalOperator: '<S340>/LowerRelop1'
      */
-    if (rtb_Divide35_py > MCU_AI_B.Product7_c) {
-      rtb_Divide35_py = MCU_AI_B.Product7_c;
+    if (MCU_AI_B.Divide35_n > MCU_AI_B.Product7_c) {
+      MCU_AI_B.Divide35_n = MCU_AI_B.Product7_c;
     }
 
-    rtb_Product5 = (real32_T)MCU_AI_B.Min * fminf(rtb_Product5, rtb_Divide35_py);
+    rtb_Product5 = (real32_T)MCU_AI_B.Min * fminf(rtb_Product5,
+      MCU_AI_B.Divide35_n);
   } else if (rtb_Product5 > MCU_AI_B.Product7_c) {
     /* Switch: '<S342>/Switch2' */
     rtb_Product5 = MCU_AI_B.Product7_c;
@@ -7311,14 +7324,14 @@ void MCU_AI_step(void)
     /* Math: '<S280>/Square4' incorporates:
      *  DataTypeConversion: '<S280>/Data Type Conversion2'
      */
-    rtb_Divide35_py = (real32_T)rtb_Switch2_fu * (real32_T)rtb_Switch2_fu;
+    MCU_AI_B.Divide35_n = (real32_T)rtb_Switch2_fu * (real32_T)rtb_Switch2_fu;
 
     /* Sqrt: '<S280>/Sqrt2' incorporates:
      *  Math: '<S280>/Square5'
      *  MinMax: '<S280>/Min6'
      *  Sum: '<S280>/Subtract3'
      */
-    MCU_AI_B.Divide38_j = sqrtf(rtb_Divide35_py - fminf(rtb_Divide35_py,
+    MCU_AI_B.Divide38_j = sqrtf(MCU_AI_B.Divide35_n - fminf(MCU_AI_B.Divide35_n,
       MCU_AI_B.Divide38_j * MCU_AI_B.Divide38_j));
 
     /* Switch: '<S280>/Switch1' incorporates:
@@ -7333,14 +7346,14 @@ void MCU_AI_step(void)
       /* Math: '<S280>/Square6' incorporates:
        *  DataTypeConversion: '<S280>/Data Type Conversion3'
        */
-      rtb_Divide35_py = (real32_T)rtb_Switch1_c * (real32_T)rtb_Switch1_c;
+      MCU_AI_B.Divide35_n = (real32_T)rtb_Switch1_c * (real32_T)rtb_Switch1_c;
 
       /* Sqrt: '<S280>/Sqrt3' incorporates:
        *  Math: '<S280>/Square7'
        *  MinMax: '<S280>/Min7'
        *  Sum: '<S280>/Subtract5'
        */
-      MCU_AI_B.Switch9_f = sqrtf(rtb_Divide35_py - fminf(rtb_Divide35_py,
+      MCU_AI_B.Switch9_f = sqrtf(MCU_AI_B.Divide35_n - fminf(MCU_AI_B.Divide35_n,
         MCU_AI_B.Switch9_f * MCU_AI_B.Switch9_f));
 
       /* Switch: '<S341>/Switch2' incorporates:
@@ -7580,15 +7593,16 @@ void MCU_AI_step(void)
       /* Math: '<S30>/Square6' incorporates:
        *  DataTypeConversion: '<S30>/Data Type Conversion3'
        */
-      rtb_Divide35_py = (real32_T)MCU_AI_B.Switch1 * (real32_T)MCU_AI_B.Switch1;
+      MCU_AI_B.Divide35_n = (real32_T)MCU_AI_B.Switch1 * (real32_T)
+        MCU_AI_B.Switch1;
 
       /* Sqrt: '<S30>/Sqrt3' incorporates:
        *  Math: '<S30>/Square7'
        *  MinMax: '<S30>/Min7'
        *  Sum: '<S30>/Subtract5'
        */
-      MCU_AI_B.Product7_c = sqrtf(rtb_Divide35_py - fminf(rtb_Divide35_py,
-        MCU_AI_B.Product7_c * MCU_AI_B.Product7_c));
+      MCU_AI_B.Product7_c = sqrtf(MCU_AI_B.Divide35_n - fminf
+        (MCU_AI_B.Divide35_n, MCU_AI_B.Product7_c * MCU_AI_B.Product7_c));
 
       /* Switch: '<S207>/Switch2' incorporates:
        *  RelationalOperator: '<S207>/LowerRelop1'

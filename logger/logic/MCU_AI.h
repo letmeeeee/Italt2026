@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'MCU_AI'.
  *
- * Model version                  : 16.18
+ * Model version                  : 16.21
  * Simulink Coder version         : 25.2 (R2025b) 28-Jul-2025
- * C/C++ source code generated on : Mon Aug 24 15:14:57 2026
+ * C/C++ source code generated on : Tue Sep 29 13:49:35 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Generic->32-bit Embedded Processor
@@ -81,6 +81,8 @@ typedef struct {
   real32_T Divide36_a;                 /* '<S31>/Divide36' */
   real32_T Switch28;                   /* '<S28>/Switch28' */
   real32_T Switch29;                   /* '<S28>/Switch29' */
+  real32_T Divide35_n;                 /* '<S227>/Divide35' */
+  real32_T Switch32;                   /* '<S28>/Switch32' */
   int32_T Min;                         /* '<S11>/Min' */
   int32_T Min_k;                       /* '<S12>/Min' */
   int32_T Min_d;                       /* '<S13>/Min' */
@@ -91,8 +93,10 @@ typedef struct {
   int32_T Min_m;                       /* '<S18>/Min' */
   int32_T Min4;                        /* '<S19>/Min4' */
   int32_T Min4_i;                      /* '<S20>/Min4' */
+  int32_T Min4_b;                      /* '<S21>/Min4' */
   int32_T Min4_p;                      /* '<S22>/Min4' */
   int32_T Min4_pm;                     /* '<S23>/Min4' */
+  int32_T Min4_ix;                     /* '<S24>/Min4' */
   int32_T Min4_f;                      /* '<S25>/Min4' */
   int32_T Min4_l;                      /* '<S26>/Min4' */
   int32_T Switch20;                    /* '<S32>/Switch20' */
@@ -105,8 +109,6 @@ typedef struct {
   int32_T Switch16;                    /* '<S32>/Switch16' */
   int32_T Switch17;                    /* '<S31>/Switch17' */
   int32_T Switch19;                    /* '<S31>/Switch19' */
-  int32_T DataTypeConversion4;         /* '<S31>/Data Type Conversion4' */
-  int32_T DataTypeConversion6_b;       /* '<S31>/Data Type Conversion6' */
   uint32_T Switch4;                    /* '<S1>/Switch4' */
   uint32_T Switch4_d;                  /* '<S2>/Switch4' */
   uint32_T Switch3;                    /* '<S1>/Switch3' */
