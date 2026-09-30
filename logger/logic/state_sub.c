@@ -349,14 +349,14 @@ static void Event_SUB_Run_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SUB_S
     // if ((((SUB_EVENT_CMD_START + 200) == Get_Out_Sub(sys_num, sub_num)) && (regval == 0 || regval == 1 || regval == 2)) ||
     //     (1 == resD)) 
         
-    // if (((GET_INPUT(38062 + (sys_num * BMS_PER_SYS + sub_num) * 200)==2) && (regval == 0 || regval == 1 || regval == 2)) ||
-    // (1 == resD))    
+    if (((GET_INPUT(38062 + (sys_num * BMS_PER_SYS + sub_num) * 200)==2) && (regval == 0 || regval == 1 || regval == 2)) ||
+    (1 == resD))    
         
-    //     {
+        {
         Last_Time[sys_num * MAX_SUB_NUM + sub_num] = Timer_GetTick();
         eid[sys_num * MAX_SUB_NUM + sub_num] = SUB_EVENT_SUB_RUN;
         LOG_INFO("SUB-%d is already started!", sub_num);
-    // }
+    }
 }
 
 static void Event_Timeout_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SUB_State_ENUM real_state)
