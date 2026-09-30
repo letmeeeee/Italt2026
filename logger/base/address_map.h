@@ -247,13 +247,14 @@ int CEM9000_13800_INPUT(INT16U address, INT16U value, uint16_t *index);
   ((address) >= 0 && (address) < 16 ? ((address) - 0 + 6) : /* 高压保护IA~低压1侧保护UCA */ \
   ((address) >= 16 && (address) < 32 ? ((address) - 16 + 30) : /*低压1侧保护IA～功率因数COS*/\
   ((address) >= 32 && (address) < 54 ? ((address) - 32 + 54) : /*低压2侧保护UAB~低压2功率因数COS*/\
-  ((address) >= 54 && (address) < 58 ? ((address) - 54 + 84) : /*BWR绕组温控-温度~BWR绕组温控-湿度*/\
+  ((address) >= 54 && (address) < 56 ? ((address) - 54 + 86) : /*BWR绕组温控-温度*/\
+  ((address) >= 56 && (address) < 58 ? ((address) - 56 + 84) : /*BWR油面温控-温度*/\
   ((address) >= 66 && (address) < 102 ? ((address) - 66 + 132) : /*BWR绕组温控-温度~BWR绕组温控-湿度*/\
   ((address) >= 104 && (address) < 108 ? ((address) - 104 + 124) : /*1PM1多功能表-正向有功电能~1PM1多功能表-反向有功电能*/\
   ((address) >= 110 && (address) < 114 ? ((address) - 110 + 128) : /*1PM1多功能表-正向无功电能~1PM1多功能表-反向无功电能*/\
   ((address) >= 116 && (address) < 120 ? ((address) - 116 + 88) : /*KS1低压室温湿度-温度～KS1低压室温湿度-湿度*/\
   ((address) >= 120 && (address) < 124 ? ((address) - 120 + 80) : /*高压温控-温度～高压温控-湿度*/\
-  -1 ))))))))))
+  -1 )))))))))))
 
 #define Cem9000_hold_INDEX(address) ( \
   ((address) >= 2000 && (address) < 2007 ? ((address) - 2000 + 33200) : \
