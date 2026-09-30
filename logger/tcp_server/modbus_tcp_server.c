@@ -344,8 +344,24 @@ static void* Server_Handle_Data(void *arg)
             Temp.D8[1] = buffer[8];
             Temp.D8[0] = buffer[9];
 
+            // 将保持寄存器3的远程控制使能状态映射到输入寄存器160
+            SET_INPUT(160, GET_HOLD(3));
+
+            /*
+             * 保持寄存器3为远程控制使能：仅值为1时允许写操作。
+             * 在进入0x06/0x10处理前拦截，确保禁用时不修改寄存器。
+             */
+            if (((buffer[7] == 0x06) || (buffer[7] == 0x10)) &&
+                (GET_HOLD(3) != 1))
+            {
+                sendbuffer[5] = 3;
+                sendbuffer[7] = buffer[7] | 0x80;
+                sendbuffer[8] = 0x04; /* Server device failure */
+                LOG_INFO("EMS remote control disabled, reject function:0x%02x, hold[3]:%u",
+                         (unsigned char)buffer[7], GET_HOLD(3));
+            }
             // 按功能码分
-            switch (buffer[7])
+            else switch (buffer[7])
             {
             case 0x03:
 
