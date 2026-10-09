@@ -1,3 +1,0 @@
-/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/rebuild_cache.dir
-/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/edit_cache.dir
-/home/wx/WorkStation/ItemCode/Italy-main/Italt2026/logger/build/CMakeFiles/tems.dir
