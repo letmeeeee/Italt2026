@@ -220,7 +220,7 @@ int CEM9000_13800_INPUT(INT16U address, INT16U value, uint16_t *index);
 /**********************************************cem9000 **********************************************************************/  
 
 #define Cem9000_INPUT_INDEX(address) ( \
-  ((address) >= 80 && (address) < 100 ? ((address) - 80 + 25030) : /*变压器数据*/ \
+  ((address) >= 80 && (address) < 88 ? ((address) - 80 + 25030) : /*变压器数据*/ \
   ((address) >= 100 && (address) < 114 ? ((address) - 100 + 25306) : /*AB线电压～N线电流*/\
   ((address) >= 114 && (address) < 116 ? ((address) - 114 + 25326) : /*总有功*/\
   ((address) >= 116 && (address) < 118 ? ((address) - 116 + 25334) : /*总无功*/\
@@ -231,7 +231,8 @@ int CEM9000_13800_INPUT(INT16U address, INT16U value, uint16_t *index);
   ((address) >= 132 && (address) < 140 ? ((address) - 132 + 25864) : /*Ua～F*/\
   ((address) >= 0 && (address) < 14 ? ((address) - 0 + 25850) : /*高压测量IA～高压保护3I0*/\
   ((address) >= 14 && (address) < 80 ? ((address) - 14 + 27750) : /*系统频率F～CEM9000-4-20mA备用*/\
-  -1 ))))))))))))
+  ((address) >= 88 && (address) < 92 ? ((address) - 88 + 27816) : /*原变压器数据移入测控数据*/ \
+  -1 )))))))))))))
 
 #define Cem9000_hold_INDEX(address) ( \
   ((address) >= 2000 && (address) < 2007 ? ((address) - 2000 + 33200) : \
