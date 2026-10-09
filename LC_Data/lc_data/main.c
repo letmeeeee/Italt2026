@@ -134,8 +134,8 @@ static void Output_Init_Log()
     LOG_INFO("dbHoldDays: %d", sys_cfg->dbHoldDays);
     LOG_INFO("dbSaveTime: %d s", sys_cfg->dbSaveTime);
     LOG_INFO("EMU num: %d", sys_cfg->emuNum);
-    LOG_INFO("pcsModel num: %d", sys_cfg->pcsModelNum);
-    LOG_INFO("pcsGroup num: %d", sys_cfg->pcsGroupNum);
+    // LOG_INFO("pcsModel num: %d", sys_cfg->pcsModelNum);
+    // LOG_INFO("pcsGroup num: %d", sys_cfg->pcsGroupNum);
     LOG_INFO("meter num: %d", sys_cfg->meterNum);
     LOG_INFO("sydy num: %d", sys_cfg->sydyNum);
     for (i = 0; (i < sys_cfg->bmsNum) && (i < MAX_BMS_NUM); i++)

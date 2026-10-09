@@ -53,7 +53,8 @@
 // 1490-1500: Grid-connected operation parameters - LVRT enable setting, start voltage point, reactive current compensation, active coefficient, HVRT enable setting, and other related settings
 const TableAddressStruct emuTableHoldAddr[] =
 	{
-		{4, 6},
+		//20261002 lj 添加远程使能和黑启动模式 
+		{3, 7},
 		// {1000, 1002},
 		{1010, 1012},
 		{1399, 1399},
@@ -74,8 +75,10 @@ const reg_type_st emuHoldIsNotU16Regs[] =
 };
 const TableAddressStruct emuTableInputAddr[] =
 	{
-		{100, 168},
-		{200, 227},
+		//20261002 lj 添加黑启动两个点位
+		{100, 171},
+		//20261002 lj 添加2*PCS状态
+		{200, 228},
 };
 
 // 点表中非16位无符号整型的点位作特殊处理
@@ -166,20 +169,20 @@ const reg_type_st pcsModelInputIsNotU16Regs[] =
 		{2601, TpyeLcShort},
 		{2602, TpyeLcShort},
 
-		{2603, TpyeLcUnShort},
-		{2604, TpyeLcUnShort},
-		{2605, TpyeLcUnShort},
+		// {2603, TpyeLcUnShort},
+		// {2604, TpyeLcUnShort},
+		// {2605, TpyeLcUnShort},
 
 		{2606, TpyeLcShort},
 		{2607, TpyeLcShort},
 		{2608, TpyeLcShort},
 
-		{2609, TpyeLcUnShort},
-		{2610, TpyeLcUnShort},
-		{2611, TpyeLcUnShort},
-		{2612, TpyeLcUnShort},
-		{2613, TpyeLcUnShort},
-		{2614, TpyeLcUnShort},
+		// {2609, TpyeLcUnShort},
+		// {2610, TpyeLcUnShort},
+		// {2611, TpyeLcUnShort},
+		// {2612, TpyeLcUnShort},
+		// {2613, TpyeLcUnShort},
+		// {2614, TpyeLcUnShort},
 
 		{2615, TpyeLcShort},
 		{2616, TpyeLcShort},
@@ -187,14 +190,14 @@ const reg_type_st pcsModelInputIsNotU16Regs[] =
 		{2618, TpyeLcShort},
 		{2619, TpyeLcShort},
 
-		{2620, TpyeLcUnShort},
-		{2621, TpyeLcUnShort},
-		{2622, TpyeLcUnShort},
+		// {2620, TpyeLcUnShort},
+		// {2621, TpyeLcUnShort},
+		// {2622, TpyeLcUnShort},
 
 		{2623, TpyeLcShort},
 
-		{2624, TpyeLcUnShort},
-		{2625, TpyeLcUnShort},
+		// {2624, TpyeLcUnShort},
+		// {2625, TpyeLcUnShort},
 
 		{2626, TpyeLcUnInt_H},
 		{2627, TpyeLcUnInt_L},
@@ -229,10 +232,10 @@ const reg_type_st pcsModelInputIsNotU16Regs[] =
 		{2651, TpyeLcUnInt_L},
 		{2652, TpyeLcUnInt_H},
 		{2653, TpyeLcUnInt_L},
-		{2654, TpyeLcUnShort},
-		{2655, TpyeLcUnShort},
-		{2656, TpyeLcUnShort},
-		{2657, TpyeLcUnShort},
+		// {2654, TpyeLcUnShort},
+		// {2655, TpyeLcUnShort},
+		// {2656, TpyeLcUnShort},
+		// {2657, TpyeLcUnShort},
 		{2658, TpyeLcUnInt_H},//15
 		{2659, TpyeLcUnInt_L},
 
@@ -262,10 +265,10 @@ const reg_type_st pcsModelInputIsNotU16Regs[] =
 		{2683, TpyeLcUnInt_L},
 		{2684, TpyeLcUnInt_H},
 		{2685, TpyeLcUnInt_L},
-		{2686, TpyeLcUnShort},
-		{2687, TpyeLcUnShort},
-		{2688, TpyeLcUnShort},
-		{2689, TpyeLcUnShort},
+		// {2686, TpyeLcUnShort},
+		// {2687, TpyeLcUnShort},
+		// {2688, TpyeLcUnShort},
+		// {2689, TpyeLcUnShort},
 		{2690, TpyeLcUnInt_H},
 		{2691, TpyeLcUnInt_L},
 
@@ -326,69 +329,69 @@ const reg_type_st pcsModelInputIsNotU16Regs[] =
 		{2739, TpyeLcUnInt_L},
 		{2740, TpyeLcUnInt_H},
 		{2741, TpyeLcUnInt_L},
-		{2742, TpyeLcUnShort},
-		{2743, TpyeLcUnShort},
+		// {2742, TpyeLcUnShort},
+		// {2743, TpyeLcUnShort},
 
-		{2744, TpyeLcUnShort},
-		{2745, TpyeLcUnShort},
-		{2746, TpyeLcUnShort},
+		// {2744, TpyeLcUnShort},
+		// {2745, TpyeLcUnShort},
+		// {2746, TpyeLcUnShort},
 
-		{2800, TpyeLcUnShort},
-		{2801, TpyeLcUnShort},
-		{2802, TpyeLcUnShort},
-		{2803, TpyeLcUnShort},
-		{2804, TpyeLcUnShort},
-		{2805, TpyeLcUnShort},
-		{2806, TpyeLcUnShort},
-		{2807, TpyeLcUnShort},
-		{2808, TpyeLcUnShort},
-		{2809, TpyeLcUnShort},
-		{2810, TpyeLcUnShort},
-		{2811, TpyeLcUnShort},
-		{2812, TpyeLcUnShort},
-		{2813, TpyeLcUnShort},
-		{2814, TpyeLcUnShort},//15
+		// {2800, TpyeLcUnShort},
+		// {2801, TpyeLcUnShort},
+		// {2802, TpyeLcUnShort},
+		// {2803, TpyeLcUnShort},
+		// {2804, TpyeLcUnShort},
+		// {2805, TpyeLcUnShort},
+		// {2806, TpyeLcUnShort},
+		// {2807, TpyeLcUnShort},
+		// {2808, TpyeLcUnShort},
+		// {2809, TpyeLcUnShort},
+		// {2810, TpyeLcUnShort},
+		// {2811, TpyeLcUnShort},
+		// {2812, TpyeLcUnShort},
+		// {2813, TpyeLcUnShort},
+		// {2814, TpyeLcUnShort},//15
 		
-		{2815, TpyeLcUnShort},
-		{2816, TpyeLcUnShort},
-		{2817, TpyeLcUnShort},
-		{2818, TpyeLcUnShort},
-		{2819, TpyeLcUnShort},
+		// {2815, TpyeLcUnShort},
+		// {2816, TpyeLcUnShort},
+		// {2817, TpyeLcUnShort},
+		// {2818, TpyeLcUnShort},
+		// {2819, TpyeLcUnShort},
 
-		{2820, TpyeLcUnShort},
-		{2821, TpyeLcUnShort},
-		{2822, TpyeLcUnShort},
-		{2823, TpyeLcUnShort},
-		{2824, TpyeLcUnShort},
-		{2825, TpyeLcUnShort},
+		// {2820, TpyeLcUnShort},
+		// {2821, TpyeLcUnShort},
+		// {2822, TpyeLcUnShort},
+		// {2823, TpyeLcUnShort},
+		// {2824, TpyeLcUnShort},
+		// {2825, TpyeLcUnShort},
 		
-		{2826, TpyeLcUnShort},
-		{2827, TpyeLcUnShort},
-		{2828, TpyeLcUnShort},
-		{2829, TpyeLcUnShort},
-		{2830, TpyeLcUnShort},
+		// {2826, TpyeLcUnShort},
+		// {2827, TpyeLcUnShort},
+		// {2828, TpyeLcUnShort},
+		// {2829, TpyeLcUnShort},
+		// {2830, TpyeLcUnShort},
 
 
 
-		{2831, TpyeLcUnShort},
-		{2832, TpyeLcUnShort},
-		{2833, TpyeLcUnShort},
-		{2834, TpyeLcUnShort},
-		{2835, TpyeLcUnShort},
+		// {2831, TpyeLcUnShort},
+		// {2832, TpyeLcUnShort},
+		// {2833, TpyeLcUnShort},
+		// {2834, TpyeLcUnShort},
+		// {2835, TpyeLcUnShort},
 
-		{2836, TpyeLcUnShort},
-		{2837, TpyeLcUnShort},
-		{2838, TpyeLcUnShort},
-		{2839, TpyeLcUnShort},
-		{2840, TpyeLcUnShort},
-		{2841, TpyeLcUnShort},
+		// {2836, TpyeLcUnShort},
+		// {2837, TpyeLcUnShort},
+		// {2838, TpyeLcUnShort},
+		// {2839, TpyeLcUnShort},
+		// {2840, TpyeLcUnShort},
+		// {2841, TpyeLcUnShort},
 		
-		{2842, TpyeLcUnShort},
-		{2843, TpyeLcUnShort},
-		{2844, TpyeLcUnShort},
-		{2845, TpyeLcUnShort},
-		{2846, TpyeLcUnShort},
-		{2847, TpyeLcUnShort},//33
+		// {2842, TpyeLcUnShort},
+		// {2843, TpyeLcUnShort},
+		// {2844, TpyeLcUnShort},
+		// {2845, TpyeLcUnShort},
+		// {2846, TpyeLcUnShort},
+		// {2847, TpyeLcUnShort},//33
 
 };
 const TableAddressStruct pcsModelTableInputAddr[] =
@@ -431,91 +434,91 @@ const TableAddressStruct pcsGroupTableHoldAddr[] =
 // 点表中非16位无符号整型的点位作特殊处理
 const reg_type_st pcsGroupInputIsNotU16Regs[] =
 	{
-		{17000, TpyeLcUnShort},
-		{17001, TpyeLcUnShort},
-		{17002, TpyeLcUnShort},
-		{17003, TpyeLcUnShort},
-		{17004, TpyeLcUnShort},
-		{17005, TpyeLcUnShort},
-		{17006, TpyeLcUnShort},
-		{17007, TpyeLcUnShort},
-		{17008, TpyeLcUnShort},
-		{17009, TpyeLcUnShort},
-		{17010, TpyeLcUnShort},
-		{17011, TpyeLcUnShort},
-		{17012, TpyeLcUnShort},
-		{17013, TpyeLcUnShort},
-		{17014, TpyeLcUnShort},
-		{17015, TpyeLcUnShort},
-		{17016, TpyeLcUnShort},
-		{17017, TpyeLcUnShort},
-		{17018, TpyeLcUnShort},
-		{17019, TpyeLcUnShort},
-		{17020, TpyeLcUnShort},
-		{17021, TpyeLcUnShort},
-		{17022, TpyeLcUnShort},
-		{17023, TpyeLcUnShort},
-		{17024, TpyeLcUnShort},
-		{17025, TpyeLcUnShort},
-		{17026, TpyeLcUnShort},
-		{17027, TpyeLcUnShort},
-		{17028, TpyeLcUnShort},
-		{17029, TpyeLcUnShort},
-		{17030, TpyeLcUnShort},
-		{17031, TpyeLcUnShort},
-		{17032, TpyeLcUnShort},
-		{17033, TpyeLcUnShort},
-		{17034, TpyeLcUnShort},
-		{17035, TpyeLcUnShort},
-		{17036, TpyeLcUnShort},
-		{17037, TpyeLcUnShort},
-		{17038, TpyeLcUnShort},
-		{17039, TpyeLcUnShort},
-		{17040, TpyeLcUnShort},
-		{17041, TpyeLcUnShort},
-		{17042, TpyeLcUnShort},
-		{17043, TpyeLcUnShort},
-		{17044, TpyeLcUnShort},
-		{17045, TpyeLcUnShort},
-		{17046, TpyeLcUnShort},
-		{17047, TpyeLcUnShort},
-		{17048, TpyeLcUnShort},
-		{17049, TpyeLcUnShort},
+		// {17000, TpyeLcUnShort},
+		// {17001, TpyeLcUnShort},
+		// {17002, TpyeLcUnShort},
+		// {17003, TpyeLcUnShort},
+		// {17004, TpyeLcUnShort},
+		// {17005, TpyeLcUnShort},
+		// {17006, TpyeLcUnShort},
+		// {17007, TpyeLcUnShort},
+		// {17008, TpyeLcUnShort},
+		// {17009, TpyeLcUnShort},
+		// {17010, TpyeLcUnShort},
+		// {17011, TpyeLcUnShort},
+		// {17012, TpyeLcUnShort},
+		// {17013, TpyeLcUnShort},
+		// {17014, TpyeLcUnShort},
+		// {17015, TpyeLcUnShort},
+		// {17016, TpyeLcUnShort},
+		// {17017, TpyeLcUnShort},
+		// {17018, TpyeLcUnShort},
+		// {17019, TpyeLcUnShort},
+		// {17020, TpyeLcUnShort},
+		// {17021, TpyeLcUnShort},
+		// {17022, TpyeLcUnShort},
+		// {17023, TpyeLcUnShort},
+		// {17024, TpyeLcUnShort},
+		// {17025, TpyeLcUnShort},
+		// {17026, TpyeLcUnShort},
+		// {17027, TpyeLcUnShort},
+		// {17028, TpyeLcUnShort},
+		// {17029, TpyeLcUnShort},
+		// {17030, TpyeLcUnShort},
+		// {17031, TpyeLcUnShort},
+		// {17032, TpyeLcUnShort},
+		// {17033, TpyeLcUnShort},
+		// {17034, TpyeLcUnShort},
+		// {17035, TpyeLcUnShort},
+		// {17036, TpyeLcUnShort},
+		// {17037, TpyeLcUnShort},
+		// {17038, TpyeLcUnShort},
+		// {17039, TpyeLcUnShort},
+		// {17040, TpyeLcUnShort},
+		// {17041, TpyeLcUnShort},
+		// {17042, TpyeLcUnShort},
+		// {17043, TpyeLcUnShort},
+		// {17044, TpyeLcUnShort},
+		// {17045, TpyeLcUnShort},
+		// {17046, TpyeLcUnShort},
+		// {17047, TpyeLcUnShort},
+		// {17048, TpyeLcUnShort},
+		// {17049, TpyeLcUnShort},
 		{17050, TpyeLcShort},
 		{17051, TpyeLcShort},
 		{17052, TpyeLcShort},
-		{17053, TpyeLcUnShort},
+		// {17053, TpyeLcUnShort},
 		{17054, TpyeLcShort},
 		{17055, TpyeLcShort},
-		{17056, TpyeLcUnShort},
-		{17057, TpyeLcUnShort},
-		{17058, TpyeLcUnShort},
-		{17059, TpyeLcUnShort},
-		{17060, TpyeLcUnShort},
-		{17061, TpyeLcUnShort},
-		{17062, TpyeLcUnShort},
-		{17063, TpyeLcUnShort},
-		{17064, TpyeLcUnShort},
-		{17065, TpyeLcUnShort},
-		{17066, TpyeLcUnShort},
-		{17067, TpyeLcUnShort},
-		{17068, TpyeLcUnShort},
-		{17069, TpyeLcUnShort},
-		{17070, TpyeLcUnShort},
-		{17071, TpyeLcUnShort},
-		{17072, TpyeLcUnShort},
-		{17073, TpyeLcUnShort},
-		{17074, TpyeLcUnShort},
-		{17075, TpyeLcUnShort},
-		{17076, TpyeLcUnShort},
-		{17077, TpyeLcUnShort},
-		{17078, TpyeLcUnShort},
-		{17079, TpyeLcUnShort},
-		{17080, TpyeLcUnShort},
-		{17081, TpyeLcUnShort},
-		{17082, TpyeLcUnShort},
-		{17083, TpyeLcUnShort},
-		{17084, TpyeLcUnShort},
+		// {17056, TpyeLcUnShort},
+		// {17057, TpyeLcUnShort},
+		// {17058, TpyeLcUnShort},
+		// {17059, TpyeLcUnShort},
+		// {17060, TpyeLcUnShort},
+		// {17061, TpyeLcUnShort},
+		// {17062, TpyeLcUnShort},
+		// {17063, TpyeLcUnShort},
+		// {17064, TpyeLcUnShort},
+		// {17065, TpyeLcUnShort},
+		// {17066, TpyeLcUnShort},
+		// {17067, TpyeLcUnShort},
+		// {17068, TpyeLcUnShort},
+		// {17069, TpyeLcUnShort},
+		// {17070, TpyeLcUnShort},
+		// {17071, TpyeLcUnShort},
+		// {17072, TpyeLcUnShort},
+		// {17073, TpyeLcUnShort},
+		// {17074, TpyeLcUnShort},
+		// {17075, TpyeLcUnShort},
+		// {17076, TpyeLcUnShort},
+		// {17077, TpyeLcUnShort},
+		// {17078, TpyeLcUnShort},
+		// {17079, TpyeLcUnShort},
+		// {17080, TpyeLcUnShort},
+		// {17081, TpyeLcUnShort},
+		// {17082, TpyeLcUnShort},
+		// {17083, TpyeLcUnShort},
+		// {17084, TpyeLcUnShort},
 		{17228, TpyeLcShort},
 		{17229, TpyeLcShort},
 		{17330, TpyeLcShort},
@@ -527,7 +530,8 @@ const reg_type_st pcsGroupInputIsNotU16Regs[] =
 };
 const TableAddressStruct pcsGroupTableInputAddr[] =
 	{
-		{17032, 17091},
+		//20261002 lj 添加PCS组最大可用无功功率
+		{17031, 17091},
 		// {17200, 17235},
 };
 
@@ -1698,8 +1702,18 @@ static void pcsModel_CreateSqlstr(void)
 	char sqlstrtemp[100] = {0};
 	int zone, type;
 	sysPara *sys_cfg = SysConf_GetInfo();
-	unsigned char pcsModelNumIni = sys_cfg->pcsModelNum;
-
+	// unsigned char pcsModelNumIni = sys_cfg->pcsModelNum;
+    uint16_t offset;
+	uint16_t addtmp;
+	//20261002 lj 添加2*PCS情况
+	if((sys_cfg->sysNum==2)&&(sys_cfg->pcsNum==2))
+	{
+		offset = 2400;
+	}
+	else
+	{
+		offset = 0;
+	}
 	zone = sizeof(pcsModelTableInputAddr) / sizeof(TableAddressStruct);
 	for (int z = 0; z < zone; z++)
 	{
@@ -1716,36 +1730,45 @@ static void pcsModel_CreateSqlstr(void)
 				}
 			}
 			bzero_all(sqlstrtemp);
+			addtmp=offset+add;
 			switch (type)
 			{
 			case TpyeLcShort:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", addtmp);
 				break;
 			case TpyeLcUnInt_H:break;
 			case TpyeLcUnInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT UNSIGNED\0", add);
+				sprintf(sqlstrtemp, ",Input%d INT UNSIGNED\0", addtmp);
 				break;
 			case TpyeLcInt_H:break;
 			case TpyeLcInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT\0", add);
+				sprintf(sqlstrtemp, ",Input%d INT\0", addtmp);
 				break;	
 			case TpyeLcFloat_H:break;
 			case TpyeLcFloat_L:
-				sprintf(sqlstrtemp, ",Input%d FLOAT\0", add);
+				sprintf(sqlstrtemp, ",Input%d FLOAT\0", addtmp);
 				break;
 			default:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
+				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", addtmp);
 				break;
 			}
 			strcat(sqlstr, sqlstrtemp);
 		}
 	}
 	zone = sizeof(pcsModelTableHoldAddr) / sizeof(TableAddressStruct);
+	if((sys_cfg->sysNum==2)&&(sys_cfg->pcsNum==2))
+	{
+		offset = 3000;
+	}
+	else
+	{
+		offset = 0;
+	}
 	for (int z = 0; z < zone; z++)
 	{
 		for (unsigned short add = pcsModelTableHoldAddr[z].start; add <= pcsModelTableHoldAddr[z].end; add++)
 		{
-			sprintf(sqlstrtemp, ",Hold%d SMALLINT UNSIGNED\0", add);
+			sprintf(sqlstrtemp, ",Hold%d SMALLINT UNSIGNED\0", (offset+add));
 			strcat(sqlstr, sqlstrtemp);
 		}
 	}
@@ -1894,7 +1917,17 @@ static void pcsModel_InsertSqlstr(int num)
 	int zone, type;
 	u16_conv RegVal;
 	u32_conv fRegVal;
-	uint16_t offset = 300 * (num);
+	uint16_t offset ;
+	sysPara *sys_cfg = SysConf_GetInfo();
+	//20261002 lj 添加2*PCS情况
+	if((sys_cfg->sysNum==2)&&(sys_cfg->pcsNum==2))
+	{
+		offset = 600 * (num)+2400;
+	}
+	else
+	{
+		offset = 300 * (num);
+	}
 	zone = sizeof(pcsModelTableInputAddr) / sizeof(TableAddressStruct);
 	if( power_flag==1)
 	{
@@ -1954,6 +1987,14 @@ static void pcsModel_InsertSqlstr(int num)
 		}
 	}
 	zone = sizeof(pcsModelTableHoldAddr) / sizeof(TableAddressStruct);
+	if((sys_cfg->sysNum==2)&&(sys_cfg->pcsNum==2))
+	{
+		offset = 600 * (num)+3000;
+	}
+	else
+	{
+		offset = 300 * (num);
+	}
 	for (int z = 0; z < zone; z++)
 	{
 		for (unsigned short add = pcsModelTableHoldAddr[z].start; add <= pcsModelTableHoldAddr[z].end; add++)
@@ -2052,7 +2093,8 @@ static void pcsGroup_CreateSqlstr(void)
 	char sqlstrtemp[100] = {0};
 	int zone, type;
 	sysPara *sys_cfg = SysConf_GetInfo();
-	unsigned char pcsGroupNumIni = sys_cfg->sysNum;
+	// unsigned char pcsGroupNumIni = sys_cfg->sysNum;
+	
 
 	zone = sizeof(pcsGroupTableInputAddr) / sizeof(TableAddressStruct);
 	for (int z = 0; z < zone; z++)

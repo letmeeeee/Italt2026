@@ -598,6 +598,7 @@ void* Bank_G2pro_Read_Task(const char *arg) {
                     Modbus_TCP_Read(socket_Bank, Bank_id, MODBUS_READ_TYPE_03,
                                     G2PROBank_block_addr23, G2PROBank_block_size23, CMD_DELAY_200);
                loop++;
+               break;
 
                 default:
                     loop = 0;

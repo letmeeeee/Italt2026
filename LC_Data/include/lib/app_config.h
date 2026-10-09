@@ -141,8 +141,8 @@ typedef struct
     unsigned char pcsNum;
     unsigned char sysNum;
     unsigned char emuNum;
-    unsigned char pcsModelNum;
-    unsigned char pcsGroupNum;
+    // unsigned char pcsModelNum;
+    // unsigned char pcsGroupNum;
     unsigned char meterNum;
     unsigned char sydyNum;
     unsigned int  dbHoldDays; //

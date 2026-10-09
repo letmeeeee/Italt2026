@@ -127,14 +127,14 @@ static int System_parsing(sysPara* pconfig, const char* section, const char* nam
     {
         pconfig->emuNum = atoi(value);
     }
-    else if (MATCH("SYSTEM", "pcsModelNum"))
-    {
-        pconfig->pcsModelNum = atoi(value);
-    }
-    else if (MATCH("SYSTEM", "pcsGroupNum"))
-    {
-        pconfig->pcsGroupNum= atoi(value);
-    }
+    // else if (MATCH("SYSTEM", "pcsModelNum"))
+    // {
+    //     pconfig->pcsModelNum = atoi(value);
+    // }
+    // else if (MATCH("SYSTEM", "pcsGroupNum"))
+    // {
+    //     pconfig->pcsGroupNum= atoi(value);
+    // }
     else if (MATCH("SYSTEM", "meterNum"))
     {
         pconfig->meterNum = atoi(value);
