@@ -30,6 +30,8 @@ bool PFConvert_Write_Flag[4];//记录PF转换后的数值是否写入标志
 int First_Flag[2]={1,1};//记录第一次写入的标志，一个MV有两个系统，所以有两个标志
 char LogStr[100] = {0};
 int Heart_PCS_Num;//用于记录心跳时候PCS的编号
+MV_Q_Result reactive_power; 
+MV_Power_Distribution g_MV_Power;
 static uint8_t  init_power_flag=0;
 extern volatile bool Set_Time_Flag;//用于记录是否设置时间标志
 /*********************** */
@@ -337,7 +339,7 @@ static void PCS_Taida_Write(int num)
                     Modbus_TCP_Write06_SingleRegist(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR,
                         Active_Power_Addr, Power_Result.P1_out + Power_Result.P2_out, CMD_DELAY_200);
                     Modbus_TCP_Write06_SingleRegist(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR,
-                        Reactive_Power_Addr, Power_Result.pcs_r_power1_2, CMD_DELAY_200);
+                        Reactive_Power_Addr, reactive_power.group1_q_cmd, CMD_DELAY_200);
                 }
                 else if (num == 2) {
                     if ((Power_Result.P3_out + Power_Result.P4_out) < 0) {
@@ -350,7 +352,7 @@ static void PCS_Taida_Write(int num)
                     Modbus_TCP_Write06_SingleRegist(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR,
                         Active_Power_Addr, (INT16U)(Power_Result.P3_out + Power_Result.P4_out), CMD_DELAY_200);
                     Modbus_TCP_Write06_SingleRegist(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR,
-                        Reactive_Power_Addr, Power_Result.pcs_r_power3_4, CMD_DELAY_200);
+                        Reactive_Power_Addr, reactive_power.group2_q_cmd, CMD_DELAY_200);
                 }
 
             }
@@ -369,7 +371,7 @@ static void PCS_Taida_Write(int num)
                         send_power_cmd_buf[4]=(INT16U)Power_Result.master1bat2_powerate;
                         send_power_cmd_buf[5]=(INT16U)Power_Result.slave1bat1_powerate;
                         send_power_cmd_buf[6]=(INT16U)(Power_Result.P1_out + Power_Result.P2_out+Power_Result.P3_out+Power_Result.P4_out);
-                        send_power_cmd_buf[7]=Power_Result.pcs_r_power1_2;
+                        send_power_cmd_buf[7]=reactive_power.group1_q_cmd;
                         Modbus_TCP_Write_Multiple(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR, Master_Bat1_Discharge_Power_Coef, 8, send_power_cmd_buf, 200);
                         
                             
@@ -383,7 +385,7 @@ static void PCS_Taida_Write(int num)
                         send_power_cmd_buf[4]=250;
                         send_power_cmd_buf[5]=250;
                         send_power_cmd_buf[6]=(INT16U)(Power_Result.P1_out + Power_Result.P2_out+Power_Result.P3_out+Power_Result.P4_out);
-                        send_power_cmd_buf[7]=Power_Result.pcs_r_power1_2;
+                        send_power_cmd_buf[7]=reactive_power.group1_q_cmd;
                         Modbus_TCP_Write_Multiple(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR, Master_Bat1_Discharge_Power_Coef, 8, send_power_cmd_buf, 200);
 
                     }
@@ -399,7 +401,7 @@ static void PCS_Taida_Write(int num)
                         send_power_cmd_buf[4]=(INT16U)Power_Result.master2bat2_powerate;
                         send_power_cmd_buf[5]=(INT16U)Power_Result.slave2bat1_powerate;
                         send_power_cmd_buf[6]=(INT16U)(Power_Result.P5_out + Power_Result.P6_out+Power_Result.P7_out + Power_Result.P8_out);
-                        send_power_cmd_buf[7]=Power_Result.pcs_r_power3_4;
+                        send_power_cmd_buf[7]=reactive_power.group2_q_cmd;
                         Modbus_TCP_Write_Multiple(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR, Master_Bat1_Discharge_Power_Coef, 8, send_power_cmd_buf, 200);
                     
                         
@@ -420,7 +422,7 @@ static void PCS_Taida_Write(int num)
                         send_power_cmd_buf[4]=250;
                         send_power_cmd_buf[5]=250;
                         send_power_cmd_buf[6]=(INT16U)(Power_Result.P5_out + Power_Result.P6_out+Power_Result.P7_out + Power_Result.P8_out);
-                        send_power_cmd_buf[7]=Power_Result.pcs_r_power3_4;
+                        send_power_cmd_buf[7]=reactive_power.group2_q_cmd;
                         Modbus_TCP_Write_Multiple(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR, Master_Bat1_Discharge_Power_Coef, 8, send_power_cmd_buf, 200);    
                     
                     }               
@@ -499,7 +501,7 @@ if (Group1_power_multi_Flag==true)
                 send_power_cmd_buf[4]=GET_HOLD(27048); //Master Bat2 Charge Power Coef
                 send_power_cmd_buf[5]=GET_HOLD(27049); //Slave Bat1 Charge Power Coef
                 send_power_cmd_buf[6]=GET_HOLD(27052); //Active Power Reference 
-               
+              // LOG_INFO("3333");
                 Modbus_TCP_Write_Multiple(socket_Taida_Pcs[0], PCS_Taida_SLAVE_ADDR, Master_Bat1_Discharge_Power_Coef, 7, send_power_cmd_buf, 200);
             
 
@@ -785,7 +787,7 @@ void* Pcs_Taida_Write_Task(void *arg)
         server_addr.sin_family = AF_INET;
         server_addr.sin_port   = htons(sys_cfg->pcs_port[pcs_num]);
         server_addr.sin_addr.s_addr = inet_addr((char *)sys_cfg->pcs_ip[pcs_num]);
-        struct timeval time_out = {0, (2 * 1000)};
+        struct timeval time_out = {0, (2* 1000)};
 
         // 创建本地客户端socket
         if ((socket_Taida_Pcs[pcs_num] = Create_Client_Socket(server_addr, time_out)) == -1) {
@@ -853,17 +855,6 @@ void* Pcs_Taida_Write_Task(void *arg)
                         }
                     }
                 }
-                    loop++;
-                    break;
-
-                case 2:
-                // Modbus_TCP_Read(socket_Taida_Pcs[pcs_num], 
-                //                 PCS_Taida_SLAVE_ADDR, 
-                //                 MODBUS_READ_TYPE_04, 
-                //                 Each_PCS_Taida_addr1, 
-                //                 Each_PCS_Taida_size1, 
-                //                 CMD_DELAY_50);
-               // LOG_INFO("主从pcs_num：%d",pcs_num);
                     loop++;
                     break;
 
@@ -941,7 +932,7 @@ Power_Divider_result_t Power_Divider()
     pthread_mutex_lock(&g_power_mtx);
     // 获取系统配置信息
     sysPara *sys_cfg = SysConf_GetInfo();
-    INT8U single_mode = (sys_cfg->singlePcsMaster == 1) ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
+    INT8U single_mode = sys_cfg->singlePcsMaster; /* 单PCS主机模式：忽略从机条件 */
 
     INT16U PCS1_sys_state = (INT16U)GET_INPUT(17000 + 300 * 0 + 60);//group1,主机PCS的运行状态
     INT8U  master1_Run  = (INT8U)(((PCS1_sys_state >> 3) & 0x1u) == 1u);//group1,主机PCS的运行
@@ -2791,7 +2782,6 @@ void MV_Power_allocate1(void)
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U single_mode = (INT8U)((sys_cfg->singlePcsMaster == 1) ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
     INT16U pcs_num=sys_cfg->pcsNum;
-    bool single_mode_case7_reactive = false;
 
     INT16U PCS1_sys_state = (INT16U)GET_INPUT(17000 + 300 * 0 + 60);//group1,主机PCS的运行状态
     INT8U  master1_Run  = (INT8U)(((PCS1_sys_state >> 3) & 0x1u) == 1u);//group1,主机PCS的运行
@@ -2811,26 +2801,53 @@ void MV_Power_allocate1(void)
     INT8U  slave2_Standby  = (INT8U)(((slavePCS2_sys_state >> 0) & 0x1u) == 1u);//group2,从机PCS的运行
     INT8U  slave2_fault = (INT8U)(((slavePCS2_sys_state >> 1) & 0x1u) == 1u);//group2,从机PCS的运行故障 
     INT8U  slave2_Run  = (INT8U)(((slavePCS2_sys_state >> 2) & 0x1u) == 1u);//group2,从机PCS的运行
+ // PCS1
+    INT8U PCS1BUS1 =(INT8U)((((GET_INPUT(17000 + 69) >> 0) & 0x1u) == 0u) 
+                        &&(((GET_INPUT(17000 + 72) >> 0) & 0x1u) == 0u));
+    INT8U PCS1BUS2 =(INT8U)((((GET_INPUT(17000 + 69) >> 1) & 0x1u) == 0u) 
+                        &&(((GET_INPUT(17000 + 72) >> 1) & 0x1u) == 0u));
+    // PCS2:
+    
+    
+    INT8U PCS2BUS1 =(INT8U)((((GET_INPUT(2600 + 300 + 203) >> 0) & 0x1u) == 0u) 
+                        &&(((GET_INPUT(2600 + 300 + 211) >> 0) & 0x1u) == 0u));
+    INT8U PCS2BUS2 =(INT8U)((((GET_INPUT(2600 + 300 + 203) >> 1) & 0x1u) == 0u) 
+                        &&(((GET_INPUT(2600 + 300 + 211) >> 1) & 0x1u) == 0u));
+
+    // PCS3:
+
+    INT8U PCS3BUS1 =(INT8U)((((GET_INPUT(17000 + 69+ 300) >> 0) & 0x1u) == 0u) 
+                        &&(((GET_INPUT(17000 + 72 + 300) >> 0) & 0x1u) == 0u));
+    INT8U PCS3BUS2 =(INT8U)((((GET_INPUT(17000 + 69 + 300) >> 1) & 0x1u) == 0u) 
+                        &&(((GET_INPUT(17000 + 72 + 300) >> 1) & 0x1u) == 0u));
+
+
+    // PCS4:
+
+    INT8U PCS4BUS1 =(INT8U)((((GET_INPUT(2600 + 900 + 203) >> 0) & 0x1u) == 0u) 
+                        &&(((GET_INPUT(2600 + 900 + 211) >> 0) & 0x1u) == 0u));
+    INT8U PCS4BUS2 =(INT8U)((((GET_INPUT(2600 + 900 + 203) >> 1) & 0x1u) == 0u) 
+                        &&(((GET_INPUT(2600 + 900 + 211) >> 1) & 0x1u) == 0u));
 
 //LOG_INFO("state[0]:%d,state[1]；%d,getinput:%d,(GET_INPUT(39271):%d,(GET_INPUT(39471):%d", state[0], state[1],GET_INPUT(17062),GET_INPUT(39271),GET_INPUT(39471));
-    // 5MW标志位
-    MW_5_10_flag = (single_mode == 1) ? 0 : 1;
 
+    MV_PQ_Control_B(  GET_HOLD(1011), &g_MV_Power,&reactive_power);
 if(BusType==D_BUS)
 {
     /*情况1：系统1处于正常运行或者告警运行，但是系统1从机无故障，系统2处于正常运行或者告警运行，系统2无从机故障，发有功，发无功*/
 if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
 {
 //  LOG_INFO("情况1");
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+ if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
+     
     }
     else
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+    if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -2840,7 +2857,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+    if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -2848,7 +2865,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+    if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -2859,7 +2876,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     bms2_soc                = GET_INPUT(38203);
 
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms3_max_charge_power   = GET_INPUT(38438);
     }
@@ -2867,7 +2884,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms3_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms3_max_discharge_power= GET_INPUT(38437);
     }
@@ -2877,7 +2894,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     }
     bms3_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms4_max_charge_power   = GET_INPUT(38638);
     }
@@ -2885,7 +2902,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms4_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms4_max_discharge_power= GET_INPUT(38637);
     }
@@ -2896,7 +2913,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     bms4_soc                = GET_INPUT(38603);
 
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+    if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1)) 
     {
         bms5_max_charge_power = GET_INPUT(38838); /* '<Root>/bms5_max_charge_power' */
     } 
@@ -2905,7 +2922,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
         bms5_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+    if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
     {
         bms5_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms5_max_discharge_power' */
     } 
@@ -2915,7 +2932,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     }
     bms5_soc = GET_INPUT(38803);
 
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
     {
         bms6_max_charge_power = GET_INPUT(39038); /* '<Root>/bms6_max_charge_power' */
     } 
@@ -2923,7 +2940,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms6_max_charge_power = 0;
     }
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1)) 
     {
         bms6_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms6_max_discharge_power' */
     } 
@@ -2934,7 +2951,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     bms6_soc = GET_INPUT(39003);
 
     
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2))&&(PCS4BUS1==1)) 
     {
         bms7_max_charge_power = GET_INPUT(39238); /* '<Root>/bms7_max_charge_power' */
     } 
@@ -2943,7 +2960,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
         bms7_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1))&&(PCS4BUS1==1)) 
     {
         bms7_max_discharge_power = GET_INPUT(39237); /* '<Root>/bms7_max_discharge_power' */
     } 
@@ -2953,7 +2970,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     }
     bms7_soc = GET_INPUT(39203);
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2)) 
+    if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2))&&(PCS4BUS2==1)) 
     {
         bms8_max_charge_power = GET_INPUT(39438); /* '<Root>/bms8_max_charge_power' */
     } 
@@ -2962,7 +2979,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
         bms8_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1)) 
+    if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1))&&(PCS4BUS2==1)) 
     {
         bms8_max_discharge_power = GET_INPUT(39437); /* '<Root>/bms8_max_discharge_power' */
     } 
@@ -2988,8 +3005,8 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
 /*情况2：系统1，主机处于故障，但是系统1从机运行，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
 {
-    // LOG_INFO("情况2");
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+   // LOG_INFO("情况2");
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38438);
     }
@@ -2997,7 +3014,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38437);
     }
@@ -3007,7 +3024,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms1_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38638);
     }
@@ -3015,7 +3032,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38637);
     }
@@ -3026,7 +3043,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     bms2_soc                = GET_INPUT(38603);
 
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+    if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1)) 
     {
         bms3_max_charge_power = GET_INPUT(38838); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -3035,7 +3052,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+   if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
     {
         bms3_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -3045,7 +3062,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms3_soc = GET_INPUT(38803);
 
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
     {
         bms4_max_charge_power = GET_INPUT(39038); /* '<Root>/bms4_max_charge_power' */
     } 
@@ -3053,7 +3070,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms4_max_charge_power = 0;
     }
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1)) 
     {
         bms4_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms4_max_discharge_power' */
     } 
@@ -3063,7 +3080,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms4_soc = GET_INPUT(39003);
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2))&&(PCS4BUS1==1)) 
     {
         bms5_max_charge_power = GET_INPUT(39238); /* '<Root>/bms5_max_charge_power' */
     } 
@@ -3072,7 +3089,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
         bms5_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1))&&(PCS4BUS1==1)) 
     {
         bms5_max_discharge_power = GET_INPUT(39237); /* '<Root>/bms5_max_discharge_power' */
     } 
@@ -3082,7 +3099,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms5_soc = GET_INPUT(39203);
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2)) 
+    if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2))&&(PCS4BUS2==1)) 
     {
         bms6_max_charge_power = GET_INPUT(39438); /* '<Root>/bms6_max_charge_power' */
     } 
@@ -3091,7 +3108,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
         bms6_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1)) 
+   if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1))&&(PCS4BUS2==1)) 
     {
         bms6_max_discharge_power = GET_INPUT(39437); /* '<Root>/bms6_max_discharge_power' */
     } 
@@ -3124,7 +3141,8 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
 {
     // LOG_INFO("情况3");
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+  // LOG_INFO("情况3");
+    if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -3132,7 +3150,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+    if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -3142,7 +3160,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -3150,7 +3168,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -3160,7 +3178,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     }
     bms2_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+    if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1)) 
     {
         bms3_max_charge_power = GET_INPUT(38838); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -3169,7 +3187,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+     if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
     {
         bms3_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -3179,7 +3197,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     }
     bms3_soc = GET_INPUT(38803);
 
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
     {
         bms4_max_charge_power = GET_INPUT(39038); /* '<Root>/bms4_max_charge_power' */
     } 
@@ -3187,7 +3205,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     {
         bms4_max_charge_power = 0;
     }
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1))  
     {
         bms4_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms4_max_discharge_power' */
     } 
@@ -3197,7 +3215,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     }
     bms4_soc = GET_INPUT(39003);
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2))&&(PCS4BUS1==1)) 
     {
         bms5_max_charge_power = GET_INPUT(39238); /* '<Root>/bms5_max_charge_power' */
     } 
@@ -3206,7 +3224,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
         bms5_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1)) 
+   if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1))&&(PCS4BUS1==1))
     {
         bms5_max_discharge_power = GET_INPUT(39237); /* '<Root>/bms5_max_discharge_power' */
     } 
@@ -3216,7 +3234,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     }
     bms5_soc = GET_INPUT(39203);
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2))&&(PCS4BUS2==1)) 
     {
         bms6_max_charge_power = GET_INPUT(39438); /* '<Root>/bms6_max_charge_power' */
     } 
@@ -3225,7 +3243,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
         bms6_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1))&&(PCS4BUS2==1)) 
     {
         bms6_max_discharge_power = GET_INPUT(39437); /* '<Root>/bms6_max_discharge_power' */
     } 
@@ -3233,6 +3251,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     {
         bms6_max_discharge_power = 0;
     }
+
     bms6_soc = GET_INPUT(39403);
 
     bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
@@ -3258,8 +3277,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
 /*情况4：系统1处于正常运行或者告警运行，但是系统1从机运行，系统2处于故障，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1))
 {
-    // LOG_INFO("情况4");
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -3267,7 +3285,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -3277,7 +3295,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -3285,7 +3303,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -3297,7 +3315,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
 
 
 
-    if((GET_INPUT(38471) == 0) || (GET_INPUT(38471) == 2)) 
+      if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms3_max_charge_power = GET_INPUT(38438); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -3306,7 +3324,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38471) == 0) || (GET_INPUT(38471) == 1)) 
+  if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1)) 
     {
         bms3_max_discharge_power = GET_INPUT(38437); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -3316,7 +3334,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms3_soc = GET_INPUT(38403);
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 2)) 
+       if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1)) 
     {
         bms4_max_charge_power = GET_INPUT(38638); /* '<Root>/bms4_max_charge_power' */
     } 
@@ -3324,7 +3342,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms4_max_charge_power = 0;
     }
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 1)) 
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms4_max_discharge_power = GET_INPUT(38637); /* '<Root>/bms4_max_discharge_power' */
     } 
@@ -3336,7 +3354,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
 
 
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2))&&(PCS4BUS1==1)) 
     {
         bms5_max_charge_power = GET_INPUT(39238); /* '<Root>/bms5_max_charge_power' */
     } 
@@ -3345,7 +3363,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
         bms5_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1)) 
+   if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1))&&(PCS4BUS1==1))
     {
         bms5_max_discharge_power = GET_INPUT(39237); /* '<Root>/bms5_max_discharge_power' */
     } 
@@ -3355,7 +3373,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms5_soc = GET_INPUT(39203);
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2))&&(PCS4BUS2==1)) 
     {
         bms6_max_charge_power = GET_INPUT(39438); /* '<Root>/bms6_max_charge_power' */
     } 
@@ -3364,7 +3382,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
         bms6_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1))&&(PCS4BUS2==1)) 
     {
         bms6_max_discharge_power = GET_INPUT(39437); /* '<Root>/bms6_max_discharge_power' */
     } 
@@ -3372,6 +3390,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms6_max_discharge_power = 0;
     }
+
     bms6_soc = GET_INPUT(39403);
 
     bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
@@ -3398,7 +3417,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run!=1))
 {
     //  LOG_INFO("情况5");
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -3406,7 +3425,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -3416,7 +3435,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -3424,7 +3443,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -3434,7 +3453,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms2_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms3_max_charge_power   = GET_INPUT(38438);
     }
@@ -3442,7 +3461,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms3_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms3_max_discharge_power= GET_INPUT(38437);
     }
@@ -3452,7 +3471,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms3_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms4_max_charge_power   = GET_INPUT(38638);
     }
@@ -3460,7 +3479,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms4_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms4_max_discharge_power= GET_INPUT(38637);
     }
@@ -3470,7 +3489,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms4_soc                = GET_INPUT(38603);
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+    if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1)) 
     {
         bms5_max_charge_power = GET_INPUT(38838); /* '<Root>/bms5_max_charge_power' */
     } 
@@ -3479,7 +3498,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
         bms5_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+     if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
     {
         bms5_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms5_max_discharge_power' */
     } 
@@ -3489,7 +3508,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms5_soc = GET_INPUT(38803);
 
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
     {
         bms6_max_charge_power = GET_INPUT(39038); /* '<Root>/bms6_max_charge_power' */
     } 
@@ -3497,7 +3516,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms6_max_charge_power = 0;
     }
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1))  
     {
         bms6_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms6_max_discharge_power' */
     } 
@@ -3505,6 +3524,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms6_max_discharge_power = 0;
     }
+
     bms6_soc = GET_INPUT(39003);
     
     bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
@@ -3532,7 +3552,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&&(slave2_Run!=1)))
 {
 // LOG_INFO("情况6");
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+    if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -3540,7 +3560,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -3550,7 +3570,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -3558,7 +3578,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -3568,7 +3588,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     }
     bms2_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms3_max_charge_power   = GET_INPUT(38438);
     }
@@ -3576,7 +3596,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     {
         bms3_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms3_max_discharge_power= GET_INPUT(38437);
     }
@@ -3586,7 +3606,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     }
     bms3_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms4_max_charge_power   = GET_INPUT(38638);
     }
@@ -3594,7 +3614,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     {
         bms4_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms4_max_discharge_power= GET_INPUT(38637);
     }
@@ -3602,6 +3622,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     {
         bms4_max_discharge_power= 0;
     }
+
     bms4_soc                = GET_INPUT(38603);
 
     bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
@@ -3639,7 +3660,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     // LOG_INFO("情况7");
     if (single_mode == 1)
     {
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+    if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
         {
             bms1_max_charge_power   = GET_INPUT(38038);
         }
@@ -3647,7 +3668,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms1_max_charge_power   = 0;
         }
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
         {
             bms1_max_discharge_power= GET_INPUT(38037);
         }
@@ -3657,7 +3678,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
 
-        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
         {
             bms2_max_charge_power   = GET_INPUT(38238);
         }
@@ -3665,7 +3686,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms2_max_charge_power   = 0;
         }
-        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
         {
             bms2_max_discharge_power= GET_INPUT(38237);
         }
@@ -3675,7 +3696,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms2_soc                = GET_INPUT(38203);
 
-        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+        if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1))
         {
             bms5_max_charge_power = GET_INPUT(38838); /* '<Root>/bms5_max_charge_power' */
         } 
@@ -3684,7 +3705,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
             bms5_max_charge_power = 0;
         }
 
-        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+        if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
         {
             bms5_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms5_max_discharge_power' */
         } 
@@ -3694,7 +3715,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms5_soc = GET_INPUT(38803);
 
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)&&(PCS3BUS2==1)) 
         {
             bms6_max_charge_power = GET_INPUT(39038); /* '<Root>/bms6_max_charge_power' */
         } 
@@ -3702,7 +3723,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms6_max_charge_power = 0;
         }
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)&&(PCS3BUS2==1)) 
         {
             bms6_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms6_max_discharge_power' */
         } 
@@ -3733,7 +3754,6 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
         mv_power   = GET_HOLD(1010);
         mv_r_power = GET_HOLD(1011);
-        // single_mode_case7_reactive = (single_mode == 1);
         // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
         pcs1_rated_power        =   PCS_Max_Power         ;                              
         pcs2_rated_power        =   PCS_Max_Power       ;                             
@@ -3746,7 +3766,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     }
     else
     {
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+    if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
         {
             bms1_max_charge_power   = GET_INPUT(38038);
         }
@@ -3754,7 +3774,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms1_max_charge_power   = 0;
         }
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
         {
             bms1_max_discharge_power= GET_INPUT(38037);
         }
@@ -3764,7 +3784,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
 
-        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
         {
             bms2_max_charge_power   = GET_INPUT(38238);
         }
@@ -3772,7 +3792,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms2_max_charge_power   = 0;
         }
-        if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
         {
             bms2_max_discharge_power= GET_INPUT(38237);
         }
@@ -3782,7 +3802,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms2_soc                = GET_INPUT(38203);
 
-        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+        if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1))
         {
             bms3_max_charge_power = GET_INPUT(38838); /* '<Root>/bms3_max_charge_power' */
         } 
@@ -3791,7 +3811,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
             bms3_max_charge_power = 0;
         }
 
-        if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+        if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1))
         {
             bms3_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms3_max_discharge_power' */
         } 
@@ -3801,7 +3821,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms3_soc = GET_INPUT(38803);
 
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+        if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
         {
             bms4_max_charge_power = GET_INPUT(39038); /* '<Root>/bms4_max_charge_power' */
         } 
@@ -3809,7 +3829,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms4_max_charge_power = 0;
         }
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+        if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1)) 
         {
             bms4_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms4_max_discharge_power' */
         } 
@@ -3838,7 +3858,6 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
         mv_power   = GET_HOLD(1010);
         mv_r_power = 0;
-        // single_mode_case7_reactive = (single_mode == 1);
         // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
         pcs1_rated_power        =   PCS_Max_Power         ;                              
         pcs2_rated_power        =   PCS_Max_Power       ;                             
@@ -3856,7 +3875,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
 else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)))
 {
 // LOG_INFO("情况8");
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -3864,7 +3883,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -3874,7 +3893,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -3882,7 +3901,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -3892,7 +3911,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     }
     bms2_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2))&&(PCS4BUS1==1)) 
     {
         bms3_max_charge_power = GET_INPUT(39238); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -3901,7 +3920,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1)) 
+   if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1))&&(PCS4BUS1==1))
     {
         bms3_max_discharge_power = GET_INPUT(39237); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -3911,7 +3930,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     }
     bms3_soc = GET_INPUT(39203);
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2))&&(PCS4BUS2==1)) 
     {
         bms4_max_charge_power = GET_INPUT(39438); /* '<Root>/bms4_max_charge_power' */
     } 
@@ -3919,7 +3938,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     {
         bms4_max_charge_power = 0;
     }
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1))&&(PCS4BUS2==1)) 
     {
         bms4_max_discharge_power = GET_INPUT(39437); /* '<Root>/bms4_max_discharge_power' */
     } 
@@ -3927,6 +3946,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     {
         bms4_max_discharge_power = 0;
     }
+
     bms4_soc = GET_INPUT(39403);
     bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
     bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
@@ -3964,7 +3984,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
 else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Run==1)&&(master2_fault!=1)==1)&&(slave2_Run!=1)))
 {
 //LOG_INFO("情况9");
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38438);
     }
@@ -3972,7 +3992,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38437);
     }
@@ -3982,7 +4002,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     }
     bms1_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38638);
     }
@@ -3990,7 +4010,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38637);
     }
@@ -4000,7 +4020,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     }
     bms2_soc                = GET_INPUT(38603);
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+    if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1)) 
     {
         bms3_max_charge_power = GET_INPUT(38838); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -4009,7 +4029,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+     if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
     {
         bms3_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -4019,7 +4039,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     }
     bms3_soc = GET_INPUT(38803);
 
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
     {
         bms4_max_charge_power = GET_INPUT(39038); /* '<Root>/bms4_max_charge_power' */
     } 
@@ -4027,7 +4047,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms4_max_charge_power = 0;
     }
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1))  
     {
         bms4_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms4_max_discharge_power' */
     } 
@@ -4035,6 +4055,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms4_max_discharge_power = 0;
     }
+
     bms4_soc = GET_INPUT(39003);
     bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
     bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
@@ -4071,7 +4092,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
 else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)))
 {
 //LOG_INFO("情况10");
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+       if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38438);
     }
@@ -4079,7 +4100,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38437);
     }
@@ -4089,7 +4110,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     }
     bms1_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38638);
     }
@@ -4097,7 +4118,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38637);
     }
@@ -4107,7 +4128,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     }
     bms2_soc                = GET_INPUT(38603);
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2))&&(PCS4BUS1==1)) 
     {
         bms3_max_charge_power = GET_INPUT(39238); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -4116,7 +4137,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1)) 
+   if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1))&&(PCS4BUS1==1))
     {
         bms3_max_discharge_power = GET_INPUT(39237); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -4126,7 +4147,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     }
     bms3_soc = GET_INPUT(39203);
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2))&&(PCS4BUS2==1)) 
     {
         bms4_max_charge_power = GET_INPUT(39438); /* '<Root>/bms4_max_charge_power' */
     } 
@@ -4134,7 +4155,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms4_max_charge_power = 0;
     }
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1))&&(PCS4BUS2==1)) 
     {
         bms4_max_discharge_power = GET_INPUT(39437); /* '<Root>/bms4_max_discharge_power' */
     } 
@@ -4142,6 +4163,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms4_max_discharge_power = 0;
     }
+
     bms4_soc = GET_INPUT(39403);
     bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
     bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
@@ -4178,7 +4200,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
 else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&&(slave1_Run!=1)))
 {
 //LOG_INFO("情况11");
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+     if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1)) 
     {
         bms1_max_charge_power = GET_INPUT(38838); /* '<Root>/bms1_max_charge_power' */
     } 
@@ -4187,7 +4209,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
         bms1_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+     if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
     {
         bms1_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms1_max_discharge_power' */
     } 
@@ -4197,7 +4219,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     }
     bms1_soc = GET_INPUT(38803);
 
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
     {
         bms2_max_charge_power = GET_INPUT(39038); /* '<Root>/bms2_max_charge_power' */
     } 
@@ -4205,7 +4227,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     {
         bms2_max_charge_power = 0;
     }
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1))  
     {
         bms2_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms2_max_discharge_power' */
     } 
@@ -4215,7 +4237,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     }
     bms2_soc = GET_INPUT(39003);
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2)) 
+    if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2))&&(PCS4BUS1==1)) 
     {
         bms3_max_charge_power = GET_INPUT(39238); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -4224,7 +4246,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1)) 
+   if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1))&&(PCS4BUS1==1))
     {
         bms3_max_discharge_power = GET_INPUT(39237); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -4234,7 +4256,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     }
     bms3_soc = GET_INPUT(39203);
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2))&&(PCS4BUS2==1)) 
     {
         bms4_max_charge_power = GET_INPUT(39438); /* '<Root>/bms4_max_charge_power' */
     } 
@@ -4243,7 +4265,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
         bms4_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1))&&(PCS4BUS2==1)) 
     {
         bms4_max_discharge_power = GET_INPUT(39437); /* '<Root>/bms4_max_discharge_power' */
     } 
@@ -4251,6 +4273,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     {
         bms4_max_discharge_power = 0;
     }
+
     bms4_soc = GET_INPUT(39403);
 
     bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
@@ -4287,7 +4310,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
 else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))&&(slave1_Run!=1))
 {
     //LOG_INFO("情况12");
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -4295,7 +4318,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -4305,7 +4328,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -4313,7 +4336,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -4321,6 +4344,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     {
         bms2_max_discharge_power= 0;
     }
+
     bms2_soc                = GET_INPUT(38203);
 
     bms3_max_charge_power   = 0;
@@ -4364,7 +4388,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
 else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=1))&&(slave1_Run==1))
 {
  //LOG_INFO("情况13");
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+   if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38438);
     }
@@ -4372,7 +4396,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38437);
     }
@@ -4382,7 +4406,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     }
     bms1_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38638);
     }
@@ -4390,7 +4414,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38637);
     }
@@ -4398,6 +4422,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     {
         bms2_max_discharge_power= 0;
     }
+
     bms2_soc                = GET_INPUT(38603);
 
     bms3_max_charge_power   = 0;
@@ -4441,7 +4466,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
 else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=1)&&(slave1_Run!=1)))
 {
  //LOG_INFO("情况14");
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2)) 
+      if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 2))&&(PCS4BUS1==1)) 
     {
         bms1_max_charge_power = GET_INPUT(39238); /* '<Root>/bms1_max_charge_power' */
     } 
@@ -4450,7 +4475,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
         bms1_max_charge_power = 0;
     }
 
-    if((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1)) 
+   if(((GET_INPUT(39271) == 0) || (GET_INPUT(39271) == 1))&&(PCS4BUS1==1))
     {
         bms1_max_discharge_power = GET_INPUT(39237); /* '<Root>/bms1_max_discharge_power' */
     } 
@@ -4460,7 +4485,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     }
     bms1_soc = GET_INPUT(39203);
 
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 2))&&(PCS4BUS2==1)) 
     {
         bms2_max_charge_power = GET_INPUT(39438); /* '<Root>/bms2_max_charge_power' */
     } 
@@ -4468,7 +4493,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     {
         bms2_max_charge_power = 0;
     }
-    if((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1)) 
+     if(((GET_INPUT(39471) == 0) || (GET_INPUT(39471) == 1))&&(PCS4BUS2==1)) 
     {
         bms2_max_discharge_power = GET_INPUT(39437); /* '<Root>/bms2_max_discharge_power' */
     } 
@@ -4476,6 +4501,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     {
         bms2_max_discharge_power = 0;
     }
+
     bms2_soc = GET_INPUT(39403);
     bms3_max_charge_power   = 0;
     bms3_max_discharge_power= 0;
@@ -4517,7 +4543,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
 else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1)))
 {
     //LOG_INFO("情况15");
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2)) 
+     if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1)) 
     {
         bms1_max_charge_power = GET_INPUT(38838); /* '<Root>/bms1_max_charge_power' */
     } 
@@ -4526,7 +4552,7 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
         bms1_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1)) 
+     if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
     {
         bms1_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms1_max_discharge_power' */
     } 
@@ -4536,7 +4562,7 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     }
     bms1_soc = GET_INPUT(38803);
 
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
     {
         bms2_max_charge_power = GET_INPUT(39038); /* '<Root>/bms2_max_charge_power' */
     } 
@@ -4544,7 +4570,7 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     {
         bms2_max_charge_power = 0;
     }
-    if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) 
+    if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1))  
     {
         bms2_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms2_max_discharge_power' */
     } 
@@ -4552,6 +4578,7 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     {
         bms2_max_discharge_power = 0;
     }
+
     bms2_soc = GET_INPUT(39003);
     bms3_max_charge_power   = 0;
     bms3_max_discharge_power= 0;
@@ -4601,31 +4628,6 @@ else
 
     MCU_AI_step();//MV总功率分配
 
-    /*
-     * 情况 7 的单 PCS 主机模式仅有两台实际下发功率的主机。MCU_AI_step()
-     * 会把离线 PCS 的额定功率 0 一并参与无功 Min 运算，导致无功被清零；
-     * 此处按 MCU_AI_step() 的 S^2 = P^2 + Q^2 限制重新分配系统总无功。
-     * Power_Divider1() 在该工况下向两台主机分别写入的有功为：
-     *   系统 1: pcs1 + pcs2 + pcs5 + pcs6
-     *   系统 2: pcs3 + pcs4 + pcs7 + pcs8
-     */
-    if (single_mode_case7_reactive)
-    {
-
-        // LOG_INFO("单 PCS 主机模式仅有两台实际下发功率的主机，重新分配系统总无功");
-        // LOG_INFO("系统总有功: %d, 系统总无功: %d, 系统 1 额定功率: %d, 系统 2 额定功率: %d",
-        //     (INT32S)pcs1_power + pcs2_power + pcs5_power + pcs6_power + pcs3_power + pcs4_power + pcs7_power + pcs8_power,
-        //     mv_r_power,
-        //     pcs1_rated_power,
-        //     pcs2_rated_power);
-        Allocate_Single_Mode_Case7_Reactive(mv_r_power,
-            (INT32S)pcs1_power + pcs2_power + pcs5_power + pcs6_power,
-            pcs1_rated_power, (master1_Run == 1) && (master1_fault != 1),
-            (INT32S)pcs3_power + pcs4_power + pcs7_power + pcs8_power,
-            pcs2_rated_power, (master2_Run == 1) && (master2_fault != 1),
-            reactive_rate, &pcs_r_power1_2, &pcs_r_power3_4);
-    }
-
     if((pcspowerallocate[0]!=pcs1_power) ||
     (pcspowerallocate[1]!=pcs2_power) ||
     (pcspowerallocate[2]!=pcs3_power) ||
@@ -4635,8 +4637,8 @@ else
     (pcspowerallocate[6]!=pcs7_power) ||
     (pcspowerallocate[7]!=pcs8_power) ||
 
-    (pcspowerallocate[8]!=pcs_r_power1_2) ||
-    (pcspowerallocate[9]!=pcs_r_power3_4) ||
+    (pcspowerallocate[8]!=reactive_power.group1_q_cmd) ||
+    (pcspowerallocate[9]!=reactive_power.group2_q_cmd) ||
         MV_Power_Flag==true ||
         init_power_flag==1
     )
@@ -4651,8 +4653,8 @@ else
         pcspowerallocate[5]=pcs6_power;
         pcspowerallocate[6]=pcs7_power;
         pcspowerallocate[7]=pcs8_power;
-        pcspowerallocate[8]=pcs_r_power1_2;
-        pcspowerallocate[9]=pcs_r_power3_4;
+        pcspowerallocate[8]=reactive_power.group1_q_cmd;
+        pcspowerallocate[9]=reactive_power.group2_q_cmd;
 
 
         PCS_Write_Flag[0]=true;
@@ -4661,7 +4663,7 @@ else
         PCSaddr[2]=1010;
     
 
-LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,pcs_r_power1_2,pcs_r_power3_4);
+LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,reactive_power.group1_q_cmd,reactive_power.group2_q_cmd);
 
 
     }
@@ -4674,7 +4676,7 @@ else if(BusType==S_BUS)
 if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
 {
     // LOG_INFO("================== 情况1 ==================");
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -4682,7 +4684,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -4692,7 +4694,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -4700,7 +4702,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -4711,7 +4713,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     bms2_soc                = GET_INPUT(38203);
 
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms3_max_charge_power   = GET_INPUT(38438);
     }
@@ -4719,7 +4721,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms3_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms3_max_discharge_power= GET_INPUT(38437);
     }
@@ -4729,7 +4731,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     }
     bms3_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms4_max_charge_power   = GET_INPUT(38638);
     }
@@ -4737,7 +4739,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms4_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms4_max_discharge_power= GET_INPUT(38637);
     }
@@ -4745,6 +4747,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     {
         bms4_max_discharge_power= 0;
     }
+
     bms4_soc                = GET_INPUT(38603);
 
 
@@ -4799,7 +4802,7 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
 /*情况2：系统1，主机处于故障，但是系统1从机运行，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
 {
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+      if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms1_max_charge_power   = GET_INPUT(38238);
     }
@@ -4807,7 +4810,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms1_max_discharge_power= GET_INPUT(38237);
     }
@@ -4817,7 +4820,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms1_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms2_max_charge_power   = GET_INPUT(38438);
     }
@@ -4825,7 +4828,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms2_max_discharge_power= GET_INPUT(38437);
     }
@@ -4836,7 +4839,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     bms2_soc                = GET_INPUT(38403);
 
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 2)) 
+       if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1)) 
     {
         bms3_max_charge_power = GET_INPUT(38638); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -4845,7 +4848,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 1)) 
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms3_max_discharge_power = GET_INPUT(38637); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -4853,6 +4856,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms3_max_discharge_power = 0;
     }
+
     bms3_soc = GET_INPUT(38603);
 
 
@@ -4903,7 +4907,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
 /*情况3：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
 {
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -4911,7 +4915,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -4921,7 +4925,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms2_max_charge_power   = GET_INPUT(38438);
     }
@@ -4929,7 +4933,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms2_max_discharge_power= GET_INPUT(38437);
     }
@@ -4939,7 +4943,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     }
     bms2_soc                = GET_INPUT(38403);
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 2)) 
+       if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1)) 
     {
         bms3_max_charge_power = GET_INPUT(38638); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -4948,7 +4952,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 1)) 
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms3_max_discharge_power = GET_INPUT(38637); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -4956,6 +4960,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     {
         bms3_max_discharge_power = 0;
     }
+
     bms3_soc = GET_INPUT(38603);
 
 
@@ -5005,7 +5010,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
 /*情况4：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1))
 {
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -5013,7 +5018,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -5023,7 +5028,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -5031,7 +5036,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -5043,7 +5048,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
 
 
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 2)) 
+       if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1)) 
     {
         bms3_max_charge_power = GET_INPUT(38638); /* '<Root>/bms3_max_charge_power' */
     } 
@@ -5052,7 +5057,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
         bms3_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 1)) 
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms3_max_discharge_power = GET_INPUT(38637); /* '<Root>/bms3_max_discharge_power' */
     } 
@@ -5060,6 +5065,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms3_max_discharge_power = 0;
     }
+
     bms3_soc = GET_INPUT(38603);
 
 
@@ -5113,7 +5119,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run!=1))
 {
     
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -5121,7 +5127,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -5131,7 +5137,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -5139,7 +5145,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -5149,7 +5155,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     }
     bms2_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms3_max_charge_power   = GET_INPUT(38438);
     }
@@ -5157,7 +5163,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms3_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms3_max_discharge_power= GET_INPUT(38437);
     }
@@ -5165,6 +5171,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     {
         bms3_max_discharge_power= 0;
     }
+
     bms3_soc                = GET_INPUT(38403);
 
 
@@ -5217,7 +5224,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&&(slave2_Run!=1)))
 {
 
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -5225,7 +5232,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -5235,7 +5242,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38238);
     }
@@ -5243,7 +5250,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38237);
     }
@@ -5251,6 +5258,7 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     {
         bms2_max_discharge_power= 0;
     }
+
     bms2_soc                = GET_INPUT(38203);
 
 
@@ -5303,7 +5311,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
 {
     if (single_mode == 1)
     {
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
         {
             bms1_max_charge_power   = GET_INPUT(38038);
         }
@@ -5311,7 +5319,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms1_max_charge_power   = 0;
         }
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
         {
             bms1_max_discharge_power= GET_INPUT(38037);
         }
@@ -5321,7 +5329,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
 
-        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
         {
             bms3_max_charge_power   = GET_INPUT(38438);
         }
@@ -5329,7 +5337,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms3_max_charge_power   = 0;
         }
-        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
         {
             bms3_max_discharge_power= GET_INPUT(38437);
         }
@@ -5379,7 +5387,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     }
     else
     {
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
         {
             bms1_max_charge_power   = GET_INPUT(38038);
         }
@@ -5387,7 +5395,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms1_max_charge_power   = 0;
         }
-        if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+        if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
         {
             bms1_max_discharge_power= GET_INPUT(38037);
         }
@@ -5397,7 +5405,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
     
-        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
         {
             bms2_max_charge_power   = GET_INPUT(38438);
         }
@@ -5405,7 +5413,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms2_max_charge_power   = 0;
         }
-        if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
         {
             bms2_max_discharge_power= GET_INPUT(38437);
         }
@@ -5466,7 +5474,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
 else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)))
 {
 
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -5474,7 +5482,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -5484,7 +5492,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     }
     bms1_soc                = GET_INPUT(38003);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38638);
     }
@@ -5492,7 +5500,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38637);
     }
@@ -5500,6 +5508,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     {
         bms2_max_discharge_power= 0;
     }
+
     bms2_soc                = GET_INPUT(38603);
 
 
@@ -5552,7 +5561,8 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
 else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Run==1)&&(master2_fault!=1)==1)&&(slave2_Run!=1)))
 {
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+   
+        if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms1_max_charge_power   = GET_INPUT(38238);
     }
@@ -5560,7 +5570,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms1_max_discharge_power= GET_INPUT(38237);
     }
@@ -5570,7 +5580,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     }
     bms1_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms2_max_charge_power   = GET_INPUT(38438);
     }
@@ -5578,7 +5588,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))
+    if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
     {
         bms2_max_discharge_power= GET_INPUT(38437);
     }
@@ -5586,6 +5596,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms2_max_discharge_power= 0;
     }
+
     bms2_soc                = GET_INPUT(38403);
 
 
@@ -5637,7 +5648,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
 else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)))
 {
 
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+      if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms1_max_charge_power   = GET_INPUT(38238);
     }
@@ -5645,7 +5656,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms1_max_discharge_power= GET_INPUT(38237);
     }
@@ -5655,7 +5666,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     }
     bms1_soc                = GET_INPUT(38203);
 
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1))
     {
         bms2_max_charge_power   = GET_INPUT(38638);
     }
@@ -5663,7 +5674,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms2_max_charge_power   = 0;
     }
-    if((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms2_max_discharge_power= GET_INPUT(38637);
     }
@@ -5671,6 +5682,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     {
         bms2_max_discharge_power= 0;
     }
+
     bms2_soc                = GET_INPUT(38603);
 
 
@@ -5722,7 +5734,7 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
 else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&&(slave1_Run!=1)))
 {
 
-    if((GET_INPUT(38471) == 0) || (GET_INPUT(38471) == 2)) 
+   if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms1_max_charge_power = GET_INPUT(38438); /* '<Root>/bms1_max_charge_power' */
     } 
@@ -5731,7 +5743,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
         bms1_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38471) == 0) || (GET_INPUT(38471) == 1)) 
+  if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1)) 
     {
         bms1_max_discharge_power = GET_INPUT(38437); /* '<Root>/bms1_max_discharge_power' */
     } 
@@ -5741,7 +5753,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     }
     bms1_soc = GET_INPUT(38403);
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 2)) 
+       if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1)) 
     {
         bms2_max_charge_power = GET_INPUT(38638); /* '<Root>/bms2_max_charge_power' */
     } 
@@ -5749,7 +5761,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     {
         bms2_max_charge_power = 0;
     }
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 1)) 
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms2_max_discharge_power = GET_INPUT(38637); /* '<Root>/bms2_max_discharge_power' */
     } 
@@ -5757,6 +5769,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     {
         bms2_max_discharge_power = 0;
     }
+
     bms2_soc = GET_INPUT(38603);
 
 
@@ -5810,7 +5823,7 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     /*情况12：系统1处于正常运行或者告警运行，且系统1从机有故障，系统2不处于运行状态（切除系统2），发有功，不发无功*/
 else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))&&(slave1_Run!=1))
 {
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
+     if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
     }
@@ -5818,7 +5831,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))
+      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==1))&&(PCS1BUS1==1))
     {
         bms1_max_discharge_power= GET_INPUT(38037);
     }
@@ -5826,6 +5839,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     {
         bms1_max_discharge_power= 0;
     }
+
     bms1_soc                = GET_INPUT(38003);
 
 
@@ -5875,7 +5889,7 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
 /*情况13：系统1处于主机故障，且系统1从机运行，系统2不处于运行状态（切除系统2），发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=1))&&(slave1_Run==1))
 {
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))
+    if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==2))&&(PCS1BUS2==1))
     {
         bms1_max_charge_power   = GET_INPUT(38238);
     }
@@ -5883,7 +5897,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     {
         bms1_max_charge_power   = 0;
     }
-    if((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))
+     if(((GET_INPUT(38271)==0)||(GET_INPUT(38271)==1))&&(PCS1BUS2==1))
     {
         bms1_max_discharge_power= GET_INPUT(38237);
     }
@@ -5891,6 +5905,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     {
         bms1_max_discharge_power= 0;
     }
+
     bms1_soc                = GET_INPUT(38203);
 
 
@@ -5941,7 +5956,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
 else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=1)&&(slave1_Run!=1)))
 {
     
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 2)) 
+     if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==2))&&(PCS2BUS2==1)) 
     {
         bms1_max_charge_power = GET_INPUT(38638); /* '<Root>/bms1_max_charge_power' */
     } 
@@ -5950,7 +5965,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
         bms1_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38671) == 0) || (GET_INPUT(38671) == 1)) 
+    if(((GET_INPUT(38671)==0)||(GET_INPUT(38671)==1))&&(PCS2BUS2==1))
     {
         bms1_max_discharge_power = GET_INPUT(38637); /* '<Root>/bms1_max_discharge_power' */
     } 
@@ -5958,6 +5973,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     {
         bms1_max_discharge_power = 0;
     }
+
     bms1_soc = GET_INPUT(38603);
 
 
@@ -6006,7 +6022,7 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
 else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1)))
 {
     
-    if((GET_INPUT(38471) == 0) || (GET_INPUT(38471) == 2)) 
+     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms1_max_charge_power = GET_INPUT(38438); /* '<Root>/bms1_max_charge_power' */
     } 
@@ -6015,7 +6031,7 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
         bms1_max_charge_power = 0;
     }
 
-    if((GET_INPUT(38471) == 0) || (GET_INPUT(38471) == 1)) 
+  if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1)) 
     {
         bms1_max_discharge_power = GET_INPUT(38437); /* '<Root>/bms1_max_discharge_power' */
     } 
@@ -6023,6 +6039,7 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     {
         bms1_max_discharge_power = 0;
     }
+
     bms1_soc = GET_INPUT(38403);
 
         bms2_max_charge_power = 0;
@@ -6083,8 +6100,8 @@ else
     (pcspowerallocate[3]!=pcs4_power) ||
 
 
-    (pcspowerallocate[8]!=pcs_r_power1_2) ||
-    (pcspowerallocate[9]!=pcs_r_power3_4) ||
+    (pcspowerallocate[8]!=reactive_power.group1_q_cmd) ||
+    (pcspowerallocate[9]!=reactive_power.group2_q_cmd) ||
         MV_Power_Flag==true||
         init_power_flag==1
     )
@@ -6097,8 +6114,8 @@ else
         pcspowerallocate[3]=pcs4_power;
 
 
-        pcspowerallocate[8]=pcs_r_power1_2;
-        pcspowerallocate[9]=pcs_r_power3_4;
+        pcspowerallocate[8]=reactive_power.group1_q_cmd;
+        pcspowerallocate[9]=reactive_power.group2_q_cmd;
 
 
         PCS_Write_Flag[0]=true;
@@ -6107,7 +6124,7 @@ else
         PCSaddr[2]=1010;
     
 
-LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,pcs_r_power1_2,pcs_r_power3_4);
+LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,reactive_power.group1_q_cmd,reactive_power.group2_q_cmd);
 
 
     }

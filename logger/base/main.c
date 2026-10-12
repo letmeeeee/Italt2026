@@ -496,6 +496,8 @@ void *nvme_log_monitor_thread(void *arg)
     SET_HOLD(REMOTE_LOCAL_CONTROL_ENABLE,1);
     SET_HOLD(REMOTE_LOCAL_CONTROL_MODE,1);
     LOG_INFO("协议版本号：V%d,软件版本号：V%dR%dC%dSPC%d",GET_INPUT(LC_PROTOCOL_VERSION),GET_INPUT(SOFTWARE_MAJOR_VERSION),GET_INPUT(SOFTWARE_MINOR_VERSION_H),GET_INPUT(SOFTWARE_MINOR_VERSION_L),GET_INPUT(SOFTWARE_SPC_VERSION));
+    SET_HOLD(3,1);  // 默认使能远程控制
+    SET_INPUT(160,1); // 同步初始化远程控制使能状态
     //初始化系统配置参数 Initialize system configuration parameters
     SystemTotalData[SYS_PCS_NUM_ADDR].D16 = sys_cfg->pcsNum;
     SystemTotalData[SYS_IN_PCS_NUM_ADDR].D16 = sys_cfg->pcsNum;

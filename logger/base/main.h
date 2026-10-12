@@ -104,6 +104,7 @@
 #include "bms_write_queue.h"
 #include "pcs_globals.h"
 #include "log_g2_mv.h"
+#include "reactive_allocate.h"
 //开关标志 Switch flag
 #define ON  (1)
 #define OFF (0)
