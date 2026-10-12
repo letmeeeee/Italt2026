@@ -2990,13 +2990,13 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     bms8_soc = GET_INPUT(39403);
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =8;              /* '<Root>/module_num' */
-    mv_max_power            =10000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_1;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = GET_HOLD(1011);  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500         ;                             
-    pcs3_rated_power        =   2500         ;             
-    pcs4_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power         ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
+    pcs4_rated_power        =   PCS_Max_Power         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;  
     reactive_rate           =  sys_cfg->reactiverate;       
@@ -3126,12 +3126,12 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =6;              /* '<Root>/module_num' */
-    mv_max_power            =7500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_2;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
-    pcs3_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
     pcs4_rated_power        =   0        ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
@@ -3263,12 +3263,12 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =6;              /* '<Root>/module_num' */
-    mv_max_power            =7500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_2;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
-    pcs3_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;      
@@ -3402,12 +3402,12 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =6;              /* '<Root>/module_num' */
-    mv_max_power            =7500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_2;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
-    pcs3_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
@@ -3536,12 +3536,12 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =6;              /* '<Root>/module_num' */
-    mv_max_power            =7500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_2;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =  2500       ;                             
-    pcs3_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =  PCS_Max_Power       ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;        
@@ -3642,11 +3642,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =4;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500         ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power         ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -3855,12 +3855,12 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         bms8_soc                = 0;              /* '<Root>/bms8_soc' */
         bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
         module_num              =4;              /* '<Root>/module_num' */
-        mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+        mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
         mv_power   = GET_HOLD(1010);
         mv_r_power = 0;
         // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
-        pcs1_rated_power        =   2500         ;                              
-        pcs2_rated_power        =   2500       ;                             
+        pcs1_rated_power        =   PCS_Max_Power         ;                              
+        pcs2_rated_power        =   PCS_Max_Power       ;                             
         pcs3_rated_power        =   0         ;             
         pcs4_rated_power        =   0         ;             
         target_h_soc            = 1000 ;             
@@ -3965,11 +3965,11 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =4;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -4074,11 +4074,11 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =4;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -4182,11 +4182,11 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =4;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -4293,11 +4293,11 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =4;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500         ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power         ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -4372,10 +4372,10 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =2500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =PCS_Max_Power;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
     pcs2_rated_power        =  0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -4450,10 +4450,10 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =2500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =PCS_Max_Power;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
     pcs2_rated_power        =  0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -4528,10 +4528,10 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =2500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =PCS_Max_Power;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
     pcs2_rated_power        =   0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -4605,10 +4605,10 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =2500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =PCS_Max_Power;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
     pcs2_rated_power        =   0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -4637,8 +4637,8 @@ else
     (pcspowerallocate[6]!=pcs7_power) ||
     (pcspowerallocate[7]!=pcs8_power) ||
 
-    (pcspowerallocate[8]!=pcs_r_power1_2) ||
-    (pcspowerallocate[9]!=pcs_r_power3_4) ||
+    (pcspowerallocate[8]!=reactive_power.group1_q_cmd) ||
+    (pcspowerallocate[9]!=reactive_power.group2_q_cmd) ||
         MV_Power_Flag==true ||
         init_power_flag==1
     )
@@ -4653,8 +4653,8 @@ else
         pcspowerallocate[5]=pcs6_power;
         pcspowerallocate[6]=pcs7_power;
         pcspowerallocate[7]=pcs8_power;
-        pcspowerallocate[8]=pcs_r_power1_2;
-        pcspowerallocate[9]=pcs_r_power3_4;
+        pcspowerallocate[8]=reactive_power.group1_q_cmd;
+        pcspowerallocate[9]=reactive_power.group2_q_cmd;
 
 
         PCS_Write_Flag[0]=true;
@@ -4663,7 +4663,7 @@ else
         PCSaddr[2]=1010;
     
 
-LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,pcs_r_power1_2,pcs_r_power3_4);
+LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,reactive_power.group1_q_cmd,reactive_power.group2_q_cmd);
 
 
     }
@@ -4787,13 +4787,13 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     bms8_soc = 0;
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =4;              /* '<Root>/module_num' */
-    mv_max_power            =10000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_1;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = GET_HOLD(1011);  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500         ;                             
-    pcs3_rated_power        =   2500         ;             
-    pcs4_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power         ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
+    pcs4_rated_power        =   PCS_Max_Power         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;            
     reactive_rate           =  sys_cfg->reactiverate; 
@@ -4893,12 +4893,12 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =3;              /* '<Root>/module_num' */
-    mv_max_power            =7500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_2;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
-    pcs3_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
     pcs4_rated_power        =   0        ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;            
@@ -4996,12 +4996,12 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =3;              /* '<Root>/module_num' */
-    mv_max_power            =7500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_2;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
-    pcs3_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
@@ -5104,12 +5104,12 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =3;              /* '<Root>/module_num' */
-    mv_max_power            =7500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_2;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
-    pcs3_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
@@ -5208,12 +5208,12 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =3;              /* '<Root>/module_num' */
-    mv_max_power            =7500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_2;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =  2500       ;                             
-    pcs3_rated_power        =   2500         ;             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =  PCS_Max_Power       ;                             
+    pcs3_rated_power        =   PCS_Max_Power         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;      
@@ -5294,11 +5294,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500         ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power         ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5454,11 +5454,11 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         bms8_soc                = 0;              /* '<Root>/bms8_soc' */
         bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
         module_num              =2;              /* '<Root>/module_num' */
-        mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+        mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
         mv_power                = GET_HOLD(1010);
         mv_r_power              =   0           ;
-        pcs1_rated_power        =   2500        ;                              
-        pcs2_rated_power        =   2500        ;                             
+        pcs1_rated_power        =   PCS_Max_Power        ;                              
+        pcs2_rated_power        =   PCS_Max_Power        ;                             
         pcs3_rated_power        =   0           ;             
         pcs4_rated_power        =   0           ;             
         target_h_soc            = 1000          ;             
@@ -5541,11 +5541,11 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5629,11 +5629,11 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5716,11 +5716,11 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500       ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5805,11 +5805,11 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =2;              /* '<Root>/module_num' */
-    mv_max_power            =5000;          /* '<Root>/mv_max_power' */
+    mv_max_power            =MV_Max_Power_3;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
-    pcs2_rated_power        =   2500         ;                             
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
+    pcs2_rated_power        =   PCS_Max_Power         ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
@@ -5872,10 +5872,10 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =1;              /* '<Root>/module_num' */
-    mv_max_power            =2500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =PCS_Max_Power;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
     pcs2_rated_power        =  0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -5938,10 +5938,10 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =1;              /* '<Root>/module_num' */
-    mv_max_power            =2500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =PCS_Max_Power;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
     pcs2_rated_power        =  0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -6005,10 +6005,10 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =1;              /* '<Root>/module_num' */
-    mv_max_power            =2500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =PCS_Max_Power;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
     pcs2_rated_power        =   0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -6070,10 +6070,10 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     bms8_soc                = 0;              /* '<Root>/bms8_soc' */
     bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
     module_num              =1;              /* '<Root>/module_num' */
-    mv_max_power            =2500;          /* '<Root>/mv_max_power' */
+    mv_max_power            =PCS_Max_Power;          /* '<Root>/mv_max_power' */
     mv_power                = GET_HOLD(1010);
     mv_r_power              = 0;  
-    pcs1_rated_power        =   2500         ;                              
+    pcs1_rated_power        =   PCS_Max_Power         ;                              
     pcs2_rated_power        =   0       ;                             
     pcs3_rated_power        =   0         ;             
     pcs4_rated_power        =   0         ;             
@@ -6098,8 +6098,8 @@ else
     (pcspowerallocate[3]!=pcs4_power) ||
 
 
-    (pcspowerallocate[8]!=pcs_r_power1_2) ||
-    (pcspowerallocate[9]!=pcs_r_power3_4) ||
+    (pcspowerallocate[8]!=reactive_power.group1_q_cmd) ||
+    (pcspowerallocate[9]!=reactive_power.group2_q_cmd) ||
         MV_Power_Flag==true||
         init_power_flag==1
     )
@@ -6112,8 +6112,8 @@ else
         pcspowerallocate[3]=pcs4_power;
 
 
-        pcspowerallocate[8]=pcs_r_power1_2;
-        pcspowerallocate[9]=pcs_r_power3_4;
+        pcspowerallocate[8]=reactive_power.group1_q_cmd;
+        pcspowerallocate[9]=reactive_power.group2_q_cmd;
 
 
         PCS_Write_Flag[0]=true;
@@ -6122,7 +6122,7 @@ else
         PCSaddr[2]=1010;
     
 
-LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,pcs_r_power1_2,pcs_r_power3_4);
+LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,reactive_power.group1_q_cmd,reactive_power.group2_q_cmd);
 
 
     }
