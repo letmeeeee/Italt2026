@@ -1,5 +1,3 @@
-
-
 #include "main.h"
 
 
@@ -20,11 +18,10 @@ static poll_data_str MV_UPS_List[]={
     {7,   &read_data[0],    SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr8,          MV_UPS_size8},
     {8,   &read_data[0],    SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr9,          MV_UPS_size9},
     {9,   &read_data[0],    SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr10,         MV_UPS_size10},
-    {10,  &read_data[0],    SEND_READY,        0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr11,         MV_UPS_size11},
-    {11,   &read_data[0],    SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr12,         MV_UPS_size12},
-    {12,   &read_data[0],    SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr13,         MV_UPS_size13},
-     {13,   &read_data[0],    SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr14,         MV_UPS_size14},
-
+    {10,  &read_data[0],    SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr11,         MV_UPS_size11},
+    {11,   &read_data[0],   SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr12,         MV_UPS_size12},
+    {12,   &read_data[0],   SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr13,         MV_UPS_size13},
+    {13,   &read_data[0],   SEND_READY,       0,       0,          1,       MODBUS_CMD_03,    MV_UPS_addr14,         MV_UPS_size14},
 };
 
 #define MV_UPS_SIZE  (sizeof(MV_UPS_List)/sizeof(poll_data_str))              //计算巡检命令的条数
@@ -109,13 +106,14 @@ for (int i = 0; i < p1->register_num; i++)
 
         SET_INPUT(index, RegVal.D16);
     }
-    else if (index == 27109)
+    //此处错误 大端高低寄存器应该调换，应该写到27110的bit11，note1是32位的双寄存器点位
+    else if (index == 27110)
     {
         // 清除收到的bit11
         RegVal.D16 &= (INT16U)~(1U << 11);
 
         // 保留本地由27131映射过来的bit11
-        RegVal.D16 |= GET_INPUT(27109) & (1U << 11);
+        RegVal.D16 |= GET_INPUT(27110) & (1U << 11);
 
         SET_INPUT(index, RegVal.D16);
        //  LOG_INFO("index:%d, value:%d\n", index, RegVal.D16);
@@ -124,14 +122,14 @@ for (int i = 0; i < p1->register_num; i++)
     {
         if ((RegVal.D16 & (1U << 11)) != 0U)
         {
-            // 收到的bit11为1，将27109的bit11置1
-            SET_INPUT(27109, GET_INPUT(27109) | (1U << 11));
+            // 收到的bit11为1，将27110的bit11置1
+            SET_INPUT(27110, GET_INPUT(27110) | (1U << 11));
         }
         else
         {
-            // 收到的bit11为0，将27109的bit11清零
-            SET_INPUT(27109,
-                      GET_INPUT(27109) & (INT16U)~(1U << 11));
+            // 收到的bit11为0，将27110的bit11清零
+            SET_INPUT(27110,
+                      GET_INPUT(27110) & (INT16U)~(1U << 11));
         }
 
         // 清除bit11后再存入27131
@@ -148,7 +146,6 @@ for (int i = 0; i < p1->register_num; i++)
 }
 
 
-
 }
  else
     {
@@ -157,7 +154,3 @@ for (int i = 0; i < p1->register_num; i++)
 
 
 }
-
-
-
-
