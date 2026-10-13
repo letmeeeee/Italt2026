@@ -1042,9 +1042,11 @@ static uint8_t Check_Pcs_Bus_Mode_Bit_Diff(uint8_t pcs_total_num)
     {
 
 
-        cur_val = ((GET_INPUT(PCS_INPUT_BASE2 + PCS_ADDR_STEP * (pcs - 1) + 60)) >>9);//主机BUS模式
-        ref_val = (GET_INPUT(PCS_INPUT_BASE2 + PCS_ADDR_STEP * (pcs - 1) + 62) >>14);//从机BUS模式
-       // LOG_INFO("pcs %d, cur_val = %d, ref_val = %d ,pcs_total_num =%d \n", pcs, cur_val, ref_val,pcs_total_num);
+      cur_val = (GET_INPUT(PCS_INPUT_BASE2 +
+                     PCS_ADDR_STEP * (pcs - 1) + 60) >> 9) & 0x01;//主机BUS模式
+      ref_val = (GET_INPUT(PCS_INPUT_BASE2 +
+                     PCS_ADDR_STEP * (pcs - 1) + 62) >> 14) & 0x01;//从机BUS模式
+      // LOG_INFO("pcs %d, cur_val = %d, ref_val = %d ,pcs_total_num =%d \n", pcs, cur_val, ref_val,pcs_total_num);
             if ((cur_val != ref_val) && (single_mode == 0))
             {
                 return 1;
