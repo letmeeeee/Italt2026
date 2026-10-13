@@ -25,6 +25,11 @@ volatile INT16U g_enabled_mask_bms = 0xFF;   /* 低 8bit：BMS0..7 */
 static INT8U  clear_pending[MAX_SYS_NUM] = {0};
 static uint64_t clear_req_ts[MAX_SYS_NUM]  = {0};
 static INT32U last_time[MAX_SYS_NUM]; 
+/* ===================== BMS系统预警/告警 ===================== */
+#define MAX_BMS_Num 8
+uint16_t bms_sys_preWarn[MAX_BMS_Num] = {0};
+uint16_t bms_sys_Warn[MAX_BMS_Num] = {0};
+
 INT8U pcs_mask_raw = 0x0F;
 INT8U bms_mask_raw = 0x0F;
 
@@ -1094,25 +1099,6 @@ static void Event_Warning_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_
         {
           continue;
         }
-        if ( (((GET_INPUT(28039 + sub * 200)) >> 10) & 1u) ||   /* BMS系统故障总 bit10 */
-             (((GET_INPUT(28039 + sub * 200)) >> 3)  & 1u) ||   /* EMS与BMS通讯故障报警 bit3 */
-              (GET_INPUT(28040 + sub * 200) != 0) )             /* BMS一级故障 */
-        {
-            // is_warn_raw = 1;
-            // if(((GET_INPUT(28039 + sub * 200)) >> 3))
-            // {
-            //    LOG_INFO("BMS%d EMS与BMS通讯故障报警!",sub);
-            // }
-            // if((((GET_INPUT(28039 + sub * 200)) >> 10) & 1u))
-            // {
-            //    LOG_INFO("BMS%dBMS系统故障总!",sub);
-            // }
-            // if((GET_INPUT(28040 + sub * 200) != 0))
-            // {
-            //    LOG_INFO("BMS%dBMS一级故障:%d!",sub,GET_INPUT(28040 + sub * 200));
-            // }            
-            break;
-        }
     }
 
     if (!is_warn_no_stop) {
@@ -1222,8 +1208,8 @@ static void Event_Warning_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_
  * @param[in] real_state 系统实际状态（当前未使用，保留参数）
  * 
  * @note 函数内部会检查以下告警源：
- *       - BMS二级故障（地址28041 + sub*200）
- *       - BMS三级故障（地址28042 + sub*200）
+ *       - BMS系统预警（地址38039 + sub*200）bit0
+ *       - BMS系统告警（地址38039 + sub*200）bit1
  *       - PCS告警（地址17060 + sys_num*300的第6位）
  *       - 测控告警总（地址27301）
  *       - UPS故障（地址27109的第4位）
@@ -1243,47 +1229,43 @@ static void Event_Start_Warn_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
    //LOG_INFO("sys_num is %d",sys_num);
     for (INT8U sub = sub_begin; sub < sub_end; ++sub) 
     {
-
         INT8U sub_in_sys = (INT8U)(sub - sub_begin);
         if (!SUB_ENABLED_SYS(sys_num, sub_in_sys)) continue;
-    if  (GET_INPUT(28041 + sub * 200) != 0//BMS二级故障
-        ||GET_INPUT(28042 + sub * 200) != 0 //BMS三级故障
-       )
+        bms_sys_preWarn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 0)) != 0;//BMS系统预警
+        bms_sys_Warn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 1)) != 0;   //BMS系统告警
+        if ((bms_sys_preWarn[sub] != 0) || (bms_sys_Warn[sub] != 0)) 
         {
-           
             is_Warning = IsWarn;
-            if(GET_INPUT(28041 + sub * 200) != 0)
+            if(bms_sys_preWarn[sub] != 0)
             {
-                LOG_INFO("BMS%d二级故障:%d!",sub,GET_INPUT(28041 + sub * 200));
+                LOG_INFO("BMS%d系统预警:%d!",sub,bms_sys_preWarn[sub]);
             }
-            if(GET_INPUT(28042 + sub * 200) != 0)
+            if(bms_sys_Warn[sub] != 0)
             {
-                LOG_INFO("BMS%d三级故障:%d!",sub,GET_INPUT(28042 + sub * 200));
+                LOG_INFO("BMS%d系统告警:%d!",sub,bms_sys_Warn[sub]);
             }
             break;
         }
     }
+    if (((GET_INPUT(17060 + sys_num * 300)) >> 6) & 1u)//PCS告警
+    {
+     is_Warning = IsWarn;
+     LOG_INFO("system%d告警!",sys_num);
 
-        if (((GET_INPUT(17060 + sys_num * 300)) >> 6) & 1u)//PCS告警
+    }
 
-        {
-         is_Warning = IsWarn;
-         LOG_INFO("system%d告警!",sys_num);
+    if (GET_INPUT(27601)==1)//测控告警总
+    {
+        is_Warning = IsWarn;
+        LOG_INFO("测控告警总!");
+    }
 
-        }
-        if (GET_INPUT(27301)==1)//测控告警总
-
-        {
-            is_Warning = IsWarn;
-            LOG_INFO("测控告警总!");
-        }
-       if (((GET_INPUT(27109 )) >> 4) & 1u)//UPS故障
-
-        {
-            is_Warning = IsWarn;
-           LOG_INFO("UPS故障总!");
-        }
-       warningflag = (is_Warning == IsWarn) ? IsWarn : IsnoWarn;
+    if (((GET_INPUT(27109 )) >> 4) & 1u)//UPS故障
+    {
+        is_Warning = IsWarn;
+       LOG_INFO("UPS故障总!");
+    }
+    warningflag = (is_Warning == IsWarn) ? IsWarn : IsnoWarn;
 
     if (warningflag== IsWarn ) {
         last_time[sys_num] = Timer_GetTick();
@@ -1301,7 +1283,7 @@ static void Event_Start_Warn_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
  * @param real_state 系统当前的实际状态（此参数在函数中未使用）
  * 
  * @details 该函数执行以下操作：
- *          1. 检查系统下所有BMS子模块的告警状态（二级和三级告警）
+ *          1. 检查系统下所有BMS子模块的告警状态
  *          2. 检查系统级别的告警条件
  *          3. 如果所有告警条件都满足安全状态，则：
  *             - 清除告警标志
@@ -1331,16 +1313,15 @@ static void Event_Start_Warn_Recovery(INT16U *eid, INT8U sys_num, SYS_State_ENUM
 
         INT8U sub_in_sys = (INT8U)(sub - sub_begin);
         if (!SUB_ENABLED_SYS(sys_num, sub_in_sys)) continue;
-       
-        INT16U bms_warn_codelv2 = GET_INPUT(28041 + sub  * 200);//BMS告警二级
-        INT16U bms_warn_codelv3 = GET_INPUT(28042 + sub  * 200);//BMS告警三级    
+        bms_sys_preWarn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 0)) != 0;//BMS系统预警
+        bms_sys_Warn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 1)) != 0;   //BMS系统告警
     
-        if ( bms_warn_codelv2 || bms_warn_codelv3) {
+        if ( bms_sys_preWarn[sub] || bms_sys_Warn[sub]) {
             all_safe = 0;
             break;
         }
     }
-    if (((((GET_INPUT(17060 + sys_num * 300)) >> 6) & 1u)==1)||(GET_INPUT(27301)==1)||((((GET_INPUT(27109 )) >> 4) & 1u)==1)) 
+    if (((((GET_INPUT(17060 + sys_num * 300)) >> 6) & 1u)==1)||(GET_INPUT(27601)==1)||((((GET_INPUT(27109 )) >> 4) & 1u)==1)) 
     {
         all_safe = false;
     } 
@@ -2135,85 +2116,13 @@ static void Event_Warning_Recovery(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
         {
           continue;
         }
-        INT16U bms_sum_bit10 = (INT16U)(((GET_INPUT(28039 + sub * 200)) >> 10) & 1u);
-        INT16U bms_sum_bit3  = (INT16U)(((GET_INPUT(28039 + sub * 200)) >> 3)  & 1u);
-        INT16U bms_lv1       = (INT16U) GET_INPUT(28040 + sub * 200);
-        if (bms_sum_bit10 || bms_sum_bit3 || (bms_lv1 != 0u)) {
+        bms_sys_preWarn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 0)) != 0;//BMS系统预警
+        bms_sys_Warn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 1)) != 0;   //BMS系统告警
+        if (bms_sys_preWarn[sub] || bms_sys_Warn[sub]) {
             all_safe_raw = 0;
             break;
         }
     }
-    // /* 2) PCS 扫描：只扫当前 sys 的 2 台 */
-    // if (all_safe_raw) 
-    // {
-    //     if(BusType==S_BUS)
-    //     {
-    //         for (INT16U addr = 2819; addr <= 2830; ++addr) {
-    //             if (GET_INPUT(addr + 0 * 300) != 0u) 
-    //             { 
-    //                 all_safe_raw = 0; 
-    //                 break; 
-    //             }
-    //         }
-    //         for (INT16U addr = 2833; addr <= 2844; ++addr) {
-    //             if (GET_INPUT(addr +0 * 300) != 0u) 
-    //             { 
-    //                 all_safe_raw = 0;
-    //                 break; 
-    //             }
-    //         }
-    //         for (INT16U addr = 2819; addr <= 2830; ++addr) {
-    //             if (GET_INPUT(addr + 2 * 300) != 0u) 
-    //             { 
-    //                 all_safe_raw = 0; 
-    //                 break; 
-    //             }
-    //         }
-    //         if (GET_INPUT(2817 + 0 * 300) != 0) { all_safe_raw = 0;}
-    //         if (GET_INPUT(2817 + 2 * 300) != 0) { all_safe_raw = 0;}
-    //         for (INT16U addr = 2833; addr <= 2844; ++addr) 
-    //         {
-    //             if (GET_INPUT(addr + 2 * 300) != 0u)
-    //             { 
-    //                 all_safe_raw = 0; 
-    //                 break; 
-    //             }
-    //         }
-    //     }
-    //     else
-    //     {
-    //         INT8U pcs_begin = (INT8U)(sys_num * 2);
-    //         INT8U pcs_end   = (INT8U)(pcs_begin + 2);
-
-    //         if (pcs_end > sys_cfg->pcsNum) pcs_end = (INT8U)sys_cfg->pcsNum;
-    //         if (pcs_end > MAX_PCS)         pcs_end = (INT8U)MAX_PCS;
-    //         if (pcs_begin > pcs_end)       pcs_begin = pcs_end;
-
-    //         for (INT8U pcs_num = pcs_begin; pcs_num < pcs_end; ++pcs_num) 
-    //         {
-
-    //             for (INT16U addr = 2819; addr <= 2830; ++addr) 
-    //             {
-    //                 if (GET_INPUT(addr + pcs_num * 300) != 0u) 
-    //                 { 
-    //                     all_safe_raw = 0; 
-    //                     break; 
-    //                 }
-    //             }
-    //             if (!all_safe_raw) break;
-
-    //             for (INT16U addr = 2833; addr <= 2844; ++addr) 
-    //             {
-    //                 if (GET_INPUT(addr + pcs_num * 300) != 0u) 
-    //                 { 
-    //                     all_safe_raw = 0; 
-    //                     break; 
-    //                 }
-    //             }
-    //             if (!all_safe_raw) break;
-    //         }
-    //     }
-    // }
 
     /* 3) 系统故障字：任意仍置位 => 不安全 */
     if (all_safe_raw) 
