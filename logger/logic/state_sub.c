@@ -1255,28 +1255,6 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     int64_t S_GROUP_CAP = (single_mode == 1) ? pcsPerRateCapacity * 1 : pcsPerRateCapacity * 2;
     int64_t D_GROUP_CAP = (single_mode == 1) ? pcsPerRateCapacity * 2 : pcsPerRateCapacity * 4;
 
-if(sys_cfg->pcsNum==2)
-{
-   INT32U Available_inductive_reactive_powertotal=sqrt((double)S_GROUP_CAP * (double)S_GROUP_CAP - (double)p64 * (double)p64);
-
-
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-}
-else if(sys_cfg->pcsNum==4)
-{
-      INT32U Available_inductive_reactive_powertotal=sqrt((double)D_GROUP_CAP * (double)D_GROUP_CAP - (double)p64 * (double)p64);
-
-
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
-}
    INT8U PCS_num = (single_mode == 1) ? COUNT_BITS_16(GET_INPUT(228)) : COUNT_BITS_16(GET_INPUT(218));
     INT32U dot_pcsPerRateCapacity = pcsPerRateCapacity * 10;
     INT32U Nominal_capctiy = dot_pcsPerRateCapacity * PCS_num;
@@ -1949,28 +1927,6 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
     int64_t S_GROUP_CAP = (single_mode == 1) ? pcsPerRateCapacity * 1 : pcsPerRateCapacity * 2;
     int64_t D_GROUP_CAP = (single_mode == 1) ? pcsPerRateCapacity * 2 : pcsPerRateCapacity * 4;
 
-if(sys_cfg->pcsNum==2)
-{
-   INT32U Available_inductive_reactive_powertotal=sqrt((double)S_GROUP_CAP * (double)S_GROUP_CAP - (double)p64 * (double)p64);
-
-
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-}
-else if(sys_cfg->pcsNum==4)
-{
-      INT32U Available_inductive_reactive_powertotal=sqrt((double)D_GROUP_CAP * (double)D_GROUP_CAP - (double)p64 * (double)p64);
-
-
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
-}
    INT8U PCS_num = (single_mode == 1) ? COUNT_BITS_16(GET_INPUT(228)) : COUNT_BITS_16(GET_INPUT(218));
     INT32U dot_pcsPerRateCapacity = pcsPerRateCapacity * 10;
     INT32U Nominal_capctiy = dot_pcsPerRateCapacity * PCS_num;
