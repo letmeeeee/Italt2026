@@ -267,7 +267,7 @@ sysPara* sys_cfg = SysConf_GetInfo();
 //     ||
     if ( (INT16U)GET_INPUT(27606)==1    //变压器轻瓦斯报警信号     
     || (INT16U)GET_INPUT(27619)==1    //烟雾报警信号   
-    || GET_INPUT(27600) == 1                        //测控故障总   
+    || GET_INPUT(27600) == 1                        //测控事故总   
 
     ) 
         
@@ -381,7 +381,7 @@ static void Event_Fault_Recovery_Check(INT16U *eid, INT8U sys_num, INT8U sub_num
     // || 
     if ( (INT16U)GET_INPUT(27606)==1    //变压器轻瓦斯报警信号     
     || (INT16U)GET_INPUT(27619)==1    //烟雾报警信号   
-    || GET_INPUT(27600) == 1                        //测控故障总   
+    || GET_INPUT(27600) == 1                        //测控事故总   
 
     )                                                                                                                                            
     {
@@ -489,7 +489,7 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
 //         GET_INPUT(64906 + fire_base) != 0 ||     /* 消防二级 */
     if ( GET_INPUT(27606) == 1 ||                 /* 轻瓦斯报警 */
         GET_INPUT(27619) == 1 ||                 /* 烟雾报警 */
-        GET_INPUT(27600) == 1)                   /* 测控故障总 */
+        GET_INPUT(27600) == 1)                   /* 测控事故总 */
     {
         raw_alarm_now = 1;
     }
