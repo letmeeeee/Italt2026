@@ -38,6 +38,11 @@ volatile bool Group2_power_multi_Flag=false;
 static pthread_mutex_t g_ems_client_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_ems_client_num = 0;
 static unsigned int g_ems_connect_time = 0;
+/**
+ *表示该 PCS 组上一次是否处于“有功率分配”状态；它的作用是：当功率需求从非 0 变为 0 时，强制下发一次归零/默认比例，
+*之后持续为 0 则不再重复下发。需要确认它在成功下发非零功率后被正确置 true，否则该边沿逻辑不会生效。
+ */
+volatile BOOLEAN Group_power_per_Flag[MAX_GROUP_NUM ]={0};
 static void EMS_Set_Socket_Keepalive(int fd)
 {
     int opt = 1;
@@ -612,8 +617,8 @@ static void* Server_Handle_Data(void *arg)
                 }
                 else if((AddrStar<=27207+sys_num*300)&&(AddrStar>=27204+sys_num*300))
                {
-
-                       LC_EMS_Calc_Power_Percent(sys_num);
+                        Group_power_per_Flag[sys_num]=true;
+                       //LC_EMS_Calc_Power_Percent(sys_num);
 
                         pcsnum = (sys_num>= 1) ? 2 : 0;
                       int16_t reactive_power_sum=(int16_t)((int32_t)(GET_HOLD(27000+208+300*sys_num)+GET_HOLD(27000+209+300*sys_num)+GET_HOLD(27000+210+300*sys_num)+GET_HOLD(27000+211+300*sys_num)));
@@ -653,19 +658,19 @@ static void* Server_Handle_Data(void *arg)
              {
                 if((AddrStar<=27207+sys_num*300)&&(AddrStar>=27204+sys_num*300))
                {
-
-                       LC_EMS_Calc_Power_Percent(sys_num);
-                       for(int i=0;i<3;i++)
-                       {
-                        PcsWriteReq pcsreq;
-                        pcsreq.addr     = 27000+300*sys_num + 50+i;
-                        pcsreq.value    = GET_HOLD(27000+300*sys_num + 50+i);
-                        pcsreq.len      = 1;
-                        pcsreq.is_multi = false; 
-                                                // 去重，保留最新值
-                        Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
-                        LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, Temp.D16, RegVal.D16);
-                       }
+                        Group_power_per_Flag[sys_num]=true;
+                      // LC_EMS_Calc_Power_Percent(sys_num);
+                    //    for(int i=0;i<3;i++)
+                    //    {
+                    //     PcsWriteReq pcsreq;
+                    //     pcsreq.addr     = 27000+300*sys_num + 50+i;
+                    //     pcsreq.value    = GET_HOLD(27000+300*sys_num + 50+i);
+                    //     pcsreq.len      = 1;
+                    //     pcsreq.is_multi = false; 
+                    //                             // 去重，保留最新值
+                    //     Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);//放入缓冲区中
+                    //     LOG_INFO("pcsnum:%d,addr:%d,value:%d", pcsnum, Temp.D16, RegVal.D16);
+                    //    }
 
                        pcsnum = (sys_num>= 1) ? 2 : 0;
                       int16_t reactive_power_sum=(int16_t)((int32_t)(GET_HOLD(27000+208+300*sys_num)+GET_HOLD(27000+209+300*sys_num)+GET_HOLD(27000+210+300*sys_num)+GET_HOLD(27000+211+300*sys_num)));

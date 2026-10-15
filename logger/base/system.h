@@ -153,6 +153,8 @@
 #define LOG_PRINTF_CNT            (5)     //打印次数限制  
 #define CONNECT_DELAY_TIME        (5)     //socket再次连接延时时间  
 
+#define DC_CHAN_RATE_POWER     (1250)
+
 //通用类型
 typedef unsigned char  BOOLEAN;
 typedef unsigned char  INT8U;

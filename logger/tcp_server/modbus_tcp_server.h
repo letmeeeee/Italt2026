@@ -24,7 +24,7 @@ void Task_EMS_Server(void);
  uint16_t PCSnum_calculate(uint16_t address);
 extern volatile bool Group1_power_multi_Flag;
 extern volatile bool Group2_power_multi_Flag;
-
+extern volatile BOOLEAN Group_power_per_Flag[MAX_GROUP_NUM];
 /***************************************EMS服务器通信定义************************************/
 
 //读取

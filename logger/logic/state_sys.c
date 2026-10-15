@@ -4,11 +4,12 @@
 #include "state_sys.h"
 #include "state_task.h"
 #include <stdarg.h>
-
+#include "taida_lc_ems.h"
 volatile  INT16U measurecloseflag = false;
 volatile  INT16U measureflag = false;
 static void slave_pcs_clear_points_on_fault(int pcs);
 static void pcs_clear_points_on_fault(int pcs_group);
+
 /* ===================== 通信断联→强制回初始 ===================== */
 static volatile INT8U g_force_init_req[MAX_SYS_NUM] = {0};
 static uint64_t         g_force_init_last_ts[MAX_SYS_NUM] = {0};  /* 防抖（10ms tick） */
@@ -1247,25 +1248,25 @@ static void Event_Start_Warn_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
             break;
         }
     }
-    if (((GET_INPUT(17060 + sys_num * 300)) >> 6) & 1u)//PCS告警
-    {
-     is_Warning = IsWarn;
-     LOG_INFO("system%d告警!",sys_num);
+        if (((GET_INPUT(17060 + sys_num * 300)) >> 6) & 1u)//PCS告警
+        {
+         is_Warning = IsWarn;
+         LOG_INFO("system%d告警!",sys_num);
 
-    }
+        }
 
     if (GET_INPUT(27601)==1)//测控告警总
-    {
-        is_Warning = IsWarn;
-        LOG_INFO("测控告警总!");
-    }
+        {
+            is_Warning = IsWarn;
+            LOG_INFO("测控告警总!");
+        }
 
-    if (((GET_INPUT(27109 )) >> 4) & 1u)//UPS故障
-    {
-        is_Warning = IsWarn;
-       LOG_INFO("UPS故障总!");
-    }
-    warningflag = (is_Warning == IsWarn) ? IsWarn : IsnoWarn;
+       if (((GET_INPUT(27109 )) >> 4) & 1u)//UPS故障
+        {
+            is_Warning = IsWarn;
+           LOG_INFO("UPS故障总!");
+        }
+       warningflag = (is_Warning == IsWarn) ? IsWarn : IsnoWarn;
 
     if (warningflag== IsWarn ) {
         last_time[sys_num] = Timer_GetTick();
@@ -1315,7 +1316,7 @@ static void Event_Start_Warn_Recovery(INT16U *eid, INT8U sys_num, SYS_State_ENUM
         if (!SUB_ENABLED_SYS(sys_num, sub_in_sys)) continue;
         bms_sys_preWarn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 0)) != 0;//BMS系统预警
         bms_sys_Warn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 1)) != 0;   //BMS系统告警
-    
+       
         if ( bms_sys_preWarn[sub] || bms_sys_Warn[sub]) {
             all_safe = 0;
             break;
@@ -3299,6 +3300,13 @@ void SYS_State_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
     /* 3) 正常推进：先做通信边沿检测 */
     check_pcs_limit();
     Update_Input_Bit_Status(sys_num);//更新LC对EMS的映射状态点位
+    int base = 27000 + 300 * sys_num;
+    SYS_State_ENUM state_tmp = Get_State_Sys(sys_num); 
+    if((GET_HOLD(base+16)==1)&&((state_tmp==SYSRun)||(state_tmp==SYSWarnRun)))
+    {
+        LC_EMS_Update_Power_Percent(sys_num);
+    }
+    
     for (INT8U i = 0; i < LIST_SIZE; i++) {
         if (state_list[i].now_state == state[sys_num]) 
         {
