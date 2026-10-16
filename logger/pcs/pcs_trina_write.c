@@ -24,7 +24,8 @@ extern BOOLEAN MV_Power_Flag;
 extern INT32S PCSactivepower[10];
 extern INT32S PCSPF[10];
 int pcspowerallocate[20]; //记录PCS的功率分配的数值
-
+Trina_MV_Power_Distribution p_result;
+Trina_MV_Q_Result q_result;
 static char LogStr[100] = {0};
 
 static uint8_t  init_power_flag=0;
@@ -244,43 +245,43 @@ static void PCS_Trina_Write(int num)
              
 
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Active_Power_Addr, G3_Power_Result.P1_out + G3_Power_Result.P2_out, CMD_DELAY_5);
+                        Trina_Active_Power_Addr, G3_Power_Result.P1_out, CMD_DELAY_10);
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Addr, 5, CMD_DELAY_5);   //无功模式2  + 无功使能                   
+                        Trina_Reactive_Addr, 5, CMD_DELAY_10);   //无功模式2  + 无功使能                   
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Rate_Addr, G3_Power_Result.pcs_r_rate1_2, CMD_DELAY_5);//无功比例
+                        Trina_Reactive_Rate_Addr,q_result.pcs1_q_cmd, CMD_DELAY_10);//无功比例
 
                 }
                 else if (num == 1) {
                
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Active_Power_Addr, (INT16U)(G3_Power_Result.P3_out + G3_Power_Result.P4_out), CMD_DELAY_5);
+                        Trina_Active_Power_Addr, (INT16U)(G3_Power_Result.P2_out), CMD_DELAY_10);
                     // Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                    //     Reactive_Power_Addr, G3_Power_Result.pcs_r_power3_4, CMD_DELAY_5);
+                    //     Reactive_Power_Addr, G3_Power_Result.pcs_r_power3_4, CMD_DELAY_10);
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Addr, 5, CMD_DELAY_5);   //无功模式2  + 无功使能                   
+                        Trina_Reactive_Addr, 5, CMD_DELAY_10);   //无功模式2  + 无功使能                   
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Rate_Addr, G3_Power_Result.pcs_r_rate1_2, CMD_DELAY_5);//无功比例                 
+                        Trina_Reactive_Rate_Addr, q_result.pcs2_q_cmd, CMD_DELAY_10);//无功比例                 
                 }
 
                 else if (num == 2) {
                
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Active_Power_Addr, (INT16U)(G3_Power_Result.P5_out + G3_Power_Result.P6_out), CMD_DELAY_5);
+                        Trina_Active_Power_Addr, (INT16U)(G3_Power_Result.P3_out), CMD_DELAY_10);
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Addr, 5, CMD_DELAY_5);   //无功模式2  + 无功使能                   
+                        Trina_Reactive_Addr, 5, CMD_DELAY_10);   //无功模式2  + 无功使能                   
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Rate_Addr, G3_Power_Result.pcs_r_rate3_4,CMD_DELAY_5);//无功比例
+                        Trina_Reactive_Rate_Addr, q_result.pcs3_q_cmd,CMD_DELAY_10);//无功比例
                 }
 
                 else if (num == 3) {
                
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Active_Power_Addr, (INT16U)(G3_Power_Result.P7_out + G3_Power_Result.P8_out), CMD_DELAY_5);
+                        Trina_Active_Power_Addr, (INT16U)(G3_Power_Result.P4_out ), CMD_DELAY_10);
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Addr, 5, CMD_DELAY_5);   //无功模式2  + 无功使能                   
+                        Trina_Reactive_Addr, 5, CMD_DELAY_10);   //无功模式2  + 无功使能                   
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Rate_Addr, G3_Power_Result.pcs_r_rate3_4,CMD_DELAY_5);//无功比例
+                        Trina_Reactive_Rate_Addr, q_result.pcs4_q_cmd,CMD_DELAY_10);//无功比例
                 }
 
 
@@ -297,7 +298,7 @@ static void PCS_Trina_Write(int num)
                         send_power_cmd_buf[1]=G3_Power_Result.master1bat1_powerate;
                         send_power_cmd_buf[2]=500;
                         send_power_cmd_buf[3]=(INT16U)G3_Power_Result.master1bat2_powerate;                    
-                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, 200);                        
+                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, CMD_DELAY_10);                        
                             
                     } 
                     else
@@ -307,15 +308,15 @@ static void PCS_Trina_Write(int num)
                         send_power_cmd_buf[1]=500;
                         send_power_cmd_buf[2]=(INT16U)G3_Power_Result.master1bat2_powerate;
                         send_power_cmd_buf[3]=500;
-                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, 200);
+                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, CMD_DELAY_10);
 
                     }
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Active_Power_Addr, G3_Power_Result.P1_out + G3_Power_Result.P2_out, CMD_DELAY_5);
+                        Trina_Active_Power_Addr, G3_Power_Result.P1_out + G3_Power_Result.P2_out, CMD_DELAY_10);
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Addr, 5, CMD_DELAY_5);   //无功模式2  + 无功使能                   
+                        Trina_Reactive_Addr, 5, CMD_DELAY_10);   //无功模式2  + 无功使能                   
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Rate_Addr, G3_Power_Result.pcs_r_rate1_2,CMD_DELAY_5);//无功比例
+                        Trina_Reactive_Rate_Addr, q_result.pcs1_q_cmd,CMD_DELAY_10);//无功比例
                 }           
                 else if (num == 1) 
                 {
@@ -326,7 +327,7 @@ static void PCS_Trina_Write(int num)
                         send_power_cmd_buf[1]=G3_Power_Result.slave1bat1_powerate;
                         send_power_cmd_buf[2]=500;
                         send_power_cmd_buf[3]=(INT16U)G3_Power_Result.slave1bat2_powerate;                    
-                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, 200);                        
+                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, CMD_DELAY_10);                        
                             
                     } 
                     else
@@ -336,15 +337,15 @@ static void PCS_Trina_Write(int num)
                         send_power_cmd_buf[1]=500;
                         send_power_cmd_buf[2]=(INT16U)G3_Power_Result.slave1bat2_powerate;
                         send_power_cmd_buf[3]=500;
-                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, 200);
+                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, CMD_DELAY_10);
 
                     }
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Active_Power_Addr, G3_Power_Result.P3_out + G3_Power_Result.P4_out, CMD_DELAY_5);
+                        Trina_Active_Power_Addr, G3_Power_Result.P3_out + G3_Power_Result.P4_out, CMD_DELAY_10);
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Addr, 5, CMD_DELAY_5);   //无功模式2  + 无功使能                   
+                        Trina_Reactive_Addr, 5, CMD_DELAY_10);   //无功模式2  + 无功使能                   
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Rate_Addr, G3_Power_Result.pcs_r_rate1_2,CMD_DELAY_5);//无功比例
+                        Trina_Reactive_Rate_Addr, q_result.pcs2_q_cmd,CMD_DELAY_10);//无功比例
                 }
                 else if (num == 2) 
                 {
@@ -355,7 +356,7 @@ static void PCS_Trina_Write(int num)
                         send_power_cmd_buf[1]=G3_Power_Result.master2bat1_powerate;
                         send_power_cmd_buf[2]=500;
                         send_power_cmd_buf[3]=(INT16U)G3_Power_Result.master2bat2_powerate;                    
-                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, 200);                        
+                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, CMD_DELAY_10);                        
                             
                     } 
                     else
@@ -365,15 +366,15 @@ static void PCS_Trina_Write(int num)
                         send_power_cmd_buf[1]=500;
                         send_power_cmd_buf[2]=(INT16U)G3_Power_Result.master2bat2_powerate;
                         send_power_cmd_buf[3]=500;
-                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, 200);
+                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, CMD_DELAY_10);
 
                     }
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Active_Power_Addr, G3_Power_Result.P5_out + G3_Power_Result.P6_out, CMD_DELAY_5);
+                        Trina_Active_Power_Addr, G3_Power_Result.P5_out + G3_Power_Result.P6_out, CMD_DELAY_10);
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Addr, 5, CMD_DELAY_5);   //无功模式2  + 无功使能                   
+                        Trina_Reactive_Addr, 5, CMD_DELAY_10);   //无功模式2  + 无功使能                   
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Rate_Addr, G3_Power_Result.pcs_r_rate3_4,CMD_DELAY_5);//无功比例
+                        Trina_Reactive_Rate_Addr, q_result.pcs3_q_cmd,CMD_DELAY_10);//无功比例
                 }
             else if (num == 3) 
                 {
@@ -384,7 +385,7 @@ static void PCS_Trina_Write(int num)
                         send_power_cmd_buf[1]=G3_Power_Result.slave2bat1_powerate;
                         send_power_cmd_buf[2]=500;
                         send_power_cmd_buf[3]=(INT16U)G3_Power_Result.slave2bat2_powerate;                    
-                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, 200);                        
+                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, CMD_DELAY_10);                        
                             
                     } 
                     else
@@ -394,15 +395,15 @@ static void PCS_Trina_Write(int num)
                         send_power_cmd_buf[1]=500;
                         send_power_cmd_buf[2]=(INT16U)G3_Power_Result.slave2bat2_powerate;
                         send_power_cmd_buf[3]=500;
-                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, 200);
+                        Modbus_TCP_Write_Multiple(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR, Master_Discharge_Power_Coef, 4, send_power_cmd_buf, CMD_DELAY_10);
 
                     }
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Active_Power_Addr, G3_Power_Result.P7_out + G3_Power_Result.P8_out, CMD_DELAY_5);
+                        Trina_Active_Power_Addr, G3_Power_Result.P7_out + G3_Power_Result.P8_out, CMD_DELAY_10);
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Addr, 5, CMD_DELAY_5);   //无功模式2  + 无功使能                   
+                        Trina_Reactive_Addr, 5, CMD_DELAY_10);   //无功模式2  + 无功使能                   
                     Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], PCS_Trina_SLAVE_ADDR,
-                        Trina_Reactive_Rate_Addr, G3_Power_Result.pcs_r_rate3_4,CMD_DELAY_5);//无功比例
+                        Trina_Reactive_Rate_Addr, q_result.pcs4_q_cmd,CMD_DELAY_10);//无功比例
                 }
             }          
             continue;
@@ -426,7 +427,7 @@ static void PCS_Trina_Write(int num)
         {
             slave_addr = PCS_Trina_SLAVE_ADDR;
         }
-        Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], slave_addr, idx, value, CMD_DELAY_5);
+        Modbus_TCP_Write06_SingleRegist(socket_Trina_Pcs[num], slave_addr, idx, value, CMD_DELAY_10);
         LOG_INFO("PCS[%d] slave addr: %d, 0x06 write ok: hold[%u->idx %d] = %u", num, slave_addr, addr, idx, value);
         
     }
@@ -649,7 +650,7 @@ void* Pcs_Trina_Write_Task(void *arg)
         server_addr.sin_family = AF_INET;
         server_addr.sin_port   = htons(sys_cfg->pcs_port[pcs_num]);
         server_addr.sin_addr.s_addr = inet_addr((char *)sys_cfg->pcs_ip[pcs_num]);
-        struct timeval time_out = {0, (1 * 1000)};
+        struct timeval time_out = {0, (50* 1000)};
 
         // 创建本地客户端socket
         if ((socket_Trina_Pcs[pcs_num] = Create_Client_Socket(server_addr, time_out)) == -1) {
@@ -706,12 +707,12 @@ void* Pcs_Trina_Write_Task(void *arg)
             //有两个线程可能都会进入到这个函数中，因此需要加锁，避免高并发导致的数据混乱，以及崩溃问题
             if (pthread_mutex_trylock(&g_mv_alloc_call_mtx) == 0) {
                 G3_MV_Power_allocate1();
-                //LOG_INFO("1112222");
+              //  LOG_INFO("1112222");
                 pthread_mutex_unlock(&g_mv_alloc_call_mtx);
             }
         }
          PCS_Trina_Write(pcs_num);
-  
+        usleep(60*1000);
         int16_t numbytes=Recv_Modbus_Back(socket_Trina_Pcs[pcs_num], pcs_num, PCS_BUFF_LEN, PCS_Trina_Write_DataProcess);
         /*保活机制1s一次,pcs超过30s没有收到报文会断开当前socket*/
         clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -1216,13 +1217,13 @@ else
         ,G3_Power_Result.P1_out,G3_Power_Result.P2_out,G3_Power_Result.P3_out,G3_Power_Result.P4_out,G3_Power_Result.master1bat1_powerate,G3_Power_Result.master2bat1_powerate);
     return G3_Power_Result;
     }
-/*情况14：系统2处于正常运行或者告警运行，且系统2从机有故障，系统1不处于运行状态（切除系统1），发有功，不发无功*/
+/*情况14：*/
 else if(((master2_Run!=1))&&(slave2_Run==1)&&((master1_Run!=1)&&(slave1_Run!=1)))
     {
     G3_Power_Result.P1_out=pcs3_power;
     G3_Power_Result.P2_out=pcs4_power;
-    G3_Power_Result.P3_out=pcs1_power;
-    G3_Power_Result.P4_out=pcs2_power;
+    G3_Power_Result.P3_out=pcs2_power;
+    G3_Power_Result.P4_out=pcs1_power;
 
     G3_Power_Result.pcs_r_power1_2=0;
     G3_Power_Result.pcs_r_power3_4=0;
@@ -2348,10 +2349,10 @@ else if((master2_Run!=1)&&(slave2_Run==1)&&(master1_Run!=1)&&(slave1_Run!=1))
     G3_Power_Result.P3_out=pcs7_power;
     G3_Power_Result.P4_out=pcs8_power;
 
-    G3_Power_Result.P5_out=pcs1_power;
-    G3_Power_Result.P6_out=pcs2_power;
-    G3_Power_Result.P7_out=pcs3_power;
-    G3_Power_Result.P8_out=pcs4_power;
+    G3_Power_Result.P5_out=pcs3_power;
+    G3_Power_Result.P6_out=pcs4_power;
+    G3_Power_Result.P7_out=pcs1_power;
+    G3_Power_Result.P8_out=pcs2_power;
 
     G3_Power_Result.pcs_r_power1_2=0;
     G3_Power_Result.pcs_r_power3_4=0;
@@ -3081,12 +3082,18 @@ void G3_MV_Power_allocate1(void)
 
 //LOG_INFO("state[0]:%d,state[1]；%d,getinput:%d,(GET_INPUT(39271):%d,(GET_INPUT(39471):%d", state[0], state[1],GET_INPUT(17062),GET_INPUT(39271),GET_INPUT(39471));
 
+
+
+
+Trina_MV_PQ_Control(GET_HOLD(1011), &p_result, &q_result);
+
+
 if(BusType==D_BUS)
 {
     /*情况1：系统1处于正常运行或者告警运行，但是系统1从机无故障，系统2处于正常运行或者告警运行，系统2无从机故障，发有功，发无功*/
 if((master1_Run==1)&&(slave1_Run==1)&&(master2_Run==1)&&(slave2_Run==1))
 {
- //LOG_INFO("情况1");
+   // LOG_INFO("情况1");
     if((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))
     {
         bms1_max_charge_power   = GET_INPUT(38038);
@@ -4214,7 +4221,7 @@ else if((master1_Run!=1)&&((slave1_Run==1))&&((master2_Run==1)&&(slave2_Run!=1))
 
 else if((master1_Run!=1)&&((slave1_Run==1))&&((master2_Run!=1))&&(slave2_Run==1))
 {
-// LOG_INFO("情况10");
+    //LOG_INFO("情况10");
     if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
     {
         bms1_max_charge_power   = GET_INPUT(38438);
@@ -4501,10 +4508,10 @@ else if((master1_Run==1)&&((master2_Run!=1)&&(slave2_Run!=1))&&(slave1_Run!=1))
     target_l_soc            = 0 ;           
 }
 
-/*情况13：系统1处于主机故障，且系统1从机运行，系统2不处于运行状态（切除系统2），发有功，不发无功*/
+/*情况13：*/
 else if((master1_Run!=1)&&(master2_Run!=1)&&(slave2_Run!=1)&&(slave1_Run==1))
 {
-//  LOG_INFO("情况13");
+ //  LOG_INFO("情况13");
     if((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))
     {
         bms1_max_charge_power   = GET_INPUT(38438);
@@ -4748,8 +4755,12 @@ else
     (pcspowerallocate[6]!=pcs7_power) ||
     (pcspowerallocate[7]!=pcs8_power) ||
 
-    (pcspowerallocate[8]!=pcs_r_power1_2) ||
-    (pcspowerallocate[9]!=pcs_r_power3_4) ||
+    (pcspowerallocate[8]!=q_result.pcs1_q_cmd) ||
+    (pcspowerallocate[9]!=q_result.pcs2_q_cmd) ||
+    (pcspowerallocate[10]!=q_result.pcs3_q_cmd) ||
+    (pcspowerallocate[11]!=q_result.pcs4_q_cmd) ||
+
+
         MV_Power_Flag==true ||
         init_power_flag==1
     )
@@ -4764,9 +4775,10 @@ else
         pcspowerallocate[5]=pcs6_power;
         pcspowerallocate[6]=pcs7_power;
         pcspowerallocate[7]=pcs8_power;
-        pcspowerallocate[8]=pcs_r_power1_2;
-        pcspowerallocate[9]=pcs_r_power3_4;
-
+        pcspowerallocate[8]=q_result.pcs1_q_cmd;
+        pcspowerallocate[9]=q_result.pcs2_q_cmd;
+        pcspowerallocate[10]=q_result.pcs3_q_cmd;
+        pcspowerallocate[11]=q_result.pcs4_q_cmd;
 
         PCS_Write_Flag[0]=true;
         PCS_Write_Flag[1]=true;
@@ -4778,7 +4790,7 @@ else
         PCSaddr[3]=1010;
     
 
-LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1_2:%d,pcs_r_power3_4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,pcs_r_power1_2,pcs_r_power3_4);
+LOG_INFO("pcs1_power:%d,pcs2_power:%d,pcs3_power:%d,pcs4_power:%d,pcs5_power:%d,pcs6_power:%d,pcs7_power:%d,pcs8_power:%d,pcs_r_power1:%d,pcs_r_power2:%d,pcs_r_power3:%d,pcs_r_power4:%d",pcs1_power,pcs2_power,pcs3_power,pcs4_power,pcs5_power,pcs6_power,pcs7_power,pcs8_power,q_result.pcs1_q_cmd,q_result.pcs2_q_cmd,q_result.pcs3_q_cmd,q_result.pcs4_q_cmd);
 
 
     }
@@ -6108,9 +6120,10 @@ else
     (pcspowerallocate[2]!=pcs3_power) ||
     (pcspowerallocate[3]!=pcs4_power) ||
 
-
-    (pcspowerallocate[8]!=pcs_r_power1_2) ||
-    (pcspowerallocate[9]!=pcs_r_power3_4) ||
+    (pcspowerallocate[8]!=q_result.pcs1_q_cmd)||
+    (pcspowerallocate[9]!=q_result.pcs2_q_cmd)||
+    (pcspowerallocate[10]!=q_result.pcs3_q_cmd)||
+    (pcspowerallocate[11]!=q_result.pcs4_q_cmd)||
         MV_Power_Flag==true||
         init_power_flag==1
     )
@@ -6123,8 +6136,10 @@ else
         pcspowerallocate[3]=pcs4_power;
 
 
-        pcspowerallocate[8]=pcs_r_power1_2;
-        pcspowerallocate[9]=pcs_r_power3_4;
+        pcspowerallocate[8]=q_result.pcs1_q_cmd;
+        pcspowerallocate[9]=q_result.pcs2_q_cmd;
+        pcspowerallocate[10]=q_result.pcs3_q_cmd;
+        pcspowerallocate[11]=q_result.pcs4_q_cmd;
 
 
         PCS_Write_Flag[0]=true;
