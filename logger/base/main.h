@@ -106,6 +106,11 @@
 #include "log_g2_mv.h"
 #include "trina_lc_ems.h"
 #include "reactive_allocate.h"
+
+/* LC软件版本号 */
+#define LC_SOFTWARE_VERSION_SPC 127
+#define LC_SOFTWARE_VERSION_PROTOCOL 16
+
 //开关标志 Switch flag
 #define ON  (1)
 #define OFF (0)
