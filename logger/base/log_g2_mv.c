@@ -103,10 +103,10 @@ static const AlarmMap_t g_SysF3_Map = {
         "控制错误",               // Bit6
         "模块1检测到故障",        // Bit7
         "模块2检测到故障",        // Bit8
-        "保留9",                  // Bit9
-        "保留10",                 // Bit10
-        "保留11",                 // Bit11
-        "保留12",                 // Bit12
+        "SEL装置与EMS通信中断",                  // Bit9
+        "SEL装置与PT通信中断",                 // Bit10
+        "GOOSE与SEL装置通信中断",                 // Bit11
+        "PCS的GOOSE 通信中断",                 // Bit12
         "保留13",                 // Bit13
         "保留14",                 // Bit14
         "保留15"                  // Bit15

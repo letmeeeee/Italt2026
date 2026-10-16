@@ -19,6 +19,22 @@
 #define STEP        300
 #define INPUT_BASE_ADDR   17000
 #define INPUT_GROUP_STEP  300
+
+typedef union
+{
+    uint16_t StatusAll;
+    struct
+    {
+        uint16_t sel_ems   : 1;
+        uint16_t sel_pt    : 1;
+        uint16_t goose_sel : 1;
+        uint16_t pcs_goose : 1;
+        uint16_t reserve   : 12;
+    };
+} pcsSelGooseStatus_t;
+
+extern volatile pcsSelGooseStatus_t pcsSelGooseStatus[2];
+
  int LC_EMS_Convert_Address(int pcsnum, int addr);
 void LC_EMS_Calc_Power_Percent(int pcsnum);
 void Update_Input_Bit_Status(int system_num);

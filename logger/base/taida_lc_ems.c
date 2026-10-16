@@ -581,6 +581,17 @@ static void Update_Bit_Status_By_One_Word(int base,
     SET_INPUT(base + dst_offset_13, (value >> 13) & 0x01);
 }
 
+void Update_PCS_SEL_Goose_Status(int system_num)
+{
+    int base = INPUT_BASE_ADDR + STEP * system_num;
+    uint16_t value = GET_INPUT(base + 68);
+
+    pcsSelGooseStatus[system_num].sel_ems = (value >> 9) & 0x01;
+    pcsSelGooseStatus[system_num].sel_pt = (value >> 10) & 0x01;
+    pcsSelGooseStatus[system_num].goose_sel = (value >> 11) & 0x01;
+    pcsSelGooseStatus[system_num].pcs_goose = (value >> 12) & 0x01;
+}
+
 void Update_Input_Bit_Status(int system_num)
 {
     int base = INPUT_BASE_ADDR + INPUT_GROUP_STEP * system_num;
@@ -595,10 +606,18 @@ void Update_Input_Bit_Status(int system_num)
     /* 处理 17000 + 300*n + 62 */
     Update_Bit_Status_By_One_Word(base, 62, 210, 211, 202, 203);
 
+    /* 对应主机在线且PCS系统故障字bit9~bit12全为0时，通信才正常。
+     * 第0组对应PCS0，第1组对应PCS2；断连清零故障字不能视为恢复。
+     */
+    Update_PCS_SEL_Goose_Status(system_num);
+    int comm_normal = (Get_PCS_Comm(system_num * 2) == IsNoFault) &&
+                      (pcsSelGooseStatus[system_num].StatusAll == 0);
+    // LOG_INFO("system_num=%d,comm_normal=%d,pcsSelGooseStatus=%04X", system_num, comm_normal, pcsSelGooseStatus[system_num].StatusAll);
     for(int i=0;i<4;i++)
     {
         SET_INPUT(base + 212 + i, GET_INPUT(base + 43));
         SET_INPUT(base + 236 + i, sysRdyRef);
+        SET_INPUT(base + 240 + i, comm_normal ? 1 : 0);
     }
 
     for(int i=0;i<2;i++)

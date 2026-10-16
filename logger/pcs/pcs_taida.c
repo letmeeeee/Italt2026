@@ -11,6 +11,7 @@ volatile INT16U Slave1_sys_state2=0;
 volatile INT16U Slave2_sys_state2=0;
 volatile INT16U Slave1_sys_state1=0;
 volatile INT16U Slave2_sys_state1=0;
+volatile pcsSelGooseStatus_t pcsSelGooseStatus[2] = {0};
 extern int PCSactivepower[PCS_MAX_NUM];
 static void taida_pcs_versionbit6_process(int num, uint16_t addr, uint16_t value)
 {
