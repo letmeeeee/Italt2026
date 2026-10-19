@@ -349,7 +349,7 @@ void LC_EMS_Update_Power_Percent(int groupnum)
 {
 
     /* 联锁检查：任一条件非 0 则退出，不更新功率分配 */
-    if((GET_INPUT(1010)!=0)||(GET_INPUT(1011)!=0))
+    if((GET_HOLD(1010)!=0)||(GET_HOLD(1011)!=0))
     {
         return;
     }
