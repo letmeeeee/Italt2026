@@ -1,11 +1,15 @@
 /*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
  * File: MCU_AI.h
  *
  * Code generated for Simulink model 'MCU_AI'.
  *
- * Model version                  : 16.18
+ * Model version                  : 16.42
  * Simulink Coder version         : 25.2 (R2025b) 28-Jul-2025
- * C/C++ source code generated on : Mon Aug 24 15:14:57 2026
+ * C/C++ source code generated on : Fri Oct 23 14:29:32 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Generic->32-bit Embedded Processor
@@ -71,40 +75,41 @@ typedef struct {
   real32_T Merge2_c;                   /* '<S299>/Merge2' */
   real32_T Merge_dp;                   /* '<S299>/Merge' */
   real32_T Merge2_b;                   /* '<S300>/Merge2' */
-  real32_T Switch6_i;                  /* '<S281>/Switch6' */
-  real32_T Product7_c;                 /* '<S30>/Product7' */
-  real32_T Switch9_f;                  /* '<S32>/Switch9' */
-  real32_T Product8;                   /* '<S31>/Product8' */
-  real32_T Divide38_j;                 /* '<S31>/Divide38' */
-  real32_T Subtract1;                  /* '<S28>/Subtract1' */
-  real32_T Switch27;                   /* '<S28>/Switch27' */
+  real32_T Switch1_l;                  /* '<S224>/Switch1' */
+  real32_T Switch10_n;                 /* '<S32>/Switch10' */
+  real32_T Switch11_ln;                /* '<S32>/Switch11' */
+  real32_T Switch3_n;                  /* '<S32>/Switch3' */
+  real32_T Divide38;                   /* '<S31>/Divide38' */
+  real32_T Product18;                  /* '<S31>/Product18' */
+  real32_T Divide35;                   /* '<S31>/Divide35' */
   real32_T Divide36_a;                 /* '<S31>/Divide36' */
   real32_T Switch28;                   /* '<S28>/Switch28' */
-  real32_T Switch29;                   /* '<S28>/Switch29' */
+  real32_T Product3_b;                 /* '<S31>/Product3' */
+  int32_T Switch19_p;                  /* '<S224>/Switch19' */
   int32_T Min;                         /* '<S11>/Min' */
   int32_T Min_k;                       /* '<S12>/Min' */
+  int32_T Switch6_m;                   /* '<S32>/Switch6' */
   int32_T Min_d;                       /* '<S13>/Min' */
   int32_T Min_h;                       /* '<S14>/Min' */
   int32_T Min_h1;                      /* '<S15>/Min' */
   int32_T Min_kv;                      /* '<S16>/Min' */
+  int32_T Switch15_b;                  /* '<S32>/Switch15' */
   int32_T Min_l;                       /* '<S17>/Min' */
+  int32_T Switch19_i;                  /* '<S227>/Switch19' */
   int32_T Min_m;                       /* '<S18>/Min' */
   int32_T Min4;                        /* '<S19>/Min4' */
   int32_T Min4_i;                      /* '<S20>/Min4' */
+  int32_T Min4_b;                      /* '<S21>/Min4' */
   int32_T Min4_p;                      /* '<S22>/Min4' */
   int32_T Min4_pm;                     /* '<S23>/Min4' */
+  int32_T Min4_ix;                     /* '<S24>/Min4' */
   int32_T Min4_f;                      /* '<S25>/Min4' */
   int32_T Min4_l;                      /* '<S26>/Min4' */
-  int32_T Switch20;                    /* '<S32>/Switch20' */
-  int32_T Switch13;                    /* '<S32>/Switch13' */
-  int32_T Switch14;                    /* '<S32>/Switch14' */
-  int32_T Switch15;                    /* '<S32>/Switch15' */
-  int32_T Switch5;                     /* '<S32>/Switch5' */
-  int32_T Switch6;                     /* '<S32>/Switch6' */
-  int32_T Switch7;                     /* '<S32>/Switch7' */
-  int32_T Switch16;                    /* '<S32>/Switch16' */
+  int32_T Max;                         /* '<S27>/Max' */
   int32_T Switch17;                    /* '<S31>/Switch17' */
   int32_T Switch19;                    /* '<S31>/Switch19' */
+  int32_T DataTypeConversion15;        /* '<S31>/Data Type Conversion15' */
+  int32_T DataTypeConversion;          /* '<S31>/Data Type Conversion' */
   int32_T DataTypeConversion4;         /* '<S31>/Data Type Conversion4' */
   int32_T DataTypeConversion6_b;       /* '<S31>/Data Type Conversion6' */
   uint32_T Switch4;                    /* '<S1>/Switch4' */
@@ -167,6 +172,11 @@ extern uint16_T target_l_soc;          /* '<Root>/target_l_soc' */
 extern uint16_T bus2_or_bus1;          /* '<Root>/bus2_or_bus1' */
 extern uint16_T reactive_rate;         /* '<Root>/reactive_rate' */
 extern uint16_T MW_5_10_flag;          /* '<Root>/MW_5_10_flag' */
+extern uint16_T Pp_Qp_flag;            /* '<Root>/Pp_Qp_flag' */
+extern uint16_T pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+extern uint16_T pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+extern uint16_T pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+extern uint16_T pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */
 extern int16_T pcs1_power;             /* '<Root>/pcs1_power' */
 extern int16_T pcs2_power;             /* '<Root>/pcs2_power' */
 extern int16_T pcs3_power;             /* '<Root>/pcs3_power' */

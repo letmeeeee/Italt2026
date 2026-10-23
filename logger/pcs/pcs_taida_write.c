@@ -2832,6 +2832,11 @@ void MV_Power_allocate1(void)
 //LOG_INFO("state[0]:%d,state[1]；%d,getinput:%d,(GET_INPUT(39271):%d,(GET_INPUT(39471):%d", state[0], state[1],GET_INPUT(17062),GET_INPUT(39271),GET_INPUT(39471));
 
     MV_PQ_Control_B(  GET_HOLD(1011), &g_MV_Power,&reactive_power);
+    Pp_Qp_flag = GET_HOLD(1012);            /* '<Root>/Pp_Qp_flag' */
+
+
+
+
 if(BusType==D_BUS)
 {
     /*情况1：系统1处于正常运行或者告警运行，但是系统1从机无故障，系统2处于正常运行或者告警运行，系统2无从机故障，发有功，发无功*/
@@ -3000,12 +3005,15 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;  
     reactive_rate           =  sys_cfg->reactiverate;       
-
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */ 
 }
 /*情况2：系统1，主机处于故障，但是系统1从机运行，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
 {
-   // LOG_INFO("情况2");
+    //LOG_INFO("情况2");
     if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
     {
         bms1_max_charge_power   = GET_INPUT(38438);
@@ -3046,6 +3054,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 2))&&(PCS3BUS1==1)) 
     {
         bms3_max_charge_power = GET_INPUT(38838); /* '<Root>/bms3_max_charge_power' */
+       // LOG_INFO("bms3_max_charge_power = %d", bms3_max_charge_power);
     } 
     else 
     {
@@ -3055,6 +3064,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
    if(((GET_INPUT(38871) == 0) || (GET_INPUT(38871) == 1))&&(PCS3BUS1==1)) 
     {
         bms3_max_discharge_power = GET_INPUT(38837); /* '<Root>/bms3_max_discharge_power' */
+      //  LOG_INFO("bms3_max_discharge_power = %d", bms3_max_discharge_power);
     } 
     else 
     {
@@ -3065,6 +3075,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2))&&(PCS3BUS2==1)) 
     {
         bms4_max_charge_power = GET_INPUT(39038); /* '<Root>/bms4_max_charge_power' */
+        //LOG_INFO("bms4_max_charge_power = %d", bms4_max_charge_power);
     } 
     else 
     {
@@ -3073,6 +3084,7 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1))&&(PCS3BUS2==1)) 
     {
         bms4_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms4_max_discharge_power' */
+       // LOG_INFO("bms4_max_discharge_power = %d", bms4_max_discharge_power);
     } 
     else 
     {
@@ -3135,7 +3147,11 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     pcs4_rated_power        =   0        ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
-    reactive_rate           =  sys_cfg->reactiverate;        
+    reactive_rate           =  sys_cfg->reactiverate;    
+    pcs1_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs4_p_available_max' */    
 }
 /*情况3：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
@@ -3272,7 +3288,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;      
-    reactive_rate           =  sys_cfg->reactiverate;       
+    reactive_rate           =  sys_cfg->reactiverate;    
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs4_p_available_max' */   
 }
 /*情况4：系统1处于正常运行或者告警运行，但是系统1从机运行，系统2处于故障，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1))
@@ -3411,7 +3431,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
-    reactive_rate           =  sys_cfg->reactiverate;        
+    reactive_rate           =  sys_cfg->reactiverate;     
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs4_p_available_max' */     
 }
 /*情况5：系统1处于正常运行或者告警运行，但是系统1从机无故障，系统2处于正常运行或者告警运行，系统2从机故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run!=1))
@@ -3545,7 +3569,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;        
-    reactive_rate           =  sys_cfg->reactiverate;     
+    reactive_rate           =  sys_cfg->reactiverate;  
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */     
 }
 
     /*情况6：系统1处于正常运行或者告警运行，且系统1从机没有故障，系统2不处于运行状态（切除系统2），发有功，不发无功*/
@@ -3651,7 +3679,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;        
-    reactive_rate           =  sys_cfg->reactiverate;     
+    reactive_rate           =  sys_cfg->reactiverate; 
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */      
 }
 /*情况7：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机故障，发有功，不发无功*/
 
@@ -3763,6 +3795,10 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         target_l_soc            = 0 ;       
         reactive_rate           =  sys_cfg->reactiverate;  
         // LOG_INFO
+        pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+        pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+        pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+        pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
     }
     else
     {
@@ -3866,6 +3902,10 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         target_h_soc            = 1000 ;             
         target_l_soc            = 0 ;       
         reactive_rate           =  sys_cfg->reactiverate;  
+        pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+        pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+        pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+        pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
         }
 
 
@@ -3975,7 +4015,10 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
     reactive_rate           =  sys_cfg->reactiverate;    
-
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
 
 }
 
@@ -4084,7 +4127,10 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;        
     reactive_rate           =  sys_cfg->reactiverate; 
-
+    pcs1_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
 
 }
 /*情况10：系统1处于故障，但是系统1从机运行，系统2处于主机故障，系统2从机运行，发有功，不发无功*/
@@ -4192,7 +4238,10 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;       
     reactive_rate           =  sys_cfg->reactiverate;  
-
+    pcs1_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
 
 }
 
@@ -4302,7 +4351,11 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
-    reactive_rate           =  sys_cfg->reactiverate;        
+    reactive_rate           =  sys_cfg->reactiverate;   
+    pcs1_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs4_p_available_max' */       
 }
 
 
@@ -4382,6 +4435,10 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;           
     reactive_rate           =  sys_cfg->reactiverate; 
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
 }
 
 /*情况13：系统1处于主机故障，且系统1从机运行，系统2不处于运行状态（切除系统2），发有功，不发无功*/
@@ -4460,6 +4517,10 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;          
     reactive_rate           =  sys_cfg->reactiverate;  
+    pcs1_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
 }
 
     /*情况14：系统2主机处于故障，且系统2从机运行，系统1不处于运行状态（切除系统1），发有功，不发无功*/
@@ -4537,7 +4598,11 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;          
-    reactive_rate           =  sys_cfg->reactiverate;   
+    reactive_rate           =  sys_cfg->reactiverate;  
+    pcs1_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs4_p_available_max' */   
 }
     /*情况15：系统2处于正常运行或者告警运行，且系统2从机有故障，系统1不处于运行状态（切除系统1），发有功，不发无功*/
 else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1)))
@@ -4614,7 +4679,11 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
-    reactive_rate           =  sys_cfg->reactiverate;        
+    reactive_rate           =  sys_cfg->reactiverate;
+    pcs1_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */          
 }
 
 
@@ -4797,7 +4866,10 @@ if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;            
     reactive_rate           =  sys_cfg->reactiverate; 
-
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */ 
 }
 /*情况2：系统1，主机处于故障，但是系统1从机运行，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
@@ -4903,6 +4975,10 @@ else if(((master1_Run==1)&&(master1_fault==1))&&(slave1_Run==1)&&((master2_Run==
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;            
     reactive_rate           =  sys_cfg->reactiverate; 
+    pcs1_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs4_p_available_max' */ 
 }
 /*情况3：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run==1))
@@ -5005,9 +5081,13 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run!=1)&&((master2_Run==
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
-    reactive_rate           =  sys_cfg->reactiverate;        
+    reactive_rate           =  sys_cfg->reactiverate;   
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs4_p_available_max' */      
 }
-/*情况4：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机无故障，发有功，不发无功*/
+/*情况4：系统1处于正常运行或者告警运行，但是系统1从机无故障，系统2处于主机故障，系统2从机无故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1))
 {
      if(((GET_INPUT(38071)==0)||(GET_INPUT(38071)==2))&&(PCS1BUS1==1))
@@ -5113,7 +5193,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
-    reactive_rate           =  sys_cfg->reactiverate;        
+    reactive_rate           =  sys_cfg->reactiverate;    
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs4_p_available_max' */     
 }
 /*情况5：系统1处于正常运行或者告警运行，但是系统1从机无故障，系统2处于正常运行或者告警运行，系统2从机故障，发有功，不发无功*/
 else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run!=1))
@@ -5217,7 +5301,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run==1)&&((master2_Run==
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;      
-    reactive_rate           =  sys_cfg->reactiverate;       
+    reactive_rate           =  sys_cfg->reactiverate;  
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */      
 }
 
     /*情况6：系统1处于正常运行或者告警运行，且系统1从机没有故障，系统2不处于运行状态（切除系统2），发有功，不发无功*/
@@ -5303,7 +5391,11 @@ else if(((master1_Run==1)&&(master1_fault!=1))&&(slave1_Run)&&((master2_Run!=1)&
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
-    reactive_rate           =  sys_cfg->reactiverate;        
+    reactive_rate           =  sys_cfg->reactiverate;  
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */       
 }
 /*情况7：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机故障，发有功，不发无功*/
 
@@ -5383,6 +5475,10 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         target_l_soc            =   0           ;
         reactive_rate           =  sys_cfg->reactiverate;         
         // LOG_INFO("mv_power:%d,mv_r_power:%d",mv_power,mv_r_power);
+        pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+        pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+        pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+        pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */ 
     }
     else
     {
@@ -5463,11 +5559,15 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         pcs4_rated_power        =   0           ;             
         target_h_soc            = 1000          ;             
         target_l_soc            = 0             ;
-        reactive_rate           =  sys_cfg->reactiverate;  
+        reactive_rate           =  sys_cfg->reactiverate; 
+        pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+        pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+        pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+        pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
     }
 
 }
-/*情况8：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于正常运行或者告警运行，系统2从机故障，发有功，不发无功*/
+/*情况8：系统1处于正常运行或者告警运行，但是系统1从机有故障，系统2处于主机故障，系统2从机运行，发有功，不发无功*/
 
 else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)))
 {
@@ -5551,7 +5651,10 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;        
     reactive_rate           =  sys_cfg->reactiverate; 
-
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs4_p_available_max' */ 
 }
 
 /*情况9：系统1处于故障，但是系统1从机运行，系统2处于正常运行或者告警运行，系统2从机故障，发有功，不发无功*/
@@ -5639,6 +5742,10 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;        
     reactive_rate           =  sys_cfg->reactiverate; 
+    pcs1_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */ 
 
 }
 /*情况10：系统1处于故障，但是系统1从机运行，系统2处于主机故障，系统2从机运行，发有功，不发无功*/
@@ -5726,6 +5833,10 @@ else if((((master1_Run==1)&&(master1_fault==1))&&((slave1_Run==1))&&((master2_Ru
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;        
     reactive_rate           =  sys_cfg->reactiverate; 
+    pcs1_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs4_p_available_max' */ 
 }
 
     /*情况11：系统2处于正常运行或者告警运行，且系统2从机没有故障，系统1不处于运行状态（切除系统1），发有功，不发无功*/
@@ -5814,7 +5925,11 @@ else if(((master2_Run==1)&&(master2_fault!=1))&&(slave2_Run)&&((master1_Run!=1)&
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;   
-    reactive_rate           =  sys_cfg->reactiverate;          
+    reactive_rate           =  sys_cfg->reactiverate;   
+    pcs1_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs4_p_available_max' */        
 }
 
 
@@ -5881,7 +5996,11 @@ else if(((master1_Run)&&(master1_fault!=1))&&((master2_Run!=1)&&(slave2_Run!=1))
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;  
-    reactive_rate           =  sys_cfg->reactiverate;          
+    reactive_rate           =  sys_cfg->reactiverate; 
+    pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */          
 }
 
 /*情况13：系统1处于主机故障，且系统1从机运行，系统2不处于运行状态（切除系统2），发有功，不发无功*/
@@ -5947,7 +6066,11 @@ else if(((master1_Run==1)&&(master1_fault==1))&&((master2_Run!=1)&&(slave2_Run!=
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;     
-    reactive_rate           =  sys_cfg->reactiverate;       
+    reactive_rate           =  sys_cfg->reactiverate;
+    pcs1_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */        
 }
 
     /*情况14：系统2主机处于故障，且系统2从机运行，系统1不处于运行状态（切除系统1），发有功，不发无功*/
@@ -6014,7 +6137,11 @@ else if(((master2_Run==1)&&(master2_fault==1))&&(slave2_Run==1)&&((master1_Run!=
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;  
-    reactive_rate           =  sys_cfg->reactiverate;           
+    reactive_rate           =  sys_cfg->reactiverate; 
+    pcs1_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs4_p_available_max' */           
 }
     /*情况15：系统2处于正常运行或者告警运行，且系统2从机有故障，系统1不处于运行状态（切除系统1），发有功，不发无功*/
 else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1)))
@@ -6079,7 +6206,11 @@ else if(((master2_Run==1))&&(slave2_Run!=1)&&((master1_Run!=1)&&(slave1_Run!=1))
     pcs4_rated_power        =   0         ;             
     target_h_soc            = 1000 ;             
     target_l_soc            = 0 ;    
-    reactive_rate           =  sys_cfg->reactiverate;        
+    reactive_rate           =  sys_cfg->reactiverate; 
+    pcs1_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs1_p_available_max' */
+    pcs2_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs2_p_available_max' */
+    pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+    pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */        
 }
 
 

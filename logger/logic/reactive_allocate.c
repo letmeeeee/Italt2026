@@ -5,7 +5,7 @@
 
 
 
-
+uint8_t qp_pp_flag = 0;
 static float MV_U16ToSignedFloat(uint16_t raw)
 {
     return (float)((int16_t)raw);
@@ -485,6 +485,73 @@ static float MV_Q_CalcGroupCmd(
 
 
 
+/* 新增：只输出每台PCS的分配值，不改动组无功计算。 */
+static void MV_Q_SplitGroupCmd(
+        uint16_t group_q_cmd,
+        const PCS_Q_Info *master,
+        const PCS_Q_Info *slave,
+        int16_t *master_q_set,
+        int16_t *slave_q_set)
+{
+    uint16_t master_ok;
+    uint16_t slave_ok;
+    int16_t group_q;
+
+    if ((master == 0) || (slave == 0) ||
+        (master_q_set == 0) || (slave_q_set == 0))
+    {
+        return;
+    }
+
+    *master_q_set = 0;
+    *slave_q_set = 0;
+    master_ok = PCS_Q_IsAvailable(master->rated_s_kva);
+    slave_ok = PCS_Q_IsAvailable(slave->rated_s_kva);
+    group_q = (int16_t)group_q_cmd;
+
+    if ((master_ok != 0u) && (slave_ok != 0u))
+    {
+        /* 整数除法向零截断，例如1001 -> 500、500。 */
+        *master_q_set = (int16_t)(group_q / 2);
+        *slave_q_set = (int16_t)(group_q / 2);
+    }
+    else if (master_ok != 0u)
+    {
+        *master_q_set = group_q;
+    }
+    else if (slave_ok != 0u)
+    {
+        *slave_q_set = group_q;
+    }
+}
+
+/* 根据本轮分配无功计算可用有功上限，单位kW。
+ * Pmax=sqrt(S*S-Q*Q)，不减去当前有功。
+ * 返回非负幅值，向零截断；不额外改变原无功控制指令。
+ */
+static uint16_t PCS_CalcAvailablePMax(float rated_s_kva, int16_t q_set)
+{
+    float q_abs = (float)q_set;
+
+    if (rated_s_kva <= 0.0f)
+    {
+        return 0u;
+    }
+
+    if (q_abs < 0.0f)
+    {
+        q_abs = -q_abs;
+    }
+
+    if (q_abs >= rated_s_kva)
+    {
+        return 0u;
+    }
+
+    return MV_PositiveFloatToU16(
+        sqrtf(rated_s_kva * rated_s_kva - q_abs * q_abs));
+}
+
 static void MV_ReactivePowerControl_Common(
         uint16_t total_q_cmd,
         uint16_t master1_p,
@@ -511,6 +578,12 @@ static void MV_ReactivePowerControl_Common(
 
     uint16_t available1;
     uint16_t available2;
+
+    /* 无功分配值仅作为内部计算中间量。 */
+    int16_t pcs1_q_set = 0;
+    int16_t pcs2_q_set = 0;
+    int16_t pcs3_q_set = 0;
+    int16_t pcs4_q_set = 0;
 
     if (result == 0)
     {
@@ -541,6 +614,14 @@ static void MV_ReactivePowerControl_Common(
     result->group1_q_cmd = 0u;
     result->group2_q_cmd = 0u;
     result->balance_q_max = 0u;
+
+    /* 初始无功指令为0。即使因某组不可用而提前返回，
+     * 各PCS仍按其运行容量输出Q=0时的有功上限。
+     */
+    result->pcs1_p_available_max = PCS_CalcAvailablePMax(master1.rated_s_kva, 0);
+    result->pcs2_p_available_max = PCS_CalcAvailablePMax(slave1.rated_s_kva, 0);
+    result->pcs3_p_available_max = PCS_CalcAvailablePMax(master2.rated_s_kva, 0);
+    result->pcs4_p_available_max = PCS_CalcAvailablePMax(slave2.rated_s_kva, 0);
 
     /*
      * 任意一个Group无可用PCS：
@@ -613,6 +694,22 @@ static void MV_ReactivePowerControl_Common(
 
     result->group2_q_cmd =
         MV_FloatToU16Signed(group2_q_cmd);
+
+    /* 新增：Group1对应PCS1、PCS2；Group2对应PCS3、PCS4。 */
+    MV_Q_SplitGroupCmd(
+        result->group1_q_cmd, &master1, &slave1,
+        &pcs1_q_set, &pcs2_q_set);
+
+    MV_Q_SplitGroupCmd(
+        result->group2_q_cmd, &master2, &slave2,
+        &pcs3_q_set, &pcs4_q_set);
+
+    /* 最终额外输出：每台PCS在本轮无功指令下的可用有功上限。 */
+    result->pcs1_p_available_max = PCS_CalcAvailablePMax(master1.rated_s_kva, pcs1_q_set);
+    result->pcs2_p_available_max = PCS_CalcAvailablePMax(slave1.rated_s_kva, pcs2_q_set);
+    result->pcs3_p_available_max = PCS_CalcAvailablePMax(master2.rated_s_kva, pcs3_q_set);
+    result->pcs4_p_available_max = PCS_CalcAvailablePMax(slave2.rated_s_kva, pcs4_q_set);
+  //  LOG_INFO("result->pcs1_p_available_max = %d, result->pcs2_p_available_max = %d, result->pcs3_p_available_max = %d, result->pcs4_p_available_max = %d", result->pcs1_p_available_max, result->pcs2_p_available_max, result->pcs3_p_available_max, result->pcs4_p_available_max);
 }
 
 
@@ -696,11 +793,26 @@ void MV_PQ_Control_B(
 
     MV_CalcPCSActivePower(p_result);
 
-    MV_ReactivePowerControl_B(
+    if(GET_HOLD(1012) == 1)
+    {
+         MV_ReactivePowerControl_B(
         total_q_cmd,
         (uint16_t)p_result->pcs1_p_set,
         (uint16_t)p_result->pcs2_p_set,
         (uint16_t)p_result->pcs3_p_set,
         (uint16_t)p_result->pcs4_p_set,
         q_result);
+    }
+    else 
+    {
+        MV_ReactivePowerControl_B(
+        total_q_cmd,
+        0,
+        0,
+        0,
+        0,
+        q_result);
+    }
+
+
 }

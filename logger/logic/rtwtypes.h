@@ -1,11 +1,15 @@
 /*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
  * File: rtwtypes.h
  *
  * Code generated for Simulink model 'MCU_AI'.
  *
- * Model version                  : 16.18
+ * Model version                  : 16.42
  * Simulink Coder version         : 25.2 (R2025b) 28-Jul-2025
- * C/C++ source code generated on : Mon Aug 24 15:14:57 2026
+ * C/C++ source code generated on : Fri Oct 23 14:29:32 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Generic->32-bit Embedded Processor

@@ -86,6 +86,12 @@ typedef struct
 
     uint16_t group1_q_available_num;
     uint16_t group2_q_available_num;
+
+uint16_t pcs1_p_available_max;  // PCS1有功上限，kW
+uint16_t pcs2_p_available_max;  // PCS2有功上限，kW
+uint16_t pcs3_p_available_max;  // PCS3有功上限，kW
+uint16_t pcs4_p_available_max;  // PCS4有功上限，kW
+
 } MV_Q_Result;
 
 /*
@@ -123,7 +129,7 @@ void MV_PQ_Control_B(
         uint16_t total_q_cmd,
         MV_Power_Distribution *p_result,
         MV_Q_Result *q_result);
-
+extern uint8_t qp_pp_flag ;
 #ifdef __cplusplus
 }
 #endif
