@@ -513,7 +513,7 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
         (GET_INPUT(27605) != 0) ||   /* 重瓦斯跳闸 */
         (GET_INPUT(27610) != 0) ||   /* 压力释放阀动作 */
         (GET_INPUT(27612) != 0) ||   /* 绕组超温跳闸 */
-        (GET_INPUT(27605) != 0) ||   /* 应急跳闸 */
+        (GET_INPUT(27650) != 0) ||   /* 应急跳闸 */
         (GET_INPUT(27613) != 0);     /* 辅助变超高温报警 */
 
     if (raw_trip_now)
@@ -2832,11 +2832,11 @@ if (ret == 6)
 
 
 
-    if((GET_INPUT(27327) == 1)&& (GET_INPUT(27326) == 0))//高压侧开关分闸
+    if((GET_INPUT(27631) == 1)&& (GET_INPUT(27632) == 0))//高压侧开关分闸
     {
         SET_INPUT(High_voltage_switch_status,0xEE);
     }
-    else if(GET_INPUT(27327) == 0 && GET_INPUT(27326) == 1)//高压侧开关合闸
+    else if(GET_INPUT(27631) == 0 && GET_INPUT(27632) == 1)//高压侧开关合闸
     {
         SET_INPUT(High_voltage_switch_status,0xAA);
     }

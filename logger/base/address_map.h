@@ -229,7 +229,8 @@ int CEM9000_HOLD(INT16S value);
   ((address) >= 0 && (address) < 14 ? ((address) - 0 + 25850) : /*高压测量IA～高压保护3I0*/\
   ((address) >= 14 && (address) < 80 ? ((address) - 14 + 27750) : /*系统频率F～CEM9000-4-20mA备用*/\
   ((address) >= 88 && (address) < 92 ? ((address) - 88 + 27816) : /*原变压器数据移入测控数据*/ \
-  -1 ))))))))))))
+    ((address) >= 92 && (address) < 100 ? ((address) - 92 + 25042) : /*原变压器数据移入测控数据*/ \
+  -1 )))))))))))))
 
 #define Cem9000_hold_INDEX(address) ( \
   ((address) >= 2000 && (address) < 2007 ? ((address) - 2000 + 33200) : \
