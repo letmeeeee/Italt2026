@@ -51,6 +51,8 @@
 // 5-19: Reserved addresses
 // 电网连接操作参数（LVRT/HVRT详细设置）
 // 1490-1500: Grid-connected operation parameters - LVRT enable setting, start voltage point, reactive current compensation, active coefficient, HVRT enable setting, and other related settings
+const unsigned int *singlePcsMaster = NULL;
+
 const TableAddressStruct emuTableHoldAddr[] =
 	{
 		//20261002 lj 添加远程使能和黑启动模式 
@@ -1206,7 +1208,12 @@ static int Insert_bms_Table(MYSQL *pmysql)
 	int bmsNumIni = sys_cfg->bmsNum;
 	for (int num = 0; num < bmsNumIni; num++)//修改了这个，bmsNumIni
 	{
-
+		/* 单主机模式仅记录 BMS1、2、5、6 */
+		if ((*singlePcsMaster == 1) &&
+		    (num != 0 && num != 1 && num != 4 && num != 5))
+		{
+		    continue;
+		}
 		bzero_all(sqlstr);
 		sprintf(sqlstr, "insert into bms%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
 				tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, num);
@@ -1706,7 +1713,7 @@ static void pcsModel_CreateSqlstr(void)
     uint16_t offset;
 	uint16_t addtmp;
 	//20261002 lj 添加2*PCS情况
-	if((sys_cfg->sysNum==2)&&(sys_cfg->pcsNum==2))
+	if(*singlePcsMaster == 1)
 	{
 		offset = 2400;
 	}
@@ -1756,7 +1763,7 @@ static void pcsModel_CreateSqlstr(void)
 		}
 	}
 	zone = sizeof(pcsModelTableHoldAddr) / sizeof(TableAddressStruct);
-	if((sys_cfg->sysNum==2)&&(sys_cfg->pcsNum==2))
+	if(*singlePcsMaster == 1)
 	{
 		offset = 3000;
 	}
@@ -1920,7 +1927,7 @@ static void pcsModel_InsertSqlstr(int num)
 	uint16_t offset ;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	//20261002 lj 添加2*PCS情况
-	if((sys_cfg->sysNum==2)&&(sys_cfg->pcsNum==2))
+	if(*singlePcsMaster == 1)
 	{
 		offset = 600 * (num)+2400;
 	}
@@ -1987,7 +1994,7 @@ static void pcsModel_InsertSqlstr(int num)
 		}
 	}
 	zone = sizeof(pcsModelTableHoldAddr) / sizeof(TableAddressStruct);
-	if((sys_cfg->sysNum==2)&&(sys_cfg->pcsNum==2))
+	if(*singlePcsMaster == 1)
 	{
 		offset = 600 * (num)+3000;
 	}
@@ -2050,7 +2057,7 @@ static int Insert_pcsModel_Table(MYSQL *pmysql)
 	// 	printf("START TRANSACTION failed!\n");
 
 	// }
-	int pcsModelNumIni = sys_cfg->pcsNum;
+	int pcsModelNumIni = (*singlePcsMaster == 1) ? sys_cfg->pcsNum / 2 : sys_cfg->pcsNum;
 	for (int num = 0; num < pcsModelNumIni; num++)
 	{
 
@@ -3157,36 +3164,48 @@ static int Insert_system_Table(MYSQL *pmysql)
 static void fault_CreateSqlstr(void)
 {
 	char sqlstrtemp[100] = {0};
-	int zone, type;
+	int zone, type, offset;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	zone = sizeof(faultTableInputAddr) / sizeof(TableAddressStruct);
 	for (int z = 0; z < zone; z++)
 	{
+		if((*singlePcsMaster == 1) && ((z >= 1) && (z <= 4)))
+		{
+			offset = 2400;
+		}
+		else
+		{
+			offset = 0;
+		}
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 		{
-
+			/* 单主机跳过PCS2和PCS4 */
+			if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+			{
+				continue;
+			}
 			type = TpyeLcUnShort;
 
 			bzero_all(sqlstrtemp);
 			switch (type)
 			{
 			case TpyeLcShort:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add + offset);
 				break;
 			case TpyeLcUnInt_H:break;
 			case TpyeLcUnInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT UNSIGNED\0", add);
+				sprintf(sqlstrtemp, ",Input%d INT UNSIGNED\0", add + offset);
 				break;
 			case TpyeLcInt_H:break;
 			case TpyeLcInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT\0", add);
+				sprintf(sqlstrtemp, ",Input%d INT\0", add + offset);
 				break;
 			case TpyeLcFloat_H:break;
 			case TpyeLcFloat_L:
-				sprintf(sqlstrtemp, ",Input%d FLOAT\0", add);
+				sprintf(sqlstrtemp, ",Input%d FLOAT\0", add + offset);
 				break;
 			default:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
+				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add + offset);
 				break;
 			}
 			strcat(sqlstr, sqlstrtemp);
@@ -3200,7 +3219,7 @@ static void fault_CreateSqlstr(void)
  */
 static void fault_InsertSqlstr(void)
 {
-	int z;
+	int z, offset;
 	char sqlstrtemp[100] = {0};
 	int zone, type;
 	u16_conv RegVal;
@@ -3213,19 +3232,32 @@ static void fault_InsertSqlstr(void)
 	}
 	for (int z = 0; z < zone; z++)
 	{
+		if((*singlePcsMaster == 1) && ((z >= 1) && (z <= 4)))
+		{
+			offset = 2400;
+		}
+		else
+		{
+			offset = 0;
+		}
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 		{
+			/* 单主机跳过PCS2和PCS4 */
+			if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+			{
+				continue;
+			}
 			type = TpyeLcUnShort;
 			bzero_all(sqlstrtemp);
 			switch (type)
 			{
 			case TpyeLcShort:
-				RegVal.D16 = GET_INPUT(add);
+				RegVal.D16 = GET_INPUT(add + offset);
 				sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
 				break;
 			
 			default:
-				RegVal.D16 = GET_INPUT(add);
+				RegVal.D16 = GET_INPUT(add + offset);
 				sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
 				break;
 			}
@@ -3241,7 +3273,7 @@ static void fault_InsertSqlstr(void)
  */
 static int fault_InsertSqlstrAll(void)
 {
-	int z, res;
+	int z, res, offset;
 	unsigned short i;
 	char sqlstrtemp[100] = {0};
 	int zone, type;
@@ -3268,7 +3300,7 @@ static int fault_InsertSqlstrAll(void)
 	//system故障总
 	if( power_flag==1)
 		{
-			return;
+			return 0;
 		}
 	for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 	{
@@ -3290,17 +3322,30 @@ static int fault_InsertSqlstrAll(void)
 	sprintf(sqlstrtemp, ",%d\0", faultVal[0]);
 	strcat(sqlstr, sqlstrtemp);
 	//pcsmodel故障总
-	for (z = 1, i = 0; z < 5; z++, i++)
+	for (z = 1, i = 0; z < 5; z++)
 	{
 		flag = 0;
+		if(*singlePcsMaster == 1)
+		{
+			offset = 2400;
+		}
+		else
+		{
+			offset = 0;
+		}
+		/* 单主机跳过PCS2和PCS4 */
+		if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+		{
+			continue;
+		}
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 		{
-			RegVal.D16 = GET_INPUT(add);
+			RegVal.D16 = GET_INPUT(add + offset);
 			        /* 判断是否发生变化 */
-        if (RegVal.D16 != Prev_Input_Val[add])
+        if (RegVal.D16 != Prev_Input_Val[add + offset])
         {
             pcsmodel_flag = 1;                    // 变化标志
-            Prev_Input_Val[add] = RegVal.D16; // 更新历史值
+            Prev_Input_Val[add + offset] = RegVal.D16; // 更新历史值
         }
 
 			if (RegVal.D16 != 0)
@@ -3311,6 +3356,7 @@ static int fault_InsertSqlstrAll(void)
 			}
 		}
 		WriteBit(faultVal[1], i, flag);
+		i++;
 	}
 	bzero_all(sqlstrtemp);
 	sprintf(sqlstrtemp, ",%d\0", faultVal[1]);
@@ -3366,7 +3412,7 @@ static int fault_InsertSqlstrAll(void)
 	strcat(sqlstr, sqlstrtemp);
 //8个BMS故障总
 	// z = 9;
-	for (i = 0; i < 8; i++, z++)
+	for (i = 0, z = 12; i < 8; i++, z++)
 	{
 		flag = 0;
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
@@ -3625,6 +3671,8 @@ int Deal_database(void)
 	static unsigned int waittime = 0;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	const int intime = 1000 * sys_cfg->dbSaveTime;
+	singlePcsMaster = &(sys_cfg->singlePcsMaster);
+
 	if (mysql_init(&mysql) == NULL) // 初始化句柄mysql
 	{
 		printf("mysql_init failure!\n");

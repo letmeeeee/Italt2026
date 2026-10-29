@@ -147,6 +147,7 @@ typedef struct
     unsigned char sydyNum;
     unsigned int  dbHoldDays; //
     unsigned int  dbSaveTime;
+    unsigned int  singlePcsMaster; //单PCS主机模式(每系统仅主PCS在线)
     unsigned int  CSVHoldDays;
     unsigned int  CSVSaveTime;
 

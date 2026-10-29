@@ -153,6 +153,16 @@ static int System_parsing(sysPara* pconfig, const char* section, const char* nam
     {
         pconfig->dbSaveTime = atoi(value);
     }
+    //单PCS主机模式(每系统仅主PCS在线)
+    else if (MATCH("SYSTEM", "projectType")) {
+        int projectType = atoi(value);
+        // 意大利5MW一体机,项目枚举值为2,单台PCS主机模式,每系统仅主PCS
+        if (projectType == 2) {
+            pconfig->singlePcsMaster = 1;
+        } else {
+            pconfig->singlePcsMaster = 0;
+        }
+    }
     //所有系统项都没匹配成功
     else
     {
