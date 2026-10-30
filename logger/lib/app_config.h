@@ -26,6 +26,9 @@ extern "C" {
 #include <pthread.h>
 #include "system.h"
 
+#define S_BUS (0xF)
+#define D_BUS (0xFF)
+
 //单个设备可能的最大数量
 #define MAX_DEVICE_NUM          (500)   //设备的最大数量
 #define MAX_IP_LEN              (16)    //ip字符串的长度
@@ -311,6 +314,79 @@ sysPara* SysConf_GetInfo();
  * @return 结果，1是成功
  */
 int AppConf_Init();
+
+/* Match startup bus selection, including before BusType is initialized. */
+static inline unsigned int Project_Bms_Group_Stride(const sysPara *cfg)
+{
+    /* S_BUS：BMS槽位间隔2，D_BUS：BMS槽位间隔4 */
+    return (BusType == S_BUS) ? 2u : 4u;
+}
+/* 模式2的BMS物理位掩码：group=0为第一组，group=1为第二组。 */
+static inline unsigned int Bms_Group_Mask_5MW(const sysPara *cfg, unsigned int group)
+{
+    if (group > 1u)
+    {
+        return 0u;
+    }
+
+    if (BusType == S_BUS)
+    {
+        /* S_BUS：第一组BMS1(bit0)，第二组BMS3(bit2)。 */
+        return (group == 0u) ? 0x01u : 0x04u;
+    }
+    else
+    {
+    /* D_BUS：第一组BMS1/2(bit0/1)，第二组BMS5/6(bit4/5)。 */
+    return (group == 0u) ? 0x03u : 0x30u;
+    }
+}
+
+/* projectType=2 keeps physical slots: PCS 0/2; BMS 0/2 or 0/1/4/5. */
+static inline int Project_Pcs_Active(const sysPara *cfg, unsigned int slot)
+{
+    return slot < cfg->pcsNum && slot < MAX_PCS_NUM &&
+           (!cfg->singlePcsMaster || slot == 0 || slot == 2);
+}
+/* slot 从0开始：BMS1对应槽位0，BMS3对应槽位2。 */
+static inline int Project_Bms_Active(const sysPara *cfg, unsigned int slot)
+{
+    /* 超出配置范围或数组容量的槽位无效。 */
+    if (slot >= cfg->bmsNum || slot >= MAX_BMS_NUM) {
+        return 0;
+    }
+
+    /* 模式1：配置范围内的所有BMS槽位均有效。 */
+    if (!cfg->singlePcsMaster) {
+        return 1;
+    }
+    else
+    {
+        /* 模式2，S_BUS：BMS有效槽位1、3 */
+        if (BusType == S_BUS) {
+            return slot == 0u || slot == 2u;
+        }
+        /* 模式2，D_BUS：BMS有效槽位1、2、5、6 */
+        else
+        {
+            return slot == 0u || slot == 1u || slot == 4u || slot == 5u;
+        }
+    }
+}
+
+static inline unsigned int Project_Pcs_Count(const sysPara *cfg)
+{
+    if (!cfg->singlePcsMaster) return cfg->pcsNum;
+    unsigned int n = 0;
+    for (unsigned int i = 0; i < MAX_PCS_NUM; ++i) n += Project_Pcs_Active(cfg, i);
+    return n;
+}
+static inline unsigned int Project_Bms_Count(const sysPara *cfg)
+{
+    if (!cfg->singlePcsMaster) return cfg->bmsNum;
+    unsigned int n = 0;
+    for (unsigned int i = 0; i < MAX_BMS_NUM; ++i) n += Project_Bms_Active(cfg, i);
+    return n;
+}
 
 /**
  * @brief 释放App配置空间

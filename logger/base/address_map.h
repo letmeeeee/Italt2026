@@ -15,6 +15,11 @@
  #ifndef ADDRESS_MAP_H
  #define ADDRESS_MAP_H
 #include "system.h"
+
+INT16U Taida_Read_Input(INT32S legacy_address);
+INT16U Tcp_Bms_Status_5MW(INT16U raw);
+INT32S Tcp_Bms_Address_5MW(INT32S address, int dual_bus);
+void Init_Device_Status_5MW(void);
  
  #define HOLD_SIZE 65535
  #define INPUT_SIZE 65535
@@ -84,6 +89,7 @@ int CEM9000_HOLD(INT16S value);
  } RankModel, *pRankModel;
  
  extern volatile RankModel RankM;
+ extern INT8U BusType;
   // 宏定义获取映射值
 // ================= PE PCS Index宏 ===================
  // 正向映射：address → index，实际设备地址映射对外地址

@@ -460,7 +460,11 @@ static void PCS_Taida_Write(int num)
             default:
                 break;
         }
-        INT16U idx = Taida_Addr_From_Index(pcs_num_mask+1, addr);
+        INT32S idx = Taida_Addr_From_Index(pcs_num_mask+1, addr);
+        if (idx < 0) {
+            LOG_INFO("PCS[%d] invalid mapped address: %u", num, addr);
+            continue;
+        }
         
         Modbus_TCP_Write06_SingleRegist(socket_Taida_Pcs[num], PCS_Taida_SLAVE_ADDR, idx, value, CMD_DELAY_15);
       
@@ -481,6 +485,10 @@ static void PCS_Taida_Write(int num)
                 break;
             default:
                 break;
+        }
+        if (SysConf_GetInfo()->singlePcsMaster) {
+            need_reset = (num == 0 && (addr == 15024 || addr == 15025)) ||
+                         (num == 2 && (addr == 15624 || addr == 15625));
         }
         if (need_reset) {
             sleep(5);
@@ -3747,7 +3755,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms5_soc = GET_INPUT(38803);
 
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)&&(PCS3BUS2==1)) 
+        if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 2)) && (PCS3BUS2==1))
         {
             bms6_max_charge_power = GET_INPUT(39038); /* '<Root>/bms6_max_charge_power' */
         } 
@@ -3755,7 +3763,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms6_max_charge_power = 0;
         }
-        if((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)&&(PCS3BUS2==1)) 
+        if(((GET_INPUT(39071) == 0) || (GET_INPUT(39071) == 1)) && (PCS3BUS2==1))
         {
             bms6_max_discharge_power = GET_INPUT(39037); /* '<Root>/bms6_max_discharge_power' */
         } 
@@ -3783,22 +3791,22 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
 
         bus2_or_bus1            =1;              /* '<Root>/bus2_or_bus1' */
         module_num              =8;              /* '<Root>/module_num' */
-        mv_max_power            =5500;          /* '<Root>/mv_max_power' */
+        mv_max_power            =MV_Max_Power_5MW;          /* '<Root>/mv_max_power' */
         mv_power   = GET_HOLD(1010);
         mv_r_power = GET_HOLD(1011);
         // LOG_INFO("mv_power:%d, mv_r_power:%d", mv_power, mv_r_power);
-        pcs1_rated_power        =   2750         ;                              
-        pcs2_rated_power        =   2750       ;                             
-        pcs3_rated_power        =   2750         ;             
-        pcs4_rated_power        =   2750         ;             
+        pcs1_rated_power        =   PCS_Max_Power_5MW         ;                              
+        pcs2_rated_power        =   PCS_Max_Power_5MW       ;                             
+        pcs3_rated_power        =   PCS_Max_Power_5MW         ;             
+        pcs4_rated_power        =   PCS_Max_Power_5MW         ;             
         target_h_soc            = 1000 ;             
         target_l_soc            = 0 ;       
         reactive_rate           =  sys_cfg->reactiverate;  
         // LOG_INFO
         pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
-        pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
-        pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
-        pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */  
+        pcs2_p_available_max=0;  /* '<Root>/pcs2_p_available_max' */
+        pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+        pcs4_p_available_max=0;  /* '<Root>/pcs4_p_available_max' */
     }
     else
     {
@@ -5421,7 +5429,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         }
         bms1_soc                = GET_INPUT(38003);
 
-        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS2BUS1==1))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==2))&&(PCS3BUS1==1))
         {
             bms3_max_charge_power   = GET_INPUT(38438);
         }
@@ -5429,7 +5437,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         {
             bms3_max_charge_power   = 0;
         }
-        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS2BUS1==1))
+        if(((GET_INPUT(38471)==0)||(GET_INPUT(38471)==1))&&(PCS3BUS1==1))
         {
             bms3_max_discharge_power= GET_INPUT(38437);
         }
@@ -5449,36 +5457,36 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
 
         bms5_max_charge_power   = 0; /* '<Root>/bms5_max_charge_power' */
         bms5_max_discharge_power= 0;/* '<Root>/bms5_max_discharge_power' */
-        bms5_soc                = 0;  
+        bms5_soc                = 0;
 
         bms6_max_charge_power   = 0; /* '<Root>/bms6_max_charge_power' */
         bms6_max_discharge_power= 0;/* '<Root>/bms6_max_discharge_power' */
-        bms6_soc                = 0;  
+        bms6_soc                = 0;
 
         bms7_max_charge_power   = 0; /* '<Root>/bms7_max_charge_power' */
         bms7_max_discharge_power= 0;/* '<Root>/bms7_max_discharge_power' */
-        bms7_soc                = 0;  
+        bms7_soc                = 0;
 
         bms8_max_charge_power   = 0; /* '<Root>/bms8_max_charge_power' */
         bms8_max_discharge_power= 0;/* '<Root>/bms8_max_discharge_power' */
         bms8_soc                = 0;              /* '<Root>/bms8_soc' */
         bus2_or_bus1            =0;              /* '<Root>/bus2_or_bus1' */
         module_num              =4;              /* '<Root>/module_num' */
-        mv_max_power            =5500;          /* '<Root>/mv_max_power' */
+        mv_max_power            =MV_Max_Power_5MW;          /* '<Root>/mv_max_power' */
         mv_power                = GET_HOLD(1010);
         mv_r_power              = GET_HOLD(1011);
-        pcs1_rated_power        =   2750        ;
-        pcs2_rated_power        =   2750        ;
-        pcs3_rated_power        =   2750        ;
-        pcs4_rated_power        =   2750        ;
+        pcs1_rated_power        =   PCS_Max_Power_5MW        ;
+        pcs2_rated_power        =   PCS_Max_Power_5MW        ;
+        pcs3_rated_power        =   PCS_Max_Power_5MW        ;
+        pcs4_rated_power        =   PCS_Max_Power_5MW        ;
         target_h_soc            =   1000        ;
         target_l_soc            =   0           ;
-        reactive_rate           =  sys_cfg->reactiverate;         
+        reactive_rate           =  sys_cfg->reactiverate;
         // LOG_INFO("mv_power:%d,mv_r_power:%d",mv_power,mv_r_power);
         pcs1_p_available_max=reactive_power.pcs1_p_available_max;  /* '<Root>/pcs1_p_available_max' */
-        pcs2_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs2_p_available_max' */
-        pcs3_p_available_max=reactive_power.pcs2_p_available_max;  /* '<Root>/pcs3_p_available_max' */
-        pcs4_p_available_max=reactive_power.pcs4_p_available_max;  /* '<Root>/pcs4_p_available_max' */ 
+        pcs2_p_available_max=0;  /* '<Root>/pcs2_p_available_max' */
+        pcs3_p_available_max=reactive_power.pcs3_p_available_max;  /* '<Root>/pcs3_p_available_max' */
+        pcs4_p_available_max=0;  /* '<Root>/pcs4_p_available_max' */
     }
     else
     {
@@ -6456,15 +6464,16 @@ while (1) {
                 time_buf[4] = time.minute;
                 time_buf[5] = time.second;
                 time_buf[6] = time.millisecond ;
-            for(int num=0;num<sys_cfg->pcsNum;num++)
-            {
+                for(int num=0;num<sys_cfg->pcsNum;num++)
+                {
+                if (!Project_Pcs_Active(sys_cfg, num)) continue;
                 Modbus_TCP_Write_Multiple(socket_Heart_Pcs[num], 
                 PCS_Taida_SLAVE_ADDR,
                 Time_Set_Addr,
                 7, 
                 time_buf, 
                 200);   
-            }
+                }
 
             }
             usleep(20*1000);

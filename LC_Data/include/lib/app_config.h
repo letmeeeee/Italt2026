@@ -124,6 +124,13 @@ typedef struct
 }DEVICE_GROUP_T;
 
 
+//协议类型
+#define MEASURE_ITALY_10MW      (1)     //意大利项目10MW
+#define MEASURE_ITALY_5_5MW     (2)     //意大利项目5.5MW
+#define MEASURE_FINLAND_KORK    (3)     //EU-芬兰Korkeamaa-110MW/240.72MWh
+#define MEASURE_FINLAND_KAN     (4)    //EU-芬兰Kannisto-125MW/270.81MWh
+#define MEASURE_UK              (5)     //英国10MW项目
+
 //参数设置
 typedef struct
 {
@@ -162,6 +169,7 @@ typedef struct
     unsigned int bms_pole_num[MAX_BMS_NUM];
     unsigned int bms_cooler_num[MAX_BMS_NUM];
     
+    unsigned int projectType; // 
 } sysPara;
 
 // 按字节对齐

@@ -25,6 +25,9 @@
 #define MV_Max_Power_3                 (5000)  //MV最大功率--两台PCS
 #define PCS_Max_Power                  (2500)  //PCS最大功率限定为2500
 
+#define MV_Max_Power_5MW                 (5500)  //MV最大功率--两台PCS
+#define PCS_Max_Power_5MW                (2750)  //PCS最大功率限定为2750
+
 void  PCS_TAida_write_Task(const char *_num);
 int Controlword_Bit(uint16_t address, uint8_t val01,int num);
 int PCS_HB_start(int socket, int id, INT16U hb_reg_addr,int num);

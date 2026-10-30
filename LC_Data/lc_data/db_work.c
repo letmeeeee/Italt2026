@@ -51,8 +51,6 @@
 // 5-19: Reserved addresses
 // 电网连接操作参数（LVRT/HVRT详细设置）
 // 1490-1500: Grid-connected operation parameters - LVRT enable setting, start voltage point, reactive current compensation, active coefficient, HVRT enable setting, and other related settings
-const unsigned int *singlePcsMaster = NULL;
-
 const TableAddressStruct emuTableHoldAddr[] =
 	{
 		//20261002 lj 添加远程使能和黑启动模式 
@@ -98,11 +96,11 @@ const reg_type_st emuInputIsNotU16Regs[] =
 		{114, TpyeLcUnInt_L},
 		{115, TpyeLcUnInt_H},
 		{116, TpyeLcUnInt_L},
-		{117, TpyeLcUnInt_H},
-		{118, TpyeLcUnInt_L},
-		{119, TpyeLcUnInt_H},
-		{120, TpyeLcUnInt_L},
-
+		// {117, TpyeLcUnInt_H},
+		// {118, TpyeLcUnInt_L},
+		// {119, TpyeLcUnInt_H},
+		// {120, TpyeLcUnInt_L},
+		{122, TpyeLcShort},
 		{123, TpyeLcInt_H},
 		{124, TpyeLcInt_L},
 		{125, TpyeLcInt_H},
@@ -533,7 +531,7 @@ const reg_type_st pcsGroupInputIsNotU16Regs[] =
 const TableAddressStruct pcsGroupTableInputAddr[] =
 	{
 		//20261002 lj 添加PCS组最大可用无功功率
-		{17031, 17091},
+		{17000, 17091},
 		// {17200, 17235},
 };
 
@@ -716,6 +714,14 @@ const reg_type_st meterInputIsNotU16Regs[] =
 		{25374, TpyeLcFloat_H},
 		{25375, TpyeLcFloat_L},
 
+		{25376, TpyeLcFloat_H},
+		{25377, TpyeLcFloat_L},
+		{25378, TpyeLcFloat_H},
+		{25379, TpyeLcFloat_L},
+		{25380, TpyeLcFloat_H},
+		{25381, TpyeLcFloat_L},
+		{25382, TpyeLcFloat_H},
+		{25383, TpyeLcFloat_L},
 };
 const TableAddressStruct meterTableInputAddr[] =
 	{
@@ -972,6 +978,10 @@ const reg_type_st auxInputIsNotU16Regs[] =
 		{27813, TpyeLcFloat_L},
 		{27814, TpyeLcFloat_H},
 		{27815, TpyeLcFloat_L},
+		{27816, TpyeLcFloat_H},
+		{27817, TpyeLcFloat_L},
+		{27818, TpyeLcFloat_H},
+		{27819, TpyeLcFloat_L},
 };
 const TableAddressStruct auxTableInputAddr[] =
 	{
@@ -979,9 +989,9 @@ const TableAddressStruct auxTableInputAddr[] =
 		{25850, 25863},//高压综合保护单元
 
 		{27100, 27133},//UPS
-		{27600, 27715},//测控遥信
+		{27600, 27717},//测控遥信
 
-		{27750, 27815},//测控遥测
+		{27750, 27819},//测控遥测
 
 };
 
@@ -999,12 +1009,10 @@ const TableAddressStruct faultTableInputAddr[] =
 		// {17200, 17207},//pcsGroup 1
 		{17366, 17372},//pcsGroup 2
 		// {17500, 17507},//pcsGroup 2
+		{25969, 25969},//MV 综保保护总信号
+		{27115, 27115},//MV UPS  故障类型
+		{27600, 27604},//事故总,告警总,实时事故总,实时告警总,设备故障总
 
-		{27129, 27133},//MV 
-		{27600, 27604},
-		{27617, 27618},
-		{27623, 27626},
-		{27653, 27654},
 
 		{38039, 38039},//BMS 1
 		{38039+1*200, 38039+1*200},//BMS 2
@@ -1016,6 +1024,290 @@ const TableAddressStruct faultTableInputAddr[] =
 		{38039+7*200, 38039+7*200},//BMS 8
 };
 
+
+/* UK MV-EMS V0.24 tables. The existing Italy V0.16 tables above remain unchanged.
+ * Shared system, PCS, BMS and meter tables retain their existing definitions. */
+static const TableAddressStruct ukAuxTableInputAddr[] =
+{
+    {25030, 25057},//变压器
+    {25850, 25903},//高压综合保护单元
+    {25920, 25970},//高压综合保护单元
+    {27100, 27133},//UPS
+    {27600, 27611},//测控遥信
+    {27619, 27626},//测控遥信
+    {27631, 27650},//测控遥信
+    {27655, 27655},//测控遥信
+    {27661, 27663},//测控遥信
+    {27668, 27713},//测控遥信
+    {27718, 27729},//测控遥信
+    {27750, 27811},//测控遥测
+    {27816, 27831},//测控遥测
+};
+
+static const reg_type_st ukAuxInputIsNotU16Regs[] =
+{
+    {25030, TpyeLcFloat_H},
+    {25031, TpyeLcFloat_L},
+    {25032, TpyeLcFloat_H},
+    {25033, TpyeLcFloat_L},
+    {25034, TpyeLcFloat_H},
+    {25035, TpyeLcFloat_L},
+    {25050, TpyeLcFloat_H},
+    {25051, TpyeLcFloat_L},
+    {25052, TpyeLcFloat_H},
+    {25053, TpyeLcFloat_L},
+    {25054, TpyeLcFloat_H},
+    {25055, TpyeLcFloat_L},
+    {25056, TpyeLcFloat_H},
+    {25057, TpyeLcFloat_L},
+    {25850, TpyeLcFloat_H},
+    {25851, TpyeLcFloat_L},
+    {25852, TpyeLcFloat_H},
+    {25853, TpyeLcFloat_L},
+    {25854, TpyeLcFloat_H},
+    {25855, TpyeLcFloat_L},
+    {25856, TpyeLcFloat_H},
+    {25857, TpyeLcFloat_L},
+    {25858, TpyeLcFloat_H},
+    {25859, TpyeLcFloat_L},
+    {25860, TpyeLcFloat_H},
+    {25861, TpyeLcFloat_L},
+    {25862, TpyeLcFloat_H},
+    {25863, TpyeLcFloat_L},
+    {25864, TpyeLcFloat_H},
+    {25865, TpyeLcFloat_L},
+    {25866, TpyeLcFloat_H},
+    {25867, TpyeLcFloat_L},
+    {25868, TpyeLcFloat_H},
+    {25869, TpyeLcFloat_L},
+    {25870, TpyeLcFloat_H},
+    {25871, TpyeLcFloat_L},
+    {25872, TpyeLcFloat_H},
+    {25873, TpyeLcFloat_L},
+    {25874, TpyeLcFloat_H},
+    {25875, TpyeLcFloat_L},
+    {25876, TpyeLcFloat_H},
+    {25877, TpyeLcFloat_L},
+    {25878, TpyeLcFloat_H},
+    {25879, TpyeLcFloat_L},
+    {25880, TpyeLcFloat_H},
+    {25881, TpyeLcFloat_L},
+    {25882, TpyeLcFloat_H},
+    {25883, TpyeLcFloat_L},
+    {25884, TpyeLcFloat_H},
+    {25885, TpyeLcFloat_L},
+    {25886, TpyeLcFloat_H},
+    {25887, TpyeLcFloat_L},
+    {25888, TpyeLcFloat_H},
+    {25889, TpyeLcFloat_L},
+    {25890, TpyeLcFloat_H},
+    {25891, TpyeLcFloat_L},
+    {25892, TpyeLcFloat_H},
+    {25893, TpyeLcFloat_L},
+    {25894, TpyeLcFloat_H},
+    {25895, TpyeLcFloat_L},
+    {25896, TpyeLcFloat_H},
+    {25897, TpyeLcFloat_L},
+    {25898, TpyeLcFloat_H},
+    {25899, TpyeLcFloat_L},
+    {25900, TpyeLcFloat_H},
+    {25901, TpyeLcFloat_L},
+    {25902, TpyeLcFloat_H},
+    {25903, TpyeLcFloat_L},
+    {27750, TpyeLcFloat_H},
+    {27751, TpyeLcFloat_L},
+    {27752, TpyeLcFloat_H},
+    {27753, TpyeLcFloat_L},
+    {27754, TpyeLcFloat_H},
+    {27755, TpyeLcFloat_L},
+    {27756, TpyeLcFloat_H},
+    {27757, TpyeLcFloat_L},
+    {27758, TpyeLcFloat_H},
+    {27759, TpyeLcFloat_L},
+    {27760, TpyeLcFloat_H},
+    {27761, TpyeLcFloat_L},
+    {27762, TpyeLcFloat_H},
+    {27763, TpyeLcFloat_L},
+    {27764, TpyeLcFloat_H},
+    {27765, TpyeLcFloat_L},
+    {27766, TpyeLcFloat_H},
+    {27767, TpyeLcFloat_L},
+    {27768, TpyeLcFloat_H},
+    {27769, TpyeLcFloat_L},
+    {27770, TpyeLcFloat_H},
+    {27771, TpyeLcFloat_L},
+    {27772, TpyeLcFloat_H},
+    {27773, TpyeLcFloat_L},
+    {27774, TpyeLcFloat_H},
+    {27775, TpyeLcFloat_L},
+    {27776, TpyeLcFloat_H},
+    {27777, TpyeLcFloat_L},
+    {27778, TpyeLcFloat_H},
+    {27779, TpyeLcFloat_L},
+    {27780, TpyeLcFloat_H},
+    {27781, TpyeLcFloat_L},
+    {27782, TpyeLcFloat_H},
+    {27783, TpyeLcFloat_L},
+    {27784, TpyeLcFloat_H},
+    {27785, TpyeLcFloat_L},
+    {27786, TpyeLcFloat_H},
+    {27787, TpyeLcFloat_L},
+    {27788, TpyeLcFloat_H},
+    {27789, TpyeLcFloat_L},
+    {27790, TpyeLcFloat_H},
+    {27791, TpyeLcFloat_L},
+    {27792, TpyeLcFloat_H},
+    {27793, TpyeLcFloat_L},
+    {27794, TpyeLcFloat_H},
+    {27795, TpyeLcFloat_L},
+    {27796, TpyeLcFloat_H},
+    {27797, TpyeLcFloat_L},
+    {27798, TpyeLcFloat_H},
+    {27799, TpyeLcFloat_L},
+    {27800, TpyeLcFloat_H},
+    {27801, TpyeLcFloat_L},
+    {27802, TpyeLcFloat_H},
+    {27803, TpyeLcFloat_L},
+    {27804, TpyeLcFloat_H},
+    {27805, TpyeLcFloat_L},
+    {27806, TpyeLcFloat_H},
+    {27807, TpyeLcFloat_L},
+    {27808, TpyeLcFloat_H},
+    {27809, TpyeLcFloat_L},
+    {27810, TpyeLcFloat_H},
+    {27811, TpyeLcFloat_L},
+    {27816, TpyeLcFloat_H},
+    {27817, TpyeLcFloat_L},
+    {27818, TpyeLcFloat_H},
+    {27819, TpyeLcFloat_L},
+    {27820, TpyeLcFloat_H},
+    {27821, TpyeLcFloat_L},
+    {27822, TpyeLcFloat_H},
+    {27823, TpyeLcFloat_L},
+    {27824, TpyeLcFloat_H},
+    {27825, TpyeLcFloat_L},
+    {27826, TpyeLcFloat_H},
+    {27827, TpyeLcFloat_L},
+    {27828, TpyeLcFloat_H},
+    {27829, TpyeLcFloat_L},
+    {27830, TpyeLcFloat_H},
+    {27831, TpyeLcFloat_L},
+    {27109, TpyeLcUnInt_H},
+    {27110, TpyeLcUnInt_L},
+    {27121, TpyeLcUnInt_H},
+    {27122, TpyeLcUnInt_L},
+};
+
+
+static const TableAddressStruct finlandMeterTableInputAddr[] =
+{
+    {25306, 25383},
+};
+static const TableAddressStruct finlandAuxTableInputAddr[] =
+{
+    {25030, 25035},
+    {25050, 25057},
+    {25850, 25863},
+    {25969, 25994},
+    {27100, 27125},
+    {27129, 27133},
+    {27600, 27659},
+    {27668, 27679},
+    {27688, 27689},
+    {27703, 27704},
+    {27710, 27713},
+    {27750, 27765},
+    {27782, 27795},
+    {27816, 27837},
+};
+
+static const reg_type_st finlandAuxInputIsNotU16Regs[] =
+{
+    {25030, TpyeLcFloat_H},
+    {25031, TpyeLcFloat_L},
+    {25032, TpyeLcFloat_H},
+    {25033, TpyeLcFloat_L},
+    {25034, TpyeLcFloat_H},
+    {25035, TpyeLcFloat_L},
+    {25050, TpyeLcFloat_H},
+    {25051, TpyeLcFloat_L},
+    {25052, TpyeLcFloat_H},
+    {25053, TpyeLcFloat_L},
+    {25054, TpyeLcFloat_H},
+    {25055, TpyeLcFloat_L},
+    {25056, TpyeLcFloat_H},
+    {25057, TpyeLcFloat_L},
+    {25850, TpyeLcFloat_H},
+    {25851, TpyeLcFloat_L},
+    {25852, TpyeLcFloat_H},
+    {25853, TpyeLcFloat_L},
+    {25854, TpyeLcFloat_H},
+    {25855, TpyeLcFloat_L},
+    {25856, TpyeLcFloat_H},
+    {25857, TpyeLcFloat_L},
+    {25858, TpyeLcFloat_H},
+    {25859, TpyeLcFloat_L},
+    {25860, TpyeLcFloat_H},
+    {25861, TpyeLcFloat_L},
+    {25862, TpyeLcFloat_H},
+    {25863, TpyeLcFloat_L},
+    {27109, TpyeLcUnInt_H},
+    {27110, TpyeLcUnInt_L},
+    {27121, TpyeLcUnInt_H},
+    {27122, TpyeLcUnInt_L},
+    {27750, TpyeLcFloat_H},
+    {27751, TpyeLcFloat_L},
+    {27752, TpyeLcFloat_H},
+    {27753, TpyeLcFloat_L},
+    {27754, TpyeLcFloat_H},
+    {27755, TpyeLcFloat_L},
+    {27756, TpyeLcFloat_H},
+    {27757, TpyeLcFloat_L},
+    {27758, TpyeLcFloat_H},
+    {27759, TpyeLcFloat_L},
+    {27760, TpyeLcFloat_H},
+    {27761, TpyeLcFloat_L},
+    {27762, TpyeLcFloat_H},
+    {27763, TpyeLcFloat_L},
+    {27764, TpyeLcFloat_H},
+    {27765, TpyeLcFloat_L},
+    {27782, TpyeLcFloat_H},
+    {27783, TpyeLcFloat_L},
+    {27784, TpyeLcFloat_H},
+    {27785, TpyeLcFloat_L},
+    {27786, TpyeLcFloat_H},
+    {27787, TpyeLcFloat_L},
+    {27788, TpyeLcFloat_H},
+    {27789, TpyeLcFloat_L},
+    {27790, TpyeLcFloat_H},
+    {27791, TpyeLcFloat_L},
+    {27792, TpyeLcFloat_H},
+    {27793, TpyeLcFloat_L},
+    {27794, TpyeLcFloat_H},
+    {27795, TpyeLcFloat_L},
+    {27816, TpyeLcFloat_H},
+    {27817, TpyeLcFloat_L},
+    {27818, TpyeLcFloat_H},
+    {27819, TpyeLcFloat_L},
+    {27820, TpyeLcFloat_H},
+    {27821, TpyeLcFloat_L},
+    {27822, TpyeLcFloat_H},
+    {27823, TpyeLcFloat_L},
+    {27824, TpyeLcFloat_H},
+    {27825, TpyeLcFloat_L},
+    {27826, TpyeLcFloat_H},
+    {27827, TpyeLcFloat_L},
+    {27828, TpyeLcFloat_H},
+    {27829, TpyeLcFloat_L},
+    {27830, TpyeLcFloat_H},
+    {27831, TpyeLcFloat_L},
+    {27832, TpyeLcFloat_H},
+    {27833, TpyeLcFloat_L},
+    {27834, TpyeLcFloat_H},
+    {27835, TpyeLcFloat_L},
+    {27836, TpyeLcFloat_H},
+    {27837, TpyeLcFloat_L},
+};
 // 数据库指令字符串
 char sqlstr[15000] = {0};
 uint8_t power_flag=0;
@@ -1209,7 +1501,7 @@ static int Insert_bms_Table(MYSQL *pmysql)
 	for (int num = 0; num < bmsNumIni; num++)//修改了这个，bmsNumIni
 	{
 		/* 单主机模式仅记录 BMS1、2、5、6 */
-		if ((*singlePcsMaster == 1) &&
+		if (((sys_cfg->singlePcsMaster) == 1) &&
 		    (num != 0 && num != 1 && num != 4 && num != 5))
 		{
 		    continue;
@@ -1713,7 +2005,7 @@ static void pcsModel_CreateSqlstr(void)
     uint16_t offset;
 	uint16_t addtmp;
 	//20261002 lj 添加2*PCS情况
-	if(*singlePcsMaster == 1)
+	if(sys_cfg->singlePcsMaster == 1)
 	{
 		offset = 2400;
 	}
@@ -1763,7 +2055,7 @@ static void pcsModel_CreateSqlstr(void)
 		}
 	}
 	zone = sizeof(pcsModelTableHoldAddr) / sizeof(TableAddressStruct);
-	if(*singlePcsMaster == 1)
+	if(sys_cfg->singlePcsMaster == 1)
 	{
 		offset = 3000;
 	}
@@ -1927,7 +2219,7 @@ static void pcsModel_InsertSqlstr(int num)
 	uint16_t offset ;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	//20261002 lj 添加2*PCS情况
-	if(*singlePcsMaster == 1)
+	if(sys_cfg->singlePcsMaster == 1)
 	{
 		offset = 600 * (num)+2400;
 	}
@@ -1994,7 +2286,7 @@ static void pcsModel_InsertSqlstr(int num)
 		}
 	}
 	zone = sizeof(pcsModelTableHoldAddr) / sizeof(TableAddressStruct);
-	if(*singlePcsMaster == 1)
+	if(sys_cfg->singlePcsMaster == 1)
 	{
 		offset = 600 * (num)+3000;
 	}
@@ -2057,7 +2349,7 @@ static int Insert_pcsModel_Table(MYSQL *pmysql)
 	// 	printf("START TRANSACTION failed!\n");
 
 	// }
-	int pcsModelNumIni = (*singlePcsMaster == 1) ? sys_cfg->pcsNum / 2 : sys_cfg->pcsNum;
+	int pcsModelNumIni = ((sys_cfg->singlePcsMaster) == 1) ? sys_cfg->pcsNum / 2 : sys_cfg->pcsNum;
 	for (int num = 0; num < pcsModelNumIni; num++)
 	{
 
@@ -2323,10 +2615,20 @@ static void meter_CreateSqlstr(void)
 	sysPara *sys_cfg = SysConf_GetInfo();
 	unsigned char meterNumIni = 1;
 
-	zone = sizeof(meterTableInputAddr) / sizeof(TableAddressStruct);
+	const TableAddressStruct *input_addr = NULL;
+	if ((sys_cfg->projectType == MEASURE_FINLAND_KORK) || (sys_cfg->projectType == MEASURE_FINLAND_KAN))
+	{
+		input_addr = finlandMeterTableInputAddr;
+		zone = sizeof(finlandMeterTableInputAddr) / sizeof(TableAddressStruct);
+	}
+	else
+	{
+		input_addr = meterTableInputAddr;
+		zone = sizeof(meterTableInputAddr) / sizeof(TableAddressStruct);
+	}
 	for (int z = 0; z < zone; z++)
 	{
-		for (unsigned short add = meterTableInputAddr[z].start; add <= meterTableInputAddr[z].end; add++)
+		for (unsigned short add = input_addr[z].start; add <= input_addr[z].end; add++)
 		{
 
 			type = TpyeLcUnShort;
@@ -2376,14 +2678,25 @@ static void meter_InsertSqlstr(int num)
 	u16_conv RegVal;
 	u32_conv fRegVal;
 	uint16_t offset = 50 * (num);
-	zone = sizeof(meterTableInputAddr) / sizeof(TableAddressStruct);
+	sysPara *sys_cfg = SysConf_GetInfo();
+	const TableAddressStruct *input_addr = NULL;
+	if ((sys_cfg->projectType == MEASURE_FINLAND_KORK) || (sys_cfg->projectType == MEASURE_FINLAND_KAN))
+	{
+		input_addr = finlandMeterTableInputAddr;
+		zone = sizeof(finlandMeterTableInputAddr) / sizeof(TableAddressStruct);
+	}
+	else
+	{
+		input_addr = meterTableInputAddr;
+		zone = sizeof(meterTableInputAddr) / sizeof(TableAddressStruct);
+	}
 	if( power_flag==1)
 	{
 		return;
 	}
 	for (int z = 0; z < zone; z++)
 	{
-		for (unsigned short add = meterTableInputAddr[z].start; add <= meterTableInputAddr[z].end; add++)
+		for (unsigned short add = input_addr[z].start; add <= input_addr[z].end; add++)
 		{
 			type = TpyeLcUnShort;
 			for (unsigned short i = 0; i < sizeof(meterInputIsNotU16Regs) / sizeof(reg_type_st); i++)
@@ -2747,18 +3060,45 @@ static void mv_CreateSqlstr(void)
 	char sqlstrtemp[100] = {0};
 	int zone, type;
 	sysPara *sys_cfg = SysConf_GetInfo();
-	zone = sizeof(auxTableInputAddr) / sizeof(TableAddressStruct);
+	
+	
+	const TableAddressStruct *input_addr = NULL;
+	const reg_type_st *input_type = NULL;
+	int type_count;
+
+	if ((sys_cfg->projectType == MEASURE_FINLAND_KORK) || (sys_cfg->projectType == MEASURE_FINLAND_KAN))
+	{
+		input_addr = finlandAuxTableInputAddr;
+		input_type = finlandAuxInputIsNotU16Regs;
+		type_count = sizeof(finlandAuxInputIsNotU16Regs) / sizeof(reg_type_st);
+		zone = sizeof(finlandAuxTableInputAddr) / sizeof(TableAddressStruct);
+	}
+	else if (sys_cfg->projectType == MEASURE_UK)
+	{
+		input_addr = ukAuxTableInputAddr;
+		input_type = ukAuxInputIsNotU16Regs;
+		type_count = sizeof(ukAuxInputIsNotU16Regs) / sizeof(reg_type_st);
+		zone = sizeof(ukAuxTableInputAddr) / sizeof(TableAddressStruct);
+	}
+	else
+	{
+		input_addr = auxTableInputAddr;
+		input_type = auxInputIsNotU16Regs;
+		type_count = sizeof(auxInputIsNotU16Regs) / sizeof(reg_type_st);
+		zone = sizeof(auxTableInputAddr) / sizeof(TableAddressStruct);
+	}
+	
 	for (int z = 0; z < zone; z++)
 	{
-		for (unsigned short add = auxTableInputAddr[z].start; add <= auxTableInputAddr[z].end; add++)
+		for (unsigned short add = input_addr[z].start; add <= input_addr[z].end; add++)
 		{
 
 			type = TpyeLcUnShort;
-			for (unsigned short i = 0; i < sizeof(auxInputIsNotU16Regs) / sizeof(reg_type_st); i++)
+			for (unsigned short i = 0; i < type_count; i++)
 			{
-				if (auxInputIsNotU16Regs[i].RegAdd == add)
+				if (input_type[i].RegAdd == add)
 				{
-					type = auxInputIsNotU16Regs[i].Type;
+					type = input_type[i].Type;
 					break;
 				}
 			}
@@ -2802,22 +3142,46 @@ static void mv_InsertSqlstr(void)
 	u16_conv RegVal;
 	u32_conv fRegVal;
 	sysPara *sys_cfg = SysConf_GetInfo();
+	const TableAddressStruct *input_addr = NULL;
+	const reg_type_st *input_type = NULL;
+	int type_count;
 	unsigned short offset = 0;
-	zone = sizeof(auxTableInputAddr) / sizeof(TableAddressStruct);
+	if ((sys_cfg->projectType == MEASURE_FINLAND_KORK) || (sys_cfg->projectType == MEASURE_FINLAND_KAN))
+	{
+		input_addr = finlandAuxTableInputAddr;
+		input_type = finlandAuxInputIsNotU16Regs;
+		type_count = sizeof(finlandAuxInputIsNotU16Regs) / sizeof(reg_type_st);
+		zone = sizeof(finlandAuxTableInputAddr) / sizeof(TableAddressStruct);
+	}
+	else if (sys_cfg->projectType == MEASURE_UK)
+	{
+		input_addr = ukAuxTableInputAddr;
+		input_type = ukAuxInputIsNotU16Regs;
+		type_count = sizeof(ukAuxInputIsNotU16Regs) / sizeof(reg_type_st);
+		zone = sizeof(ukAuxTableInputAddr) / sizeof(TableAddressStruct);
+	}
+	else
+	{
+		input_addr = auxTableInputAddr;
+		input_type = auxInputIsNotU16Regs;
+		type_count = sizeof(auxInputIsNotU16Regs) / sizeof(reg_type_st);
+		zone = sizeof(auxTableInputAddr) / sizeof(TableAddressStruct);
+	}
+	
 	if( power_flag==1)
 	{
 		return;
 	}	
 	for (int z = 0; z < zone; z++)
 	{
-		for (unsigned short add = auxTableInputAddr[z].start; add <= auxTableInputAddr[z].end; add++)
+		for (unsigned short add = input_addr[z].start; add <= input_addr[z].end; add++)
 		{
 			type = TpyeLcUnShort;
-			for (unsigned short i = 0; i < sizeof(auxInputIsNotU16Regs) / sizeof(reg_type_st); i++)
+			for (unsigned short i = 0; i < type_count; i++)
 			{
-				if (auxInputIsNotU16Regs[i].RegAdd == add)
+				if (input_type[i].RegAdd == add)
 				{
-					type = auxInputIsNotU16Regs[i].Type;
+					type = input_type[i].Type;
 					break;
 				}
 			}
@@ -3169,7 +3533,7 @@ static void fault_CreateSqlstr(void)
 	zone = sizeof(faultTableInputAddr) / sizeof(TableAddressStruct);
 	for (int z = 0; z < zone; z++)
 	{
-		if((*singlePcsMaster == 1) && ((z >= 1) && (z <= 4)))
+		if(((sys_cfg->singlePcsMaster) == 1) && ((z >= 1) && (z <= 4)))
 		{
 			offset = 2400;
 		}
@@ -3180,7 +3544,7 @@ static void fault_CreateSqlstr(void)
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 		{
 			/* 单主机跳过PCS2和PCS4 */
-			if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+			if (((sys_cfg->singlePcsMaster) == 1) && ((z == 2) || (z == 4)))
 			{
 				continue;
 			}
@@ -3232,7 +3596,7 @@ static void fault_InsertSqlstr(void)
 	}
 	for (int z = 0; z < zone; z++)
 	{
-		if((*singlePcsMaster == 1) && ((z >= 1) && (z <= 4)))
+		if(((sys_cfg->singlePcsMaster) == 1) && ((z >= 1) && (z <= 4)))
 		{
 			offset = 2400;
 		}
@@ -3243,7 +3607,7 @@ static void fault_InsertSqlstr(void)
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 		{
 			/* 单主机跳过PCS2和PCS4 */
-			if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+			if (((sys_cfg->singlePcsMaster) == 1) && ((z == 2) || (z == 4)))
 			{
 				continue;
 			}
@@ -3314,7 +3678,7 @@ static int fault_InsertSqlstrAll(void)
 		if (RegVal.D16 != 0)
 		{
 			flag = 1;
-			break;
+			//break;
 		}
 	}
 	WriteBit(faultVal[0], z, flag);
@@ -3325,7 +3689,7 @@ static int fault_InsertSqlstrAll(void)
 	for (z = 1, i = 0; z < 5; z++)
 	{
 		flag = 0;
-		if(*singlePcsMaster == 1)
+		if(sys_cfg->singlePcsMaster == 1)
 		{
 			offset = 2400;
 		}
@@ -3334,7 +3698,7 @@ static int fault_InsertSqlstrAll(void)
 			offset = 0;
 		}
 		/* 单主机跳过PCS2和PCS4 */
-		if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+		if (((sys_cfg->singlePcsMaster) == 1) && ((z == 2) || (z == 4)))
 		{
 			continue;
 		}
@@ -3351,8 +3715,6 @@ static int fault_InsertSqlstrAll(void)
 			if (RegVal.D16 != 0)
 			{
 				flag = 1;
-			
-				
 			}
 		}
 		WriteBit(faultVal[1], i, flag);
@@ -3386,12 +3748,13 @@ static int fault_InsertSqlstrAll(void)
 	sprintf(sqlstrtemp, ",%d\0", faultVal[2]);
 	strcat(sqlstr, sqlstrtemp);
 //MV辅助系统故障总
-	for (z = 7; z < 12; z++)
+	int bms_start = zone - 8;
+	for (z = 7; z < bms_start; z++)
 	{
 		for (int add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 		{
 			RegVal.D16 = GET_INPUT(add);
-		if (RegVal.D16 != Prev_Input_Val[add]) /* 判断是否发生变化 */
+			if (RegVal.D16 != Prev_Input_Val[add]) /* 判断是否发生变化 */
 			{
 				MV_flag = 1;                    // 变化标志
 				Prev_Input_Val[add] = RegVal.D16; // 更新历史值
@@ -3399,20 +3762,20 @@ static int fault_InsertSqlstrAll(void)
 			if (RegVal.D16 != 0)
 			{
 				faultVal[3] = 1;
-				break;
+				// break;
 			}
 		}
-		if (faultVal[3] != 0)
-		{
-			break;
-		}
+		// if (faultVal[3] != 0)
+		// {
+		// 	break;
+		// }
 	}
 	bzero_all(sqlstrtemp);
 	sprintf(sqlstrtemp, ",%d\0", faultVal[3]);
 	strcat(sqlstr, sqlstrtemp);
 //8个BMS故障总
-	// z = 9;
-	for (i = 0, z = 12; i < 8; i++, z++)
+	// z = 13;
+	for (i = 0, z = bms_start; i < 8; i++, z++)
 	{
 		flag = 0;
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
@@ -3426,7 +3789,7 @@ static int fault_InsertSqlstrAll(void)
 			if (RegVal.D16 != 0)
 			{
 				flag = 1;
-				break;
+				//break;
 			}
 		}
 		WriteBit(faultVal[4], i, flag);
@@ -3671,8 +4034,6 @@ int Deal_database(void)
 	static unsigned int waittime = 0;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	const int intime = 1000 * sys_cfg->dbSaveTime;
-	singlePcsMaster = &(sys_cfg->singlePcsMaster);
-
 	if (mysql_init(&mysql) == NULL) // 初始化句柄mysql
 	{
 		printf("mysql_init failure!\n");
