@@ -70,8 +70,10 @@ static void pcs_clear_points_on_fault(int pcs_group)
 
 static void slave_pcs_clear_points_on_fault(int pcs)
 {
+    int input_base = SysConf_GetInfo()->singlePcsMaster ? 5000 : 2600;
+    int hold_base = SysConf_GetInfo()->singlePcsMaster ? 15000 : 12000;
     /* 清 INPUT 2600~2898 (偏移 pcs*300) */
-    for (int i = 2600; i < 2899; ++i)
+    for (int i = input_base; i < input_base + 299; ++i)
         SET_INPUT(i + pcs * 300, 0);
 
     // /* 清 INPUT 17000~17298 (偏移 group*300) */
@@ -79,7 +81,7 @@ static void slave_pcs_clear_points_on_fault(int pcs)
     //     SET_INPUT(i + pcs_group * 300, 0);
 
     /* 清 HOLD 12000~12298 (偏移 pcs*300) */
-    for (int i = 12000; i < 12299; ++i)
+    for (int i = hold_base; i < hold_base + 299; ++i)
         SET_HOLD(i + pcs * 300, 0);
 
     // /* 清 HOLD 27000~27298 (偏移 group*300) */
@@ -673,6 +675,7 @@ static void check_pcs_limit(void)
                 PCS_Unpack_To_Set_Hold(0x1);
             SET_INPUT(NUMBER_OF_PCSs,sys_cfg->pcsNum);  
             }
+            if (sys_cfg->singlePcsMaster) Mode2_Init_Device_Status();
             /*版本号*/
             SET_INPUT(LC_PROTOCOL_VERSION,15);
             SET_INPUT(SOFTWARE_MAJOR_VERSION,1);
@@ -690,6 +693,7 @@ static void check_pcs_limit(void)
 
     for (int pcs = 0; pcs < sys_cfg->pcsNum && pcs < MAX_PCS; ++pcs) 
     {
+        if (!Project_Pcs_Active(sys_cfg, pcs)) continue;
         int curr_fault = (Get_PCS_Comm(pcs) == 1);  /* 1=通信故障 */
        
         /* 正常 -> 故障（上升沿） */

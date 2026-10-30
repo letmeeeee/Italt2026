@@ -15,6 +15,11 @@
  #ifndef ADDRESS_MAP_H
  #define ADDRESS_MAP_H
 #include "system.h"
+
+INT16U Taida_Read_Input(INT32S legacy_address);
+INT16U Mode2_Tcp_Bms_Status(INT16U raw);
+INT32S Mode2_Tcp_Bms_Address(INT32S address, int dual_bus);
+void Mode2_Init_Device_Status(void);
  
  #define HOLD_SIZE 65535
  #define INPUT_SIZE 65535

@@ -145,8 +145,10 @@ static void pcs_clear_points_on_fault(int pcs_group)
 
 static void slave_pcs_clear_points_on_fault(int pcs)
 {
+    int input_base = SysConf_GetInfo()->singlePcsMaster ? 5000 : 2600;
+    int hold_base = SysConf_GetInfo()->singlePcsMaster ? 15000 : 12000;
     /* 清 INPUT 2600~2898 (偏移 pcs*300) */
-    for (int i = 2600; i < 2899; ++i)
+    for (int i = input_base; i < input_base + 299; ++i)
         SET_INPUT(i + pcs * 300, 0);
 
     // /* 清 INPUT 17000~17298 (偏移 group*300) */
@@ -154,7 +156,7 @@ static void slave_pcs_clear_points_on_fault(int pcs)
     //     SET_INPUT(i + pcs_group * 300, 0);
 
     /* 清 HOLD 12000~12298 (偏移 pcs*300) */
-    for (int i = 12000; i < 12299; ++i)
+    for (int i = hold_base; i < hold_base + 299; ++i)
         SET_HOLD(i + pcs * 300, 0);
 
     // /* 清 HOLD 27000~27298 (偏移 group*300) */
@@ -261,6 +263,9 @@ void BMS_Unpack_To_Set_Hold(INT16U value)//将值拆分放到BMS的切入切出�
 static inline INT8U pair_enabled(INT8U sys)
 {
     if (sys > 1) return 0;
+    /* Mode2: one master per group, at physical slots 0 and 2. */
+    if (SysConf_GetInfo()->singlePcsMaster)
+        return Project_Pcs_Active(SysConf_GetInfo(), sys * 2);
     INT8U mask;
     if (sys == 0) 
     {
@@ -691,6 +696,12 @@ void EMS_Read_Control_Mask(void)
 //如果当前的支路被启用则返回1
 INT8U SUB_ENABLED_SYS(INT8U sys, INT8U sub)
 {
+    sysPara *cfg = SysConf_GetInfo();
+    if (cfg->singlePcsMaster) {
+        unsigned int stride = Project_Bms_Group_Stride(cfg);
+        return sys < SYS_COUNT && sub < stride && pair_enabled(sys) &&
+               Project_Bms_Active(cfg, sys * stride + sub);
+    }
     if (!pair_enabled(sys)) return 0;
     INT8U gi = (INT8U)(sys * BMS_PER_SYS + sub); /* 全局 BMS 索引 0..7 */
    
@@ -1105,19 +1116,19 @@ static void Event_Warning_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_
     if (!is_warn_no_stop) {
        //  LOG_INFO("数据采集：%d",GET_INPUT(3427));
             for (INT16U addr = 2819; addr <= 2830; ++addr) {
-                if (GET_INPUT(addr + 0 * 300) != 0) { is_warn_no_stop = 1; break; }
+                if (Taida_Read_Input(addr + 0 * 300) != 0) { is_warn_no_stop = 1; break; }
             }
            for (INT16U addr = 2819; addr <= 2830; ++addr) {
  
-                if (GET_INPUT(addr + 2 * 300) != 0) { is_warn_no_stop = 1; break; }
+                if (Taida_Read_Input(addr + 2 * 300) != 0) { is_warn_no_stop = 1; break; }
             }
-            if (GET_INPUT(2817 + 0 * 300) != 0) { is_warn_no_stop = 1;}
-            if (GET_INPUT(2817 + 2 * 300) != 0) { is_warn_no_stop = 1;}
+            if (Taida_Read_Input(2817 + 0 * 300) != 0) { is_warn_no_stop = 1;}
+            if (Taida_Read_Input(2817 + 2 * 300) != 0) { is_warn_no_stop = 1;}
             for (INT16U addr = 2833; addr <= 2844; ++addr) {
-                if (GET_INPUT(addr + 0 * 300) != 0) { is_warn_no_stop = 1; break; }
+                if (Taida_Read_Input(addr + 0 * 300) != 0) { is_warn_no_stop = 1; break; }
             }
             for (INT16U addr = 2833; addr <= 2844; ++addr) {
-                if (GET_INPUT(addr + 2 * 300) != 0) { is_warn_no_stop = 1; break; }
+                if (Taida_Read_Input(addr + 2 * 300) != 0) { is_warn_no_stop = 1; break; }
             }
     }
             //PrintModuleFaultWords(0);//打印PCS0一般告警信息
@@ -2527,6 +2538,7 @@ static void check_pcs_limit(void)
                 PCS_Unpack_To_Set_Hold(0x1);
             SET_INPUT(NUMBER_OF_PCSs,sys_cfg->pcsNum);  
             }
+            if (sys_cfg->singlePcsMaster) Mode2_Init_Device_Status();
             /*版本号*/
             SET_INPUT(LC_PROTOCOL_VERSION,14);
             SET_INPUT(SOFTWARE_MAJOR_VERSION,1);

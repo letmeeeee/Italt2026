@@ -232,7 +232,6 @@ static void* Server_Handle_Data(void *arg)
     sysPara* sys_cfg = SysConf_GetInfo();
     INT8U single_mode  = sys_cfg->singlePcsMaster;
     INT16U pcsnum = 0;
-    INT16S bmsnum = 0;
     INT16U bms_5mw_state = 0;
     Set_EMS_Comm(0, IsNoFault, TRUE);    // EMS通讯正常,全部通信链接均判断正常
     rec_timeout.tv_sec = 0;
@@ -392,7 +391,7 @@ static void* Server_Handle_Data(void *arg)
                 //Read input register
                 if (Temp.D16 >= 38000)
                 {
-                    bmsnum = BMSnum_calculate(Temp.D16);
+                    INT16S bmsnum = BMSnum_calculate(Temp.D16);
                     if ((bmsnum < 0) || (bmsnum >= 8))
                     {
                      LOG_INFO("invalid address:%d", Temp.D16);
@@ -405,22 +404,7 @@ static void* Server_Handle_Data(void *arg)
                     {
                         if (single_mode == 1)
                         {
-                            // 单主机PCS双BUS模式下,EMS下发的BMS2/3实际返回BMS4/5的数据
-                            if ((BusType == D_BUS) && ((bmsnum == 2) || (bmsnum == 3)))
-                            {
-
-                                LC_EMS_Address = Temp.D16 + 200 * 2;
-                            }
-                            // 单主机PCS单BUS模式下,EMS下发的BMS1实际返回BMS2的数据
-                            else if ((BusType == S_BUS) && (bmsnum == 1))
-                            {
-
-                                LC_EMS_Address = Temp.D16 + 200 * 1;
-                            }
-                            else
-                            {
-                                LC_EMS_Address = Temp.D16;
-                            }
+                            LC_EMS_Address = Mode2_Tcp_Bms_Address(Temp.D16, BusType == D_BUS);
                         }
                         else
                         {
@@ -430,7 +414,7 @@ static void* Server_Handle_Data(void *arg)
                         if ((single_mode == 1) && (Temp.D16 == STATUS_WORD3))
                         {
                             bms_5mw_state = GET_INPUT(LC_EMS_Address);
-                            RegVal.D16 = (((bms_5mw_state >> 2) & (3 << 2)) | bms_5mw_state) & ~(3 << 4);
+                            RegVal.D16 = Mode2_Tcp_Bms_Status(bms_5mw_state);
                         }
                         else
                         {
@@ -1180,17 +1164,17 @@ static void* Server_Handle_Data(void *arg)
                         //PCS参数设置   电网放电功率标定 k~从机1 控制启用         
                         if (single_mode == 1)
                         {
-                            if((Temp.D16>=15000&&Temp.D16<=15032)) pcsnum = 0; // 主机1
+                            if((Temp.D16>=15000&&Temp.D16<=15034)) pcsnum = 0; // 主机1
                             // else if(Temp.D16>=15300&&Temp.D16<=15332) pcsnum = 1; // 从机1-1
-                            else if((Temp.D16>=15600&&Temp.D16<=15632)) pcsnum = 2; // 主机2
+                            else if((Temp.D16>=15600&&Temp.D16<=15634)) pcsnum = 2; // 主机2
                             // else if(Temp.D16>=15900&&Temp.D16<=15932) pcsnum = 3; // 从机2-1
                         }
                         else
                         {
-                            if((Temp.D16>=12000&&Temp.D16<=12032)) pcsnum = 0; // 主机1
-                            else if(Temp.D16>=12300&&Temp.D16<=12332) pcsnum = 1; // 从机1-1
-                            else if((Temp.D16>=12600&&Temp.D16<=12632)) pcsnum = 2; // 主机2
-                            else if(Temp.D16>=12900&&Temp.D16<=12932) pcsnum = 3; // 从机2-1
+                            if((Temp.D16>=12000&&Temp.D16<=12034)) pcsnum = 0; // 主机1
+                            else if(Temp.D16>=12300&&Temp.D16<=12334) pcsnum = 1; // 从机1-1
+                            else if((Temp.D16>=12600&&Temp.D16<=12634)) pcsnum = 2; // 主机2
+                            else if(Temp.D16>=12900&&Temp.D16<=12934) pcsnum = 3; // 从机2-1
                         }
 
                     }

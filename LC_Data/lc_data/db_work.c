@@ -51,8 +51,6 @@
 // 5-19: Reserved addresses
 // 电网连接操作参数（LVRT/HVRT详细设置）
 // 1490-1500: Grid-connected operation parameters - LVRT enable setting, start voltage point, reactive current compensation, active coefficient, HVRT enable setting, and other related settings
-const unsigned int *singlePcsMaster = NULL;
-
 const TableAddressStruct emuTableHoldAddr[] =
 	{
 		//20261002 lj 添加远程使能和黑启动模式 
@@ -1209,7 +1207,7 @@ static int Insert_bms_Table(MYSQL *pmysql)
 	for (int num = 0; num < bmsNumIni; num++)//修改了这个，bmsNumIni
 	{
 		/* 单主机模式仅记录 BMS1、2、5、6 */
-		if ((*singlePcsMaster == 1) &&
+		if (((sys_cfg->singlePcsMaster) == 1) &&
 		    (num != 0 && num != 1 && num != 4 && num != 5))
 		{
 		    continue;
@@ -1713,7 +1711,7 @@ static void pcsModel_CreateSqlstr(void)
     uint16_t offset;
 	uint16_t addtmp;
 	//20261002 lj 添加2*PCS情况
-	if(*singlePcsMaster == 1)
+	if(sys_cfg->singlePcsMaster == 1)
 	{
 		offset = 2400;
 	}
@@ -1763,7 +1761,7 @@ static void pcsModel_CreateSqlstr(void)
 		}
 	}
 	zone = sizeof(pcsModelTableHoldAddr) / sizeof(TableAddressStruct);
-	if(*singlePcsMaster == 1)
+	if(sys_cfg->singlePcsMaster == 1)
 	{
 		offset = 3000;
 	}
@@ -1927,7 +1925,7 @@ static void pcsModel_InsertSqlstr(int num)
 	uint16_t offset ;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	//20261002 lj 添加2*PCS情况
-	if(*singlePcsMaster == 1)
+	if(sys_cfg->singlePcsMaster == 1)
 	{
 		offset = 600 * (num)+2400;
 	}
@@ -1994,7 +1992,7 @@ static void pcsModel_InsertSqlstr(int num)
 		}
 	}
 	zone = sizeof(pcsModelTableHoldAddr) / sizeof(TableAddressStruct);
-	if(*singlePcsMaster == 1)
+	if(sys_cfg->singlePcsMaster == 1)
 	{
 		offset = 600 * (num)+3000;
 	}
@@ -2057,7 +2055,7 @@ static int Insert_pcsModel_Table(MYSQL *pmysql)
 	// 	printf("START TRANSACTION failed!\n");
 
 	// }
-	int pcsModelNumIni = (*singlePcsMaster == 1) ? sys_cfg->pcsNum / 2 : sys_cfg->pcsNum;
+	int pcsModelNumIni = ((sys_cfg->singlePcsMaster) == 1) ? sys_cfg->pcsNum / 2 : sys_cfg->pcsNum;
 	for (int num = 0; num < pcsModelNumIni; num++)
 	{
 
@@ -3169,7 +3167,7 @@ static void fault_CreateSqlstr(void)
 	zone = sizeof(faultTableInputAddr) / sizeof(TableAddressStruct);
 	for (int z = 0; z < zone; z++)
 	{
-		if((*singlePcsMaster == 1) && ((z >= 1) && (z <= 4)))
+		if(((sys_cfg->singlePcsMaster) == 1) && ((z >= 1) && (z <= 4)))
 		{
 			offset = 2400;
 		}
@@ -3180,7 +3178,7 @@ static void fault_CreateSqlstr(void)
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 		{
 			/* 单主机跳过PCS2和PCS4 */
-			if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+			if (((sys_cfg->singlePcsMaster) == 1) && ((z == 2) || (z == 4)))
 			{
 				continue;
 			}
@@ -3232,7 +3230,7 @@ static void fault_InsertSqlstr(void)
 	}
 	for (int z = 0; z < zone; z++)
 	{
-		if((*singlePcsMaster == 1) && ((z >= 1) && (z <= 4)))
+		if(((sys_cfg->singlePcsMaster) == 1) && ((z >= 1) && (z <= 4)))
 		{
 			offset = 2400;
 		}
@@ -3243,7 +3241,7 @@ static void fault_InsertSqlstr(void)
 		for (unsigned short add = faultTableInputAddr[z].start; add <= faultTableInputAddr[z].end; add++)
 		{
 			/* 单主机跳过PCS2和PCS4 */
-			if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+			if (((sys_cfg->singlePcsMaster) == 1) && ((z == 2) || (z == 4)))
 			{
 				continue;
 			}
@@ -3325,7 +3323,7 @@ static int fault_InsertSqlstrAll(void)
 	for (z = 1, i = 0; z < 5; z++)
 	{
 		flag = 0;
-		if(*singlePcsMaster == 1)
+		if(sys_cfg->singlePcsMaster == 1)
 		{
 			offset = 2400;
 		}
@@ -3334,7 +3332,7 @@ static int fault_InsertSqlstrAll(void)
 			offset = 0;
 		}
 		/* 单主机跳过PCS2和PCS4 */
-		if ((*singlePcsMaster == 1) && ((z == 2) || (z == 4)))
+		if (((sys_cfg->singlePcsMaster) == 1) && ((z == 2) || (z == 4)))
 		{
 			continue;
 		}
@@ -3671,8 +3669,6 @@ int Deal_database(void)
 	static unsigned int waittime = 0;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	const int intime = 1000 * sys_cfg->dbSaveTime;
-	singlePcsMaster = &(sys_cfg->singlePcsMaster);
-
 	if (mysql_init(&mysql) == NULL) // 初始化句柄mysql
 	{
 		printf("mysql_init failure!\n");

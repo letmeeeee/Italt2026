@@ -957,7 +957,9 @@ static uint8_t Check_Pcs_software_version_Diff(uint8_t pcs_total_num,
                 continue;
             }
 
-            cur_val = GET_INPUT(PCS_INPUT_BASE1 + PCS_ADDR_STEP * (pcs - 1) + offset);
+            cur_val = SysConf_GetInfo()->singlePcsMaster
+                ? GET_INPUT(PCS_5MW_INPUT_BASE1 + PCS_5MW_ADDR_STEP * (pcs - 1) + offset)
+                : GET_INPUT(PCS_INPUT_BASE1 + PCS_ADDR_STEP * (pcs - 1) + offset);
 
             if (ref_valid == 0)
             {
@@ -1133,55 +1135,11 @@ static uint8_t Check_Pcs_Master_Slave_diff(uint8_t pcs_total_num)
 
 static uint8_t Check_5MW_Pcs_Master_diff(uint8_t pcs_total_num)
 {
-    uint16_t pcs1_val;
-    uint16_t pcs2_val;
-    uint16_t pcs3_val;
-    uint16_t pcs4_val;
-
-    if (pcs_total_num > PCS_MAX_NUM)
-    {
-        pcs_total_num = PCS_MAX_NUM;
-    }
-
-    if (pcs_total_num <= 0)
-    {
-        return 0;
-    }
-
-    /*
-     * pcs_total_num=1、2,意味着只有一台主机PCS1：
-     * PCS1必须是主机
-     */
-    if ((pcs_total_num == 1) || (pcs_total_num == 2))
-    {
-        if (Pcs_Is_Online(1))
-        {
-            pcs1_val = GET_HOLD(PCS_5MW_HOLD_BASE + PCS_5MW_ADDR_STEP * 0 + 24);
-            // must be master
-            if (pcs1_val == 0)
-            {
-                return 1;
-            }
-        }
-        return 0;
-    }
-    /*
-     * pcs_total_num=3、4,意味着有两台主机PCS1、PCS2,且必须同时在线：
-     * PCS1、PCS2都必须是主机
-     */
-    if ((pcs_total_num == 3) || (pcs_total_num == 4))
-    {
-        if ((Pcs_Is_Online(1)) && Pcs_Is_Online(2))
-        {
-            pcs1_val = GET_HOLD(PCS_5MW_HOLD_BASE + PCS_5MW_ADDR_STEP * 0 + 24);
-            pcs2_val = GET_HOLD(PCS_5MW_HOLD_BASE + PCS_5MW_ADDR_STEP * 1 + 24);
-            // must be master
-            if ((pcs1_val == 0) || (pcs2_val == 0))
-            {
-                return 1;
-            }
-        }
-        return 0;
+    if (pcs_total_num > 2) pcs_total_num = 2;
+    for (uint8_t pcs = 1; pcs <= pcs_total_num; ++pcs) {
+        if (!Pcs_Is_Online(pcs)) continue;
+        if (GET_HOLD(PCS_5MW_HOLD_BASE + PCS_5MW_ADDR_STEP * (pcs - 1) + 24) == 0)
+            return 1;
     }
     return 0;
 }
@@ -1195,6 +1153,8 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U single_mode = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：忽略从机条件 */
 
+    /* The caller passes physical PCS count, not the number of configuration slots. */
+    if (single_mode && pcs_total_num > 2) pcs_total_num = 2;
     if (pcs_total_num > PCS_MAX_NUM)
     {
         pcs_total_num = PCS_MAX_NUM;
@@ -1237,7 +1197,7 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
     /*
      * SET_INPUT(225)
      */
-    sys_num = (pcs_total_num >= 3) ? 2 : 1;
+    sys_num = single_mode ? pcs_total_num : ((pcs_total_num >= 3) ? 2 : 1);
     if (Check_Pcs_Bus_Mode_Bit_Diff(sys_num))
         input225 |= (1U << 0);
 

@@ -312,6 +312,44 @@ sysPara* SysConf_GetInfo();
  */
 int AppConf_Init();
 
+/* Match startup bus selection, including before BusType is initialized. */
+static inline unsigned int Project_Bms_Group_Stride(const sysPara *cfg)
+{
+    return cfg->pcsNum == cfg->bmsNum ? 2u : 4u;
+}
+static inline unsigned int Project_Mode2_Bms_Group_Mask(const sysPara *cfg, unsigned int group)
+{
+    unsigned int stride = Project_Bms_Group_Stride(cfg);
+    return (stride == 2u ? 1u : 3u) << (group * stride);
+}
+
+/* projectType=2 keeps physical slots: PCS 0/2; BMS 0/2 or 0/1/4/5. */
+static inline int Project_Pcs_Active(const sysPara *cfg, unsigned int slot)
+{
+    return slot < cfg->pcsNum && slot < MAX_PCS_NUM &&
+           (!cfg->singlePcsMaster || slot == 0 || slot == 2);
+}
+static inline int Project_Bms_Active(const sysPara *cfg, unsigned int slot)
+{
+    return slot < cfg->bmsNum && slot < MAX_BMS_NUM &&
+           (!cfg->singlePcsMaster ||
+            ((Project_Mode2_Bms_Group_Mask(cfg, 0) | Project_Mode2_Bms_Group_Mask(cfg, 1)) & (1u << slot)));
+}
+static inline unsigned int Project_Pcs_Count(const sysPara *cfg)
+{
+    if (!cfg->singlePcsMaster) return cfg->pcsNum;
+    unsigned int n = 0;
+    for (unsigned int i = 0; i < MAX_PCS_NUM; ++i) n += Project_Pcs_Active(cfg, i);
+    return n;
+}
+static inline unsigned int Project_Bms_Count(const sysPara *cfg)
+{
+    if (!cfg->singlePcsMaster) return cfg->bmsNum;
+    unsigned int n = 0;
+    for (unsigned int i = 0; i < MAX_BMS_NUM; ++i) n += Project_Bms_Active(cfg, i);
+    return n;
+}
+
 /**
  * @brief 释放App配置空间
  */

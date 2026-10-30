@@ -259,6 +259,15 @@ INT32U curtime;
 INT32U timewarn; //提前重连时间
 for(i = 0; (i < dev_num) && ((timer + i) < TIMER_CNT); i++)
 {
+/* Unused mode2 slots must not produce communication faults. */
+sysPara *cfg = SysConf_GetInfo();
+if (cfg->singlePcsMaster &&
+    ((timer == PCS_TIMER_BASE && !Project_Pcs_Active(cfg, i)) ||
+     (timer == BMS_TIMER_BASE && !Project_Bms_Active(cfg, i)))) {
+    set_handler(i, IsNoFault, TRUE);
+    ClearBit(SystemTotalData[data_pos].D16, i);
+    continue;
+}
 //超时设置设备通讯故障状态
 curtime = Timer_GetTick() - TIMEOUT_TIMER[timer + i];
 //LOG_INFO("nowtime is %d",curtime);

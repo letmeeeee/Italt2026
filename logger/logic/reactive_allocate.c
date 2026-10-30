@@ -152,6 +152,25 @@ static void MV_CalcPCSActivePower( MV_Power_Distribution *result)
         return;
     }
 
+    if (SysConf_GetInfo()->singlePcsMaster) {
+        /* Mode2 has no slave: rounding of branch ratios must not create slave power. */
+        result->group1_total_p = (int16_t)GET_HOLD(27052);
+        result->group2_total_p = (int16_t)GET_HOLD(27352);
+        result->group1_master_discharge_coef = PCS_POWER_COEF_BASE;
+        result->group1_master_charge_coef = PCS_POWER_COEF_BASE;
+        result->group2_master_discharge_coef = PCS_POWER_COEF_BASE;
+        result->group2_master_charge_coef = PCS_POWER_COEF_BASE;
+        result->group1_slave_discharge_coef = 0;
+        result->group1_slave_charge_coef = 0;
+        result->group2_slave_discharge_coef = 0;
+        result->group2_slave_charge_coef = 0;
+        result->pcs1_p_set = result->group1_total_p;
+        result->pcs2_p_set = 0;
+        result->pcs3_p_set = result->group2_total_p;
+        result->pcs4_p_set = 0;
+        return;
+    }
+
     /* ---------------- Group1 ---------------- */
 
     result->group1_total_p =(int16_t)((uint16_t)GET_HOLD(27000 + 52));

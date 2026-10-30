@@ -487,6 +487,7 @@ void *nvme_log_monitor_thread(void *arg)
     PCS_Unpack_To_Set_Hold(0x1);
     SET_INPUT(NUMBER_OF_PCSs,sys_cfg->pcsNum);  
     }
+    if (sys_cfg->singlePcsMaster) Mode2_Init_Device_Status();
     /*版本号*/
     SET_INPUT(LC_PROTOCOL_VERSION, LC_SOFTWARE_VERSION_PROTOCOL);
     SET_INPUT(SOFTWARE_MAJOR_VERSION,1);
@@ -619,6 +620,7 @@ void *nvme_log_monitor_thread(void *arg)
     pthread_t thread_eth_write_BMS[MAX_BMS_NUM] = {0};
     for (i = 0; (i < sys_cfg->bmsNum) && (i < MAX_BMS_NUM); i++)
     {
+    if (!Project_Bms_Active(sys_cfg, i)) continue;
     if (sys_cfg->bms_brand[i] == BMS_XIENENG)
     {
 
@@ -639,6 +641,7 @@ void *nvme_log_monitor_thread(void *arg)
     pthread_t thread_eth_PCS_write[MAX_PCS_NUM] = {0};
     for (i = 0; i < sys_cfg->pcsNum; i++)
     {
+    if (!Project_Pcs_Active(sys_cfg, i)) continue;
     if (sys_cfg->pcs_brand[i] == PCS_ShangNeng)
     {
 
@@ -664,10 +667,6 @@ void *nvme_log_monitor_thread(void *arg)
     }
     else if (sys_cfg->pcs_brand[i] == PCS_Taida)
     {
-    if ((sys_cfg->singlePcsMaster == 1) && ((i == 1) || (i == 3)))
-    {
-        continue; //如果是单PCS主机模式，则不创建PCS线程
-    }
     pthread_create(&thread_eth_PCS[i], &thread_attr, (void*)PCS_Taida_Task, (void *)&pthread_index[i]);
     usleep(10 * 1000);
     pthread_create(&thread_eth_PCS_write[i], &thread_attr, (void*)PCS_TAida_write_Task, (void *)&pthread_index[i]);

@@ -127,6 +127,13 @@ int Find_trina_N(int addr, int *base_out) {
  */
 INT32S Taida_Addr_From_Index(INT8U pcs_index, INT32S index)
 {
+    /* The writer uses group indices 1/2 for physical master slots 0/2. */
+    if (SysConf_GetInfo()->singlePcsMaster && (pcs_index == 1 || pcs_index == 2)) {
+        INT32S local = index - (15000 + 600 * (pcs_index - 1));
+        if (local >= 0 && local < 24) return 200 + local;
+        if (local >= 24 && local < 26) return 240 + local - 24;
+        if (local >= 26 && local < 33) return 10 + local - 26;
+    }
     if (pcs_index == 0) return -1;                  
     INT32S base = 300 * (INT32S)(pcs_index - 1);  
     INT32S offset = index - base;                      
@@ -412,3 +419,49 @@ int CEM9000_HOLD(INT16S value)
     return 0;
 }
  /*******************************************END*************************************************************** */
+/* Only Taida aggregation/EMS consumers use this accessor; raw protocol reads stay unchanged. */
+INT16U Taida_Read_Input(INT32S legacy_address)
+{
+    sysPara *cfg = SysConf_GetInfo();
+    if (cfg->singlePcsMaster) {
+        if (legacy_address >= 2600 && legacy_address < 3800) {
+            unsigned int slot = (legacy_address - 2600) / 300;
+            if (!Project_Pcs_Active(cfg, slot)) return 0;
+            legacy_address += 2400;
+        } else if (legacy_address >= 38000 && legacy_address < 39600) {
+            unsigned int slot = (legacy_address - 38000) / 200;
+            if (!Project_Bms_Active(cfg, slot)) return 0;
+        }
+    }
+    return GET_INPUT(legacy_address);
+}
+
+INT16U Mode2_Tcp_Bms_Status(INT16U raw)
+{
+    if (Project_Bms_Group_Stride(SysConf_GetInfo()) == 2u)
+        return (raw & 0x0001u) | ((raw & 0x0004u) >> 1);
+    return (raw & 0x0003u) | ((raw & 0x0030u) >> 2);
+}
+
+INT32S Mode2_Tcp_Bms_Address(INT32S address, int dual_bus)
+{
+    if (dual_bus && address >= 38400 && address < 38800) return address + 400;
+    if (!dual_bus && address >= 38200 && address < 38400) return address + 200;
+    return address;
+}
+
+void Mode2_Init_Device_Status(void)
+{
+    sysPara *cfg = SysConf_GetInfo();
+    INT16U pcs = 0, bms = 0;
+    for (unsigned int i = 0; i < MAX_PCS_NUM; ++i)
+        if (Project_Pcs_Active(cfg, i)) pcs |= 1u << i;
+    for (unsigned int i = 0; i < MAX_BMS_NUM; ++i)
+        if (Project_Bms_Active(cfg, i)) bms |= 1u << i;
+    // SET_INPUT(STATUS_WORD1, pcs);
+    SET_INPUT(STATUS_WORD11, (pcs & 1u) | ((pcs & 4u) >> 1));
+    SET_INPUT(STATUS_WORD3, bms);
+    // BMS_Unpack_To_Set_Hold(bms);
+    SET_INPUT(NUMBER_OF_PCSs, Project_Pcs_Count(cfg));
+    SET_INPUT(NUMBER_OF_BMSs, Project_Bms_Count(cfg));
+}

@@ -90,6 +90,8 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
     }
     /* 计算本组寄存器基址：不同组偏移一个 STEP */
     base = BASE_ADDR + STEP * pcsnum;
+    const int16_t master_default = SysConf_GetInfo()->singlePcsMaster ? 500 : POWER_DEFAULT_RATIO;
+    const int16_t slave_default = SysConf_GetInfo()->singlePcsMaster ? 0 : POWER_DEFAULT_RATIO;
     if(BusType==D_BUS)
     {
         /* ================= D_BUS 分支：双套分配比例 ================= */
@@ -110,9 +112,9 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
         if (sum < 0)
         {
              /* 充电：第一套比例复位默认，第二套写实际值 */
-            SET_HOLD(base + 50, POWER_DEFAULT_RATIO);
-            SET_HOLD(base + 46, POWER_DEFAULT_RATIO);
-            SET_HOLD(base + 47, POWER_DEFAULT_RATIO);
+            SET_HOLD(base + 50, master_default);
+            SET_HOLD(base + 46, master_default);
+            SET_HOLD(base + 47, slave_default);
 
             SET_HOLD(base + 51, result[0]);
             SET_HOLD(base + 48, result[1]);
@@ -125,20 +127,20 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
             SET_HOLD(base + 46, result[1]);
             SET_HOLD(base + 47, result[2]);
 
-            SET_HOLD(base + 51, POWER_DEFAULT_RATIO);
-            SET_HOLD(base + 48, POWER_DEFAULT_RATIO);
-            SET_HOLD(base + 49, POWER_DEFAULT_RATIO);
+            SET_HOLD(base + 51, master_default);
+            SET_HOLD(base + 48, master_default);
+            SET_HOLD(base + 49, slave_default);
             
         }
         else
     	 {
             /* 0kW：两套全部复位为默认比例 */
-    	 	    SET_HOLD(base + 50, POWER_DEFAULT_RATIO);
-		        SET_HOLD(base + 46, POWER_DEFAULT_RATIO);
-		        SET_HOLD(base + 47, POWER_DEFAULT_RATIO);
-		        SET_HOLD(base + 51, POWER_DEFAULT_RATIO);
-		        SET_HOLD(base + 48, POWER_DEFAULT_RATIO);
-		        SET_HOLD(base + 49, POWER_DEFAULT_RATIO);
+            SET_HOLD(base + 50, master_default);
+            SET_HOLD(base + 46, master_default);
+            SET_HOLD(base + 47, slave_default);
+            SET_HOLD(base + 51, master_default);
+            SET_HOLD(base + 48, master_default);
+            SET_HOLD(base + 49, slave_default);
     	 }
          /* 写入本组总功率（有符号，正放负充） */
         SET_HOLD(base + 52, (int16_t)sum);
@@ -175,20 +177,21 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
          *   sum<0（充电）：base+50=500（默认），base+51=实际比例
          *   sum=0（待机）：两者都 500
          */
+      const INT16U default_ratio = SysConf_GetInfo()->singlePcsMaster ? 1000 : 500;
       if(sum>0)
       {
         SET_HOLD(base + 50, result[0]);
-        SET_HOLD(base + 51,500);
+        SET_HOLD(base + 51,default_ratio);
       }
       else if(sum<0)
       {
-        SET_HOLD(base + 50, 500);
+        SET_HOLD(base + 50, default_ratio);
         SET_HOLD(base + 51, result[0]);
       }
       else
       {
-          SET_HOLD(base + 50, 500);
-          SET_HOLD(base + 51,500);
+          SET_HOLD(base + 50, default_ratio);
+          SET_HOLD(base + 51, default_ratio);
       }
        /* 本组总功率 */
       SET_HOLD(base + 52, (int16_t)sum);
@@ -240,8 +243,11 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
     int16_t value[4] = {0};     /* 各路原始功率 */
     int32_t sum = 0;            /* 限幅后各组功率之和 */
     int32_t sum_per = 0;        /* 限幅前各组功率之和（用于判断是否全 0） */
-    int16_t result[4];          /* 各路千分比 */
+    int16_t result[4] = {0};          /* 各路千分比 */
     sysPara* sys_cfg = SysConf_GetInfo();
+    if (pcsnum < 0 || pcsnum > 1) return;
+    /* Keep physical group stride: two slots in S_BUS, four in D_BUS. */
+    int bms_stride = Project_Bms_Group_Stride(sys_cfg);
     int base = BASE_ADDR + STEP * pcsnum;
     u16_conv DchgPower;         /* 放电允许功率 */
     u16_conv ChgPower;          /* 充电允许功率 */
@@ -250,15 +256,17 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
     sum_per = 0;
     
     /* 读取 4 路功率值，并对每路做限幅和状态检查 */
-    for (int i = 0; (i < 4)&&(i < (sys_cfg->bmsNum/2)); i++)
+    for (int i = 0; (i < 4)&&(i < bms_stride); i++)
     {
+        int bms_slot = pcsnum * bms_stride + i;
+        if (sys_cfg->singlePcsMaster && !Project_Bms_Active(sys_cfg, bms_slot)) continue;
         value[i] = (int16_t)GET_HOLD(base + 204 + i);
         sum_per += value[i];
         if(value[i]>=0)//放电
         {
              /* ---- 放电方向 ---- */
             /* 检查 BMS 状态：非正常、非禁充则本路功率清零 */
-            state = GET_INPUT(38071 + 200 * i+ (200*(sys_cfg->bmsNum/2)*pcsnum));
+            state = GET_INPUT(38071 + 200 * bms_slot);
             if((state!=0)&&(state!=1)) //不是正常，也不是禁充
             {
                 value[i]=0;
@@ -272,7 +280,7 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
                 continue;
             }
             /* 按放电允许功率限幅 */
-            DchgPower.D16 = GET_INPUT(38037 + 200 * i+ (200*(sys_cfg->bmsNum/2)*pcsnum));
+            DchgPower.D16 = GET_INPUT(38037 + 200 * bms_slot);
             if((DchgPower.DS16>=0)&&(value[i]>DchgPower.DS16))
             {
                 value[i]=DchgPower.DS16;
@@ -287,7 +295,7 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
         {
             /* ---- 充电方向 ---- */
             /* 检查 BMS 状态：非正常、非禁放则本路功率清零 */
-            state = GET_INPUT(38071 + 200 * i+ (200*(sys_cfg->bmsNum/2)*pcsnum));
+            state = GET_INPUT(38071 + 200 * bms_slot);
             if((state!=0)&&(state!=2)) //不是正常，也不是禁放
             {
                 value[i]=0;
@@ -301,7 +309,7 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
                 continue;
             }
             /* 按充电允许功率限幅（注意负号） */
-            ChgPower.D16 = GET_INPUT(38038 + 200 * i+ (200*(sys_cfg->bmsNum/2)*pcsnum));
+            ChgPower.D16 = GET_INPUT(38038 + 200 * bms_slot);
             if((ChgPower.DS16>=0)&&(value[i]<(-1)*ChgPower.DS16))
             {
                 value[i]=(-1)*ChgPower.DS16;
@@ -315,7 +323,7 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
         
     }
     /* 累加限幅后的功率 */
-    for (int i = 0; (i < 4)&&(i < (sys_cfg->bmsNum/2)); i++)
+    for (int i = 0; (i < 4)&&(i < bms_stride); i++)
     {
         sum += value[i];
     }
@@ -325,7 +333,7 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
     if (sum != 0)
     {
         /* 计算千分比 */
-        for (int i = 0; (i < 4)&&(i < (sys_cfg->bmsNum/2)); i++)
+        for (int i = 0; (i < 4)&&(i < bms_stride); i++)
         {
             result[i] = (int16_t)((value[i] * 1000) / sum);
         }
@@ -596,7 +604,7 @@ void Update_Input_Bit_Status(int system_num)
 {
     int base = INPUT_BASE_ADDR + INPUT_GROUP_STEP * system_num;
     int sysRdyRef = 0;
-
+    int slot = system_num * 2;
     /* 处理 17000 + 300*n + 60 */
     sysRdyRef = LC_EMS_Get_Input_Bit(base + 60, 3);
 
@@ -620,39 +628,20 @@ void Update_Input_Bit_Status(int system_num)
         SET_INPUT(base + 240 + i, comm_normal ? 1 : 0);
     }
 
+    /*有符号值运算后写入*/
     for(int i=0;i<2;i++)
     {
-        SET_INPUT(base + 228 + i, (int16_t)GET_INPUT(2600 + 16+i));
-        SET_INPUT(base + 229 + i, (int16_t)GET_INPUT(2600 + 16+i+300));
-        SET_INPUT(base + 228 + i+300, (int16_t)GET_INPUT(2600 + 16+i+300*2));
-        SET_INPUT(base + 229 + i+300, (int16_t)GET_INPUT(2600 + 16+i+300*3));
-        SET_INPUT(base + 232 + i, (int16_t)GET_INPUT(2600 + 19)/2);
-        SET_INPUT(base + 234 + i, (int16_t)GET_INPUT(2600 + 19+300)/2);
-        SET_INPUT(base + 232 + i+300, (int16_t)GET_INPUT(2600 + 19+600)/2);
-        SET_INPUT(base + 234 + i+300, (int16_t)GET_INPUT(2600 + 19+900)/2);
-
-
+        SET_INPUT(base + 228 + i, Taida_Read_Input(2600 + 16 + i + slot * 300));
+        SET_INPUT(base + 230 + i, Taida_Read_Input(2600 + 16 + i + (slot + 1) * 300));
+        SET_INPUT(base + 232 + i, (int16_t)Taida_Read_Input(2600 + 19 + slot * 300) / 2);
+        SET_INPUT(base + 234 + i, (int16_t)Taida_Read_Input(2600 + 19 + (slot + 1) * 300) / 2);
     }
-
     for(int j=0;j<3;j++)
     {
-
-        SET_INPUT(17000 + 0*300+ 216+j, GET_INPUT(2600+300*0 + 20+j));
- 
-        SET_INPUT(17000 + 0*300+ 216+(j+3), GET_INPUT(2600+300*0 + 20+j));
-        SET_INPUT(17000 + 0*300+ 222+j, GET_INPUT(2600+300*1 + 20+j));
- 
-        SET_INPUT(17000 + 0*300+ 222+(j+3), GET_INPUT(2600+300*1 + 20+j));
-        SET_INPUT(17000 + 1*300+ 216+j, GET_INPUT(2600+300*2 + 20+j));
- 
-        SET_INPUT(17000 + 1*300+ 216+(j+3), GET_INPUT(2600+300*2 + 20+j));
-
-        SET_INPUT(17000 + 1*300+ 222+j, GET_INPUT(2600+300*3 + 20+j));
- 
-        SET_INPUT(17000 + 1*300+ 222+(j+3), GET_INPUT(2600+300*3 + 20+j));
-
-
-
+        SET_INPUT(base + 216 + j, Taida_Read_Input(2600 + 300 * slot + 20 + j));
+        SET_INPUT(base + 219 + j, Taida_Read_Input(2600 + 300 * slot + 20 + j));
+        SET_INPUT(base + 222 + j, Taida_Read_Input(2600 + 300 * (slot + 1) + 20 + j));
+        SET_INPUT(base + 225 + j, Taida_Read_Input(2600 + 300 * (slot + 1) + 20 + j));
     }
 
 
