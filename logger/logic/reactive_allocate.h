@@ -12,6 +12,11 @@ extern "C" {
 #define PCS_RATED_S_HALF_KVA        1250.0f
 #define PCS_RATED_S_ZERO_KVA        0.0f
 
+/* PCS有效额定视在功率--5.5MW工况 */
+#define PCS_RATED_S_FULL_KVA_5MW       2750.0f
+#define PCS_RATED_S_HALF_KVA_5MW       1375.0f
+#define PCS_RATED_S_ZERO_KVA_5MW       0.0f
+
 /* PCS运行支路数量 */
 #define PCS_BRANCH_NONE             0u
 #define PCS_BRANCH_SINGLE           1u

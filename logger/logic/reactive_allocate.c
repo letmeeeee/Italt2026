@@ -268,6 +268,8 @@ static void PCS_ParseBranchStatus(uint16_t status,PCS_Branch_Status *branch)
 static float PCS_GetRatedPowerByBranch(PCS_Branch_Status *branch,uint16_t *run_branch_num)
 {
     uint16_t num;
+    sysPara *sys_cfg = SysConf_GetInfo();
+    uint16_t single_model = sys_cfg->singlePcsMaster ? 1 : 0; /* 单PCS主机模式：PCS功率极值为2750 */
 
     if ((branch == 0) || (run_branch_num == 0))
     {
@@ -280,15 +282,15 @@ static float PCS_GetRatedPowerByBranch(PCS_Branch_Status *branch,uint16_t *run_b
 
     if (num >= PCS_BRANCH_DOUBLE)
     {
-        return PCS_RATED_S_FULL_KVA;
+        return single_model ? PCS_RATED_S_FULL_KVA_5MW : PCS_RATED_S_FULL_KVA;
     }
 
     if (num == PCS_BRANCH_SINGLE)
     {
-        return PCS_RATED_S_HALF_KVA;
+        return single_model ? PCS_RATED_S_HALF_KVA_5MW : PCS_RATED_S_HALF_KVA;
     }
 
-    return PCS_RATED_S_ZERO_KVA;
+    return single_model ? PCS_RATED_S_ZERO_KVA_5MW : PCS_RATED_S_ZERO_KVA;
 }
 
 

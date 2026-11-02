@@ -383,7 +383,7 @@ static void* Server_Handle_Data(void *arg)
 
                 if (false == is_sub)
                 {
-                    LOG_INFO("WEB set 0x06, address:%d -> data:%d", Temp.D16, RegVal.D16);
+                    LOG_INFO("WEB set 0x06, address:%d -> data:%d", Temp.D16, (int16_t)RegVal.D16);
                 }
                     // 系统对时
                     if ((Temp.D16 >= SYS_SYNC_TIEM_ADDR)&&(Temp.D16 <= SYS_SYNC_TIEM_ADDR + 5))

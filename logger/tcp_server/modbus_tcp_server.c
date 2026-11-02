@@ -389,20 +389,31 @@ static void* Server_Handle_Data(void *arg)
             case 0x04:
                 // 读输入寄存器
                 //Read input register
-                if (Temp.D16 >= 38000)
+                if ((Temp.D16 >= 38000) && (Temp.D16 < 38000 + 200 * 8))
                 {
                     INT16S bmsnum = BMSnum_calculate(Temp.D16);
-                    if ((bmsnum < 0) || (bmsnum >= 8))
+                    if (single_mode == 1)
                     {
-                     LOG_INFO("invalid address:%d", Temp.D16);
-                     continue; 
+                        if ((bmsnum < 0) || (bmsnum >= 4))
+                        {
+                         LOG_INFO("invalid address:%d", Temp.D16);
+                         continue; 
+                        }
+                    }
+                    else
+                    {
+                        if ((bmsnum < 0) || (bmsnum >= 8))
+                        {
+                         LOG_INFO("invalid address:%d", Temp.D16);
+                         continue; 
+                        }
                     }
                 }
                 for (i = 0; (i < buffer[11]) && (MStar < TCP_SERVER_RECV_LEN) && (Temp.D16 < MAX_SYSTEM_TOTAL_DATA_NUM); i++)
                 {
                     if(dev_add==1)
                     {
-                        if (single_mode == 1)
+                        if ((single_mode == 1))
                         {
                             LC_EMS_Address = Tcp_Bms_Address_5MW(Temp.D16, BusType == D_BUS);
                         }
@@ -715,7 +726,7 @@ static void* Server_Handle_Data(void *arg)
 
                     if (false == is_sub)
                     {
-                        LOG_INFO("EMS set 0x06, address:%d -> data:%d", Temp.D16, RegVal.D16);
+                        LOG_INFO("EMS set 0x06, address:%d -> data:%d", Temp.D16, (int16_t)RegVal.D16);
                     }
                     // 系统对时
                     if ((Temp.D16 >= SYS_SYNC_TIEM_ADDR)&&(Temp.D16 <= SYS_SYNC_TIEM_ADDR + 5))

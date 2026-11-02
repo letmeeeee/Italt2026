@@ -1923,7 +1923,7 @@ else if((((master1_Run==1)&&(master1_fault!=1))&&((slave1_Run!=1))&&((master2_Ru
         // 主机1BAT1分配比例
     INT32S total_out1 = Power_Result.P1_out + Power_Result.P2_out + Power_Result.P3_out + Power_Result.P4_out;
     INT32S total_out2 = Power_Result.P5_out + Power_Result.P6_out + Power_Result.P7_out + Power_Result.P8_out;
-    LOG_INFO("pcs_r_power1_2=%d,pcs_r_power3_4=%d",pcs_r_power1_2,pcs_r_power3_4);
+    // LOG_INFO("pcs_r_power1_2=%d,pcs_r_power3_4=%d",pcs_r_power1_2,pcs_r_power3_4);
     LOG_INFO("total_out1=%d,total_out2=%d",total_out1,total_out2);
     if(total_out1!=0)
     {

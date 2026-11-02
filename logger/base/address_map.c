@@ -489,8 +489,24 @@ INT16U Tcp_Bms_Status_5MW(INT16U raw)
 
 INT32S Tcp_Bms_Address_5MW(INT32S address, int dual_bus)
 {
-    if (dual_bus && address >= 38400 && address < 38800) return address + 400;
-    if (!dual_bus && address >= 38200 && address < 38400) return address + 200;
+    if (dual_bus) {
+        /* BMS3/4地址区与BMS5/6地址区互换。 */
+        if (address >= 38400 && address < 38800) {
+            return address + 400;
+        }
+        if (address >= 38800 && address < 39200) {
+            return address - 400;
+        }
+    } else {
+        /* BMS2地址区与BMS3地址区互换。 */
+        if (address >= 38200 && address < 38400) {
+            return address + 200;
+        }
+        if (address >= 38400 && address < 38600) {
+            return address - 200;
+        }
+    }
+
     return address;
 }
 

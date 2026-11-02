@@ -1197,7 +1197,15 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
     /*
      * SET_INPUT(225)
      */
-    sys_num = single_mode ? pcs_total_num : ((pcs_total_num >= 3) ? 2 : 1);
+    if (single_mode == 1)
+    {
+        sys_num = pcs_total_num;
+    }
+    else
+    {
+        sys_num = (pcs_total_num >= 3) ? 2 : 1;
+    }
+
     if (Check_Pcs_Bus_Mode_Bit_Diff(sys_num))
         input225 |= (1U << 0);
 
