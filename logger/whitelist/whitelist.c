@@ -301,10 +301,99 @@ static void server_handle_data_body(int fd)
                     LOG_INFO("whitedevice set 0x06, address:%d -> data:%d", Temp.D16, RegVal.D16);
                 }
 
-                if (Temp.D16==33200 && RegVal.D16==0xAA) { Cem9000_Write_Flag = true; Cem9000_Addr=2000; Cem9000_Control_Value=0xFF00; }
-                else if (Temp.D16==33200 && RegVal.D16==0xEE) { Cem9000_Write_Flag = true; Cem9000_Addr=2001; Cem9000_Control_Value=0xFF00; }
-                else if (Temp.D16==33201) { Cem9000_Write_Flag = true; Cem9000_Addr=2002; Cem9000_Control_Value=0xFF00; }
+               // CEM9000 远方控制逻辑
+                        if(Temp.D16==33200&&RegVal.D16==0xAA)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2000;
+                            Cem9000_Control_Value=0xFF00;
+                        }
+                        else if(Temp.D16==33200&&RegVal.D16==0XEE)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2000;
+                            Cem9000_Control_Value=0x0000;
+                        }
+                    
+                    //芬兰项目
+                    if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK) || (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN))
+                    {
+                        if(Temp.D16==33201&&RegVal.D16==1)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2003;
+                            Cem9000_Control_Value=0xFF00;
+                        }
+                        else if(Temp.D16==33202&&RegVal.D16==0xAA)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2001;
+                            Cem9000_Control_Value=0xFF00;
+                        }
+                        else if(Temp.D16==33202&&RegVal.D16==0XEE)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2001;
+                            Cem9000_Control_Value=0x0000;
+                        }
+                        else if(Temp.D16==33203&&RegVal.D16==0xAA)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2002;
+                            Cem9000_Control_Value=0xFF00;
+                        }
+                        else if(Temp.D16==33203&&RegVal.D16==0XEE)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2002;
+                            Cem9000_Control_Value=0x0000;
+                        }
+                        
+                    }
+                     //英国项目
+                    else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+                    {
+                        if(Temp.D16==33201&&RegVal.D16==1)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2001;
+                            Cem9000_Control_Value=0xFF00;
+                        }
+                        else if((Temp.D16 == 33202) && (RegVal.D16 == 0xAA))
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2002;
+                            Cem9000_Control_Value=0xFF00;
+                        }
+                        else if((Temp.D16 == 33202) && (RegVal.D16 == 0xEE))
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2002;
+                            Cem9000_Control_Value=0x0000;
+                        }
+                        else if((Temp.D16 == 33203) && (RegVal.D16 == 0xAA))
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2003;
+                            Cem9000_Control_Value=0xFF00;
+                        }
+                        else if((Temp.D16 == 33203) && (RegVal.D16 == 0xEE))
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2003;
+                            Cem9000_Control_Value=0x0000;
+                        }
+                    }
+                    else
+                    {
+                        if(Temp.D16==33201&&RegVal.D16==1)
+                        {
+                            Cem9000_Write_Flag =true;
+                            Cem9000_Addr =2001;
+                            Cem9000_Control_Value=0xFF00;
+                        }
 
+                    }
                 for (INT8U sys_num=0; (sys_num < sys_cfg->sysNum); sys_num++)
                 {
                     if (Temp.D16 == (27000 + 300 * sys_num + 103)) {

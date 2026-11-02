@@ -23,4 +23,19 @@ void Cem9000_Task(const char *arg);
 
 #define addresslimit     2020
 
+//芬兰协议
+
+#define cem9000_finland_size1      (100)    //cem9000遥测数据点
+
+#define cem9000_finland_size2      (9)    //cem9000遥信数据点
+
+
+
+//英国协议：起始地址与芬兰相同，遥测0..203，遥信1000..1028。
+#define cem9000_uk_size4          (104)  //第二段遥测100..203
+
+#define cem9000_uk_size2          (29)   //遥信1000..1028，共454位
+
+
+
 #endif

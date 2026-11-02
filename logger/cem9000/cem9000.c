@@ -46,19 +46,37 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
         {
             is_ok = false;
         }
-        if ((temp.D16 >= 1000) && (temp.D16 <1016 ))
+        if (temp.D16 == Cem9000_Addr2)
         {
-       
-
-            for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
+            if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK) || (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN))
             {
-                RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
-                RegVal.D8[0] = pbuf[dataddr++]; 
-
-                CEM9000_INPUT(temp.D16+i, RegVal.D16);
-               // LOG_INFO("temp.D16+i:%d,RegVal.D16:%d",temp.D16+i,RegVal.D16);
-           
-            } 
+                for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
+                {
+                    RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
+                    RegVal.D8[0] = pbuf[dataddr++]; 
+                    CEM9000_FINLAND_INPUT(temp.D16+i, RegVal.D16);
+                // LOG_INFO("temp.D16+i:%d,RegVal.D16:%d",temp.D16+i,RegVal.D16);
+                } 
+            }
+            else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+            {
+                for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)
+                {
+                    RegVal.D8[1] = pbuf[dataddr++];
+                    RegVal.D8[0] = pbuf[dataddr++];
+                    CEM9000_UK_INPUT(temp.D16+i, RegVal.D16);
+                }
+            }
+            else
+            {
+                for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
+                {
+                    RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
+                    RegVal.D8[0] = pbuf[dataddr++]; 
+                    CEM9000_INPUT(temp.D16+i, RegVal.D16);
+                // LOG_INFO("temp.D16+i:%d,RegVal.D16:%d",temp.D16+i,RegVal.D16);
+                } 
+            }
         }
         else
         {
@@ -88,19 +106,53 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
         {
             is_ok = false;
         }
-        if ((temp.D16 >= 0) && (temp.D16 <189 ))
+        if ((temp.D16 == Cem9000_Addr4) || (temp.D16 == Cem9000_Addr1))
         {
-       
-
-            for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
-            {
-                RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
-                RegVal.D8[0] = pbuf[dataddr++]; 
-
-               index= Cem9000_INPUT_INDEX(temp.D16+i);
-               SET_INPUT(index, RegVal.D16);
-        //  LOG_INFO("协能：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
-            } 
+            if(sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)
+                {
+                    for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
+                    {
+                        RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
+                        RegVal.D8[0] = pbuf[dataddr++]; 
+                        index= Cem9000_Finland_Korkeamaa_INPUT_INDEX(temp.D16+i);
+                        SET_INPUT(index, RegVal.D16);
+                    //  LOG_INFO("协能：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
+                    } 
+                    
+                }
+                else if(sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)
+                {
+                    for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
+                    {
+                        RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
+                        RegVal.D8[0] = pbuf[dataddr++]; 
+                        index= Cem9000_Finland_Kannisto_INPUT_INDEX(temp.D16+i);
+                        SET_INPUT(index, RegVal.D16);
+                    //  LOG_INFO("协能：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
+                    } 
+                    
+                }
+                else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+                {
+                    for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)
+                    {
+                        RegVal.D8[1] = pbuf[dataddr++];
+                        RegVal.D8[0] = pbuf[dataddr++];
+                        index = Cem9000_UK_INPUT_INDEX(temp.D16+i);
+                        SET_INPUT(index, RegVal.D16);
+                    }
+                }
+                else
+                {
+                    for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)           
+                    {
+                        RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
+                        RegVal.D8[0] = pbuf[dataddr++]; 
+                        index= Cem9000_INPUT_INDEX(temp.D16+i);
+                        SET_INPUT(index, RegVal.D16);
+                    //  LOG_INFO("协能：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
+                    } 
+                }
         }
         else
         {
@@ -159,6 +211,8 @@ void Cem9000_Task(const char *arg)
     int numbytes = 0;
     int timeout_cnt=0;
     INT8U connect_cnt={0};
+    INT16U tmp_size2=0;
+    INT16U tmp_size4=0;
     LOG_INFO("Cem9000-%d线程启动",measure_num);
 
     while (1)
@@ -192,56 +246,68 @@ void Cem9000_Task(const char *arg)
             while (1)
             {
               if(GET_INPUT(P2P_mode)==0)
-                {               
-                switch(loop)
-                {
-                case 0:
-                  if(Cem9000_Write_Flag==true)
-
+                {  
+                    
+                    if (sys_cfg->measure_protocol[0] == MEASURE_FINLAND_KORK)
                     {
-                        Cem9000_Write_Flag=false;
-
-
-                        Modbus_TCP_Write05_SingleCoil(socket_fd, Cem9000_SLAVE_ADDR, Cem9000_Addr, Cem9000_Control_Value, CMD_DELAY_200);
-
+                        tmp_size4= 84;
+                        tmp_size2 = cem9000_finland_size2;
                     }
-
-                    loop++;
-                    break;
-                case 1:
-                  if(measurecloseflag==true)
-
+                    else if (sys_cfg->measure_protocol[0] == MEASURE_FINLAND_KAN)
                     {
-                        measurecloseflag=false;
-
-
-                        Modbus_TCP_Write05_SingleCoil(socket_fd, Cem9000_SLAVE_ADDR, high_vol_switch_addr, 0X0000, CMD_DELAY_200);
-
+                        tmp_size4 = 94;
+                        tmp_size2 = cem9000_finland_size2;
                     }
-
-                    loop++;
-                    break; 
-
-                case 2:
-                  Modbus_TCP_Read(socket_fd, Cem9000_SLAVE_ADDR, MODBUS_READ_TYPE_03, Cem9000_Addr1, cem9000size1, CMD_DELAY_200);
-                    loop++;
-                    break;   
-                case 3:
-                   Modbus_TCP_Read(socket_fd, Cem9000_SLAVE_ADDR, MODBUS_READ_TYPE_03, Cem9000_Addr4, cem9000size4, CMD_DELAY_200);
-                    loop++;
-                    break; 
-                case 4:
-                  Modbus_TCP_Read(socket_fd, Cem9000_SLAVE_ADDR, MODBUS_READ_TYPE_04, Cem9000_Addr2, cem9000size2, CMD_DELAY_200);
-                    loop++;
-                    break;
-                case 5:
-                //  Modbus_TCP_Read(socket_fd, Cem9000_SLAVE_ADDR, MODBUS_READ_TYPE_05, Cem9000_Addr3, cem9000size3, CMD_DELAY_200);
-                    loop++;
-                    break;              
-                default:
-                    loop = 0;
-                    break;
-                }
+                    else if (sys_cfg->measure_protocol[0] == MEASURE_UK)
+                    {
+                        tmp_size4 = cem9000_uk_size4;
+                        tmp_size2 = cem9000_uk_size2;
+                    }
+                    else
+                    {
+                        tmp_size4 = cem9000size4;
+                        tmp_size2 = cem9000size2;
+                    }
+                       switch(loop)
+                        {
+                        case 0:
+                            if(Cem9000_Write_Flag==true)
+                            {
+                                Cem9000_Write_Flag=false;
+                                Modbus_TCP_Write05_SingleCoil(socket_fd, Cem9000_SLAVE_ADDR, Cem9000_Addr, Cem9000_Control_Value, CMD_DELAY_200);
+                            }
+                            loop++;
+                            break;
+                        case 1:
+                            if(measurecloseflag==true)
+                            {
+                                measurecloseflag=false;
+                                Modbus_TCP_Write05_SingleCoil(socket_fd, Cem9000_SLAVE_ADDR, high_vol_switch_addr, 0X0000, CMD_DELAY_200);
+                            }
+                            loop++;
+                            break; 
+                        case 2:
+                            Modbus_TCP_Read(socket_fd, Cem9000_SLAVE_ADDR, MODBUS_READ_TYPE_03, Cem9000_Addr1, cem9000size1, CMD_DELAY_200);
+                            loop++;
+                            break;   
+                        case 3:
+                            Modbus_TCP_Read(socket_fd, Cem9000_SLAVE_ADDR, MODBUS_READ_TYPE_03, Cem9000_Addr4, tmp_size4, CMD_DELAY_200);
+                            loop++;
+                            break; 
+                        case 4:
+                            Modbus_TCP_Read(socket_fd, Cem9000_SLAVE_ADDR, MODBUS_READ_TYPE_04, Cem9000_Addr2, tmp_size2, CMD_DELAY_200);
+                            loop++;
+                            break;
+                        case 5:
+                        //  Modbus_TCP_Read(socket_fd, Cem9000_SLAVE_ADDR, MODBUS_READ_TYPE_05, Cem9000_Addr3, tmp_size3, CMD_DELAY_200);
+                            loop++;
+                            break;              
+                        default:
+                            loop = 0;
+                            break;
+                        }
+                
+                
                 numbytes=Recv_Modbus_Back(socket_fd, measure_num, PCS_BUFF_LEN, Cem_DataProcess);
 
                   if (numbytes < 0)  

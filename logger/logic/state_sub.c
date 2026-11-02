@@ -268,22 +268,30 @@ sysPara* sys_cfg = SysConf_GetInfo();
     if ( (INT16U)GET_INPUT(27606)==1    //变压器轻瓦斯报警信号     
     || (INT16U)GET_INPUT(27619)==1    //烟雾报警信号   
     || GET_INPUT(27600) == 1                        //测控事故总   
-
     ) 
-        
     {
         is_Fault = 1;
         if(GET_HOLD(399)==0)//目标功率清0使能
         {
-        SET_HOLD(1010, 0);
-        SET_HOLD(1011, 0);
-        LOG_INFO("MV目标功率清0!");
+            SET_HOLD(1010, 0);
+            SET_HOLD(1011, 0);
+            LOG_INFO("MV目标功率清0!");
         }
-        
        SET_INPUT(SYSTEM_FAULT_SUMMARY, 1);
-
     }
-
+    else if(((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)|| 
+      (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)||
+      (sys_cfg->measure_protocol[0] ==MEASURE_UK))&&(GET_INPUT(25969) == 1))
+    {
+        is_Fault = 1;
+        if(GET_HOLD(399)==0)//目标功率清0使能
+        {
+            SET_HOLD(1010, 0);
+            SET_HOLD(1011, 0);
+            LOG_INFO("MV目标功率清0!");
+        }
+        SET_INPUT(SYSTEM_FAULT_SUMMARY, 1);
+    }
 
 
     INT8U resD = Debug_State_Sub(sys_num, sub_num, SUB_EVENT_FAULT);
@@ -381,16 +389,21 @@ static void Event_Fault_Recovery_Check(INT16U *eid, INT8U sys_num, INT8U sub_num
     // || 
     if ( (INT16U)GET_INPUT(27606)==1    //变压器轻瓦斯报警信号     
     || (INT16U)GET_INPUT(27619)==1    //烟雾报警信号   
-    || GET_INPUT(27600) == 1                        //测控事故总   
-
+    || GET_INPUT(27600) == 1          //测控事故总   
     )                                                                                                                                            
     {
         is_finish = 0;
-
-    } else {
-        is_finish = 1;
-
+    } 
+    else if(((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)|| 
+      (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)||
+      (sys_cfg->measure_protocol[0] ==MEASURE_UK))&&(GET_INPUT(25969) == 1))
+    {
+        is_finish = 0;
     }
+    else {
+        is_finish = 1;
+    }
+    
     INT8U resD = Debug_State_Sub(sys_num, sub_num, SUB_EVENT_FAULT_RECOVERY);
     if ((1 == is_finish) || (1 == resD)) {
         Last_Time[sys_num * MAX_SUB_NUM + sub_num] = Timer_GetTick();
@@ -493,7 +506,16 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     {
         raw_alarm_now = 1;
     }
-
+    //芬兰项目、英国项目有综保事故总
+    if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)|| 
+      (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)||
+      (sys_cfg->measure_protocol[0] ==MEASURE_UK))
+    {
+        if (GET_INPUT(25969) == 1)
+        {
+            raw_alarm_now = 1;
+        } 
+    }
     /* PCS 故障字2：烟感 bit9 */
     if ((((GET_INPUT(17000 + 300 * 0 + 67) >> 9) & 1u) == 1u) ||
         (((GET_INPUT(17000 + 300 * 1 + 67) >> 9) & 1u) == 1u) ||
@@ -507,14 +529,36 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     /* =========================================================
      * 2) 原始 Trip raw_trip_now
      * ========================================================= */
-    INT8U raw_trip_now =
-        (GET_INPUT(27611) != 0) ||   /* 油位超低跳闸 */
+    INT8U raw_trip_now = 0;
+    //芬兰项目
+    if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK) || (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN))
+    {
+        raw_trip_now = (GET_INPUT(27611) != 0) ||   /* 油位超低跳闸 */
+        (GET_INPUT(27607) != 0) ||   /* 超温跳闸 */
+        (GET_INPUT(27605) != 0) ||   /* 重瓦斯跳闸 */
+        (GET_INPUT(27610) != 0) ||   /* 压力释放阀动作 */
+        (GET_INPUT(27650) != 0) ||   /* 应急跳闸 */
+        (GET_INPUT(27613) != 0);     /* 辅助变超高温报警 */
+    }
+    else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+    {
+        /* 英国27612..27618为保留点，不参与故障联动。 */
+        raw_trip_now = (GET_INPUT(27611) != 0) ||   /* 油位超低跳闸 */
+        (GET_INPUT(27607) != 0) ||   /* 超温跳闸 */
+        (GET_INPUT(27605) != 0) ||   /* 重瓦斯跳闸 */
+        (GET_INPUT(27610) != 0) ||   /* 压力释放阀动作 */
+        (GET_INPUT(27650) != 0);    /* 应急跳闸 */
+    }
+    else //意大利项目
+    {
+        raw_trip_now = (GET_INPUT(27611) != 0) ||   /* 油位超低跳闸 */
         (GET_INPUT(27607) != 0) ||   /* 超温跳闸 */
         (GET_INPUT(27605) != 0) ||   /* 重瓦斯跳闸 */
         (GET_INPUT(27610) != 0) ||   /* 压力释放阀动作 */
         (GET_INPUT(27612) != 0) ||   /* 绕组超温跳闸 */
         (GET_INPUT(27650) != 0) ||   /* 应急跳闸 */
         (GET_INPUT(27613) != 0);     /* 辅助变超高温报警 */
+    }   
 
     if (raw_trip_now)
     {
@@ -625,30 +669,30 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
      * ========================================================= */
     if (Project_Bms_Active(sys_cfg, sub_index))
     {
-        if (Get_BMS_Comm(sub_index) == 1)
+    if (Get_BMS_Comm(sub_index) == 1)
+    {
+        INT16U BMScommstatus = (INT16U)GET_INPUT(STATUS_WORD3);
+       // LOG_INFO("sub_index :%d", sub_index);
+        if (sub_index < 16U)
         {
-            INT16U BMScommstatus = (INT16U)GET_INPUT(STATUS_WORD3);
-           // LOG_INFO("sub_index :%d", sub_index);
-            if (sub_index < 16U)
-            {
-                BMScommstatus &= (INT16U)~(1u << sub_index);
-                SET_INPUT(STATUS_WORD3, BMScommstatus);
-            }
-
-            for (int i = 38000; i < 38200; i++)
-            {
-                SET_INPUT(i + sub_index * 200, 0);
-            }
-
+            BMScommstatus &= (INT16U)~(1u << sub_index);
+            SET_INPUT(STATUS_WORD3, BMScommstatus);
         }
-        else
-        {
-            INT16U BMScommstatus = (INT16U)GET_INPUT(STATUS_WORD3);
 
-            if (sub_index < 16U)
-            {
-                BMScommstatus |= (INT16U)(1u << sub_index);
-                SET_INPUT(STATUS_WORD3, BMScommstatus);
+        for (int i = 38000; i < 38200; i++)
+        {
+            SET_INPUT(i + sub_index * 200, 0);
+        }
+
+    }
+    else
+    {
+        INT16U BMScommstatus = (INT16U)GET_INPUT(STATUS_WORD3);
+
+        if (sub_index < 16U)
+        {
+            BMScommstatus |= (INT16U)(1u << sub_index);
+            SET_INPUT(STATUS_WORD3, BMScommstatus);
             }
         }
     }
@@ -697,7 +741,16 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
         if (GET_INPUT(27606) == 1) LOG_INFO("reason: transformer gas alarm");
         if (GET_INPUT(27619) == 1) LOG_INFO("reason: smoke alarm");
         if (GET_INPUT(27600) == 1) LOG_INFO("reason: measure fault summary");
-
+        //芬兰项目、英国项目有综保事故总
+        if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)|| 
+        (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)||
+        (sys_cfg->measure_protocol[0] ==MEASURE_UK))
+        {
+            if (GET_INPUT(25969) == 1)
+            {
+                LOG_INFO("reason: RMU RELAY protection summary signal");
+            } 
+        }
         if ((((GET_INPUT(17000 + 300 * 0 + 67) >> 9) & 1u) == 1u) ||
             (((GET_INPUT(17000 + 300 * 1 + 67) >> 9) & 1u) == 1u)||
             (((GET_INPUT(2600 + 300 * 1 + 201) >> 9) & 1u) == 1u)||
@@ -1070,12 +1123,12 @@ static INT16U taida_summary_input(INT32S address)
             
             if(sys1_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 0 * 300 + 42));
+                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 0 * 300 + 42)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else if(sys2_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 1 * 300 + 42));
+                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 1 * 300 + 42)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else
@@ -1102,7 +1155,7 @@ static INT16U taida_summary_input(INT32S address)
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
 
-            if (((taida_summary_input(17060 + 0 * 300) >> 4) & 1) == 1)
+            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 1);
@@ -1110,7 +1163,7 @@ static INT16U taida_summary_input(INT32S address)
             } 
             
 
-            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1)
+            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 2);
@@ -1296,11 +1349,11 @@ static INT16U taida_summary_input(INT32S address)
     SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
     SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));
 
-    INT32S DC_power = ((INT16S)Taida_Read_Input(17000 + 0 * 300 + 54) +  (INT16S)Taida_Read_Input(17000 + 1 * 300 + 54))*10;
+    INT32S DC_power = ((INT16S)GET_INPUT(17000 + 0 * 300 + 54) +  (INT16S)Taida_Read_Input(17000 + 1 * 300 + 54))*10;
     SET_INPUT(DC_POWERH, (INT16U)(DC_power >> 16));
     SET_INPUT(DC_POWERL, (INT16U)(DC_power & 0xFFFF));
 
-    INT32S DC_current =  ((INT16S)Taida_Read_Input(17000 + 0 * 300 + 55) +  (INT16S)Taida_Read_Input(17000 + 1 * 300 + 55))*10;
+    INT32S DC_current =  ((INT16S)GET_INPUT(17000 + 0 * 300 + 55) +  (INT16S)GET_INPUT(17000 + 1 * 300 + 55))*10;
     SET_INPUT(DC_CURRENTH, (INT16U)(DC_current >> 16));
     SET_INPUT(DC_CURRENTL, (INT16U)(DC_current & 0xFFFF));
 
@@ -1645,10 +1698,10 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                             Taida_Read_Input(38000 + 3 * 200 + 4))) / BMS_num : 0;
             SET_INPUT(SYSTEM_SOH, SOH);
 
-            INT16U ac_freq = Taida_Read_Input(17000 + 0 * 300 + 43);
+            INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
             SET_INPUT(AC_FREQUENCY, ac_freq);
 
-            INT16S Power_Factor = (INT16S)Taida_Read_Input(17000 + 0 * 300 + 42);
+            INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
             SET_INPUT(POWER_FACTOR, Power_Factor);
 
             INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 0) +
@@ -1752,12 +1805,12 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
             
             if(sys1_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 0 * 300 + 42));
+                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 0 * 300 + 42)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else if(sys2_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 1 * 300 + 42));
+                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 1 * 300 + 42)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else
@@ -1789,7 +1842,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
 
-            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1)
+            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 1);
@@ -1797,7 +1850,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
             } 
             
 
-            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1)
+            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 2);

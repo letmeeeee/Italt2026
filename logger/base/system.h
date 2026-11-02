@@ -241,4 +241,6 @@ enum enumRow
 #define protocol_day            (0x30)
 #define protocol_num            (0x01)
 
+extern INT8U BusType;
+
 #endif //SYSTEM_H

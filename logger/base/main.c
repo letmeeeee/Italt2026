@@ -393,9 +393,8 @@ void *nvme_log_monitor_thread(void *arg)
     LOG_INFO("Gateway-%d ip: %s, port: %d", (i+1), sys_cfg->gw_ip[i], sys_cfg->gw_port[i]);
     }
     for (i = 0; (i < sys_cfg->measuNum) && (i < MAX_MEASURE_NUM); i++) {
-    LOG_INFO("Measure-%d ip: %s, port: %d", (i+1), sys_cfg->measure_ip[i], sys_cfg->measure_port[i]);
+    LOG_INFO("Measure-%d ip: %s, port: %d, protocol: %d", (i+1), sys_cfg->measure_ip[i], sys_cfg->measure_port[i], sys_cfg->measure_protocol[i]);
     }
-
     for (i = 0; i < MAX_SERIAL_NUM; i++) {
     LOG_INFO("Serial-%d --> type: %d, baud: %d, databit: %d, stopbit: %d, parity: %c, group: %d", (i+1), sys_cfg->serial_type[i],
     sys_cfg->serial_baud[i], sys_cfg->serial_databit[i], sys_cfg->serial_stopbit[i], sys_cfg->serial_parity[i], sys_cfg->serial_group[i]);
@@ -690,9 +689,14 @@ void *nvme_log_monitor_thread(void *arg)
 
 
     pthread_t new_cem9000= 0;
-
-
-    pthread_create(&new_cem9000, &thread_attr, (void*)Cem9000_Task, (void *)&pthread_index[0]);
+    if (sys_cfg->measure_protocol[0]>=0)
+    {
+        pthread_create(&new_cem9000, &thread_attr, (void*)Cem9000_Task, (void *)&pthread_index[0]);
+    }
+    else
+    {
+        LOG_INFO("Invalid measurement protocol, measurement task not started");
+    }
     usleep(10*1000);
 
     while (1) 

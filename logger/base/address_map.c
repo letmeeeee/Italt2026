@@ -406,6 +406,45 @@ int CEM9000_INPUT(INT16U address, INT16U value)
 }
 
 
+/* Finland YX: source 1000..1008 carries 140 defined bit positions. Unlike
+ * Italy's contiguous export, Finland spares are skipped and AR51 points
+ * are exported to the separate 25969..25994 block in MV-EMS V0.27. */
+int CEM9000_FINLAND_INPUT(INT16U address, INT16U value)
+{
+    INT8U bit;
+    int point, index;
+
+    if (address < 1000 || address > 1008) return -10; // 超范围保护
+    for (bit = 0; bit < 16; ++bit) {
+        point = (address - 1000) * 16 + bit;
+        if (point >= 140) break;
+        index = Cem9000_Finland_YX_INDEX(point);
+        if (index >= 0) {
+            SET_INPUT(index, (value >> bit) & 0x1u);
+        }
+    }
+    return 0;
+}
+
+
+/* UK source 1000..1028 has 454 bit positions; spare bits are skipped. */
+int CEM9000_UK_INPUT(INT16U address, INT16U value)
+{
+    INT8U bit;
+    int point, index;
+
+    if (address < 1000 || address > 1028) return -10;
+    for (bit = 0; bit < 16; ++bit) {
+        point = (address - 1000) * 16 + bit;
+        if (point >= 454) break;
+        index = Cem9000_UK_YX_INDEX(point);
+        if (index >= 0) {
+            SET_INPUT(index, (value >> bit) & 0x1u);
+        }
+    }
+    return 0;
+}
+
 int CEM9000_HOLD(INT16S value)
 {
 

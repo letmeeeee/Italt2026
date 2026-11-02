@@ -138,6 +138,20 @@ for (int i = 0; i < p1->register_num; i++)
         SET_INPUT(index, RegVal.D16);
         // LOG_INFO("index:%d, value:%d\n", index, RegVal.D16);
     }
+    else if (index == 27115)
+    {
+        if((RegVal.D16==0x1)||(RegVal.D16==0x2)||(RegVal.D16==0x3)||(RegVal.D16==0x4)||
+        (RegVal.D16==0x5)||(RegVal.D16==0x11)||(RegVal.D16==0x12)||(RegVal.D16==0x13)||(RegVal.D16==0x14)||
+        (RegVal.D16==0x1A)||(RegVal.D16==0x21)||(RegVal.D16==0x24)||(RegVal.D16==0x27)||(RegVal.D16==0x28)||
+        (RegVal.D16==0x2A)||(RegVal.D16==0x41)||(RegVal.D16==0x42)||(RegVal.D16==0x43))
+        {
+            SET_INPUT(index, RegVal.D16);
+        }
+        else
+        {
+            SET_INPUT(index, 0);// OK：未发生故障
+        }
+    }
     else
     {
         SET_INPUT(index, RegVal.D16);

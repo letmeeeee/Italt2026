@@ -15,7 +15,7 @@
  #ifndef ADDRESS_MAP_H
  #define ADDRESS_MAP_H
 #include "system.h"
-
+ 
 INT16U Taida_Read_Input(INT32S legacy_address);
 INT16U Tcp_Bms_Status_5MW(INT16U raw);
 INT32S Tcp_Bms_Address_5MW(INT32S address, int dual_bus);
@@ -42,6 +42,8 @@ void Init_Device_Status_5MW(void);
  int Find_trina_N(int addr, int *base_out);
  INT32S Taida_Addr_From_Index(INT8U pcs_index, INT32S index);
 int CEM9000_INPUT(INT16U address, INT16U value);
+int CEM9000_FINLAND_INPUT(INT16U address, INT16U value);
+int CEM9000_UK_INPUT(INT16U address, INT16U value);
 int write_bits_by_addr(INT16U addr, INT16U value,INT16U pcs_num);
 int CEM9000_HOLD(INT16S value);
  INT32S G2pro_ADDR_FROM_INDEX(INT8U bms_index, INT32S index);
@@ -241,6 +243,120 @@ int CEM9000_HOLD(INT16S value);
 #define Cem9000_hold_INDEX(address) ( \
   ((address) >= 2000 && (address) < 2007 ? ((address) - 2000 + 33200) : \
   -1 )) 
+
+
+/* UK 10MW YC -> MV-EMS V0.24. Both words of each big-endian float are
+ * copied unchanged. Source spares and LV measuring currents without
+ * matching public points (132..143) are skipped. */
+#define Cem9000_UK_INPUT_INDEX(address) ( \
+  (((address) >= 6) && ((address) < 14)) ? ((address) - 6 + 25856) : /* HV protection currents */ \
+  (((address) >= 14) && ((address) < 76)) ? ((address) - 14 + 27750) : /* frequency, LV side 1/2 */ \
+  (((address) >= 80) && ((address) < 86)) ? ((address) - 80 + 25030) : /* HV temperature/humidity, oil temperature */ \
+  (((address) >= 88) && ((address) < 92)) ? ((address) - 88 + 27816) : /* LV room temperature/humidity */ \
+  (((address) >= 100) && ((address) < 114)) ? ((address) - 100 + 25306) : /* PM line voltages/currents */ \
+  (((address) >= 114) && ((address) < 116)) ? ((address) - 114 + 25326) : /* active power */ \
+  (((address) >= 116) && ((address) < 118)) ? ((address) - 116 + 25334) : /* reactive power */ \
+  (((address) >= 118) && ((address) < 120)) ? ((address) - 118 + 25342) : /* apparent power */ \
+  (((address) >= 120) && ((address) < 124)) ? ((address) - 120 + 25350) : /* power factor/frequency */ \
+  (((address) >= 124) && ((address) < 128)) ? ((address) - 124 + 25362) : /* active energy */ \
+  (((address) >= 128) && ((address) < 132)) ? ((address) - 128 + 25368) : /* reactive energy */ \
+  (((address) >= 144) && ((address) < 152)) ? ((address) - 144 + 25050) : /* HV channels 2/3 */ \
+  (((address) >= 152) && ((address) < 192)) ? ((address) - 152 + 25864) : /* iRelay 50-P */ \
+  (((address) >= 192) && ((address) < 204)) ? ((address) - 192 + 27820) : /* heat exchanger */ \
+  -1 \
+)
+
+/* UK YX: point = (register - 1000) * 16 + bit, LSB first.
+ * Only points defined in both tables are forwarded. In particular,
+ * source YX62 is spare even though V0.24 has DI58 at 27662. */
+#define Cem9000_UK_YX_INDEX(point) ( \
+  (((point) >= 0) && ((point) < 12)) ? ((point) + 27600) : \
+  (((point) >= 19) && ((point) < 27)) ? ((point) + 27600) : \
+  (((point) >= 31) && ((point) < 51)) ? ((point) + 27600) : \
+  ((point) == 55) ? 27655 : \
+  ((point) == 61) ? 27661 : \
+  ((point) == 63) ? 27663 : \
+  (((point) >= 68) && ((point) < 114)) ? ((point) + 27600) : \
+  (((point) >= 126) && ((point) <= 302) && (((point) - 126) % 16 == 0)) ? (27718 + ((point) - 126) / 16) : /* heat exchanger bit14 */ \
+  (((point) >= 318) && ((point) < 320)) ? ((point) - 318 + 25920) : /* IN1/IN2 */ \
+  ((point) == 334) ? 25922 : /* OUT1 */ \
+  (((point) >= 350) && ((point) < 374)) ? ((point) - 350 + 25923) : /* faults and held protection */ \
+  (((point) >= 382) && ((point) < 385)) ? ((point) - 382 + 25947) : \
+  (((point) >= 390) && ((point) < 406)) ? ((point) - 390 + 25950) : /* real-time protection */ \
+  (((point) >= 414) && ((point) < 417)) ? ((point) - 414 + 25966) : \
+  ((point) == 430) ? 25969 : /* protection summary */ \
+  ((point) == 446) ? 25970 : /* alarm summary */ \
+  -1 \
+)
+
+/* Finland YC source table: 97 float32 values / 194 registers. Map only
+ * named points defined by MV-EMS V0.27; source spares and unmatched values
+ * return -1. Every mapped float retains its two-register order. */
+#define Cem9000_Finland_Korkeamaa_INPUT_INDEX(address) ( \
+  (((address) >= 14) && ((address) < 30)) ? ((address) - 14 + 27750) : /* frequency, HV/LV voltages */ \
+  (((address) >= 46) && ((address) < 60)) ? ((address) - 46 + 27782) : /* LV side 2 voltages */ \
+  (((address) >= 80) && ((address) < 84)) ? ((address) - 80 + 25030) : /* G01 temperature/humidity */ \
+  (((address) >= 84) && ((address) < 92)) ? ((address) - 84 + 25050) : /* G02/G03 temperature/humidity */ \
+  (((address) >= 92) && ((address) < 94)) ? ((address) - 92 + 25034) : /* oil surface temperature */ \
+  (((address) >= 94) && ((address) < 98)) ? ((address) - 94 + 27816) : /* LV room temperature/humidity */ \
+  (((address) >= 104) && ((address) < 112)) ? ((address) - 104 + 25372) : /* HV PM currents, mA -> A in driver */ \
+  (((address) >= 118) && ((address) < 122)) ? ((address) - 118 + 25380) : /* HV PM power factor/frequency */ \
+  (((address) >= 130) && ((address) < 144)) ? ((address) - 130 + 25306) : /* LV room 1 PM1 voltages/currents */ \
+  (((address) >= 144) && ((address) < 146)) ? ((address) - 144 + 25326) : /* total active power */ \
+  (((address) >= 146) && ((address) < 148)) ? ((address) - 146 + 25334) : /* total reactive power */ \
+  (((address) >= 148) && ((address) < 150)) ? ((address) - 148 + 25342) : /* total apparent power */ \
+  (((address) >= 150) && ((address) < 154)) ? ((address) - 150 + 25350) : /* power factor/frequency */ \
+  (((address) >= 154) && ((address) < 158)) ? ((address) - 154 + 25362) : /* forward/reverse active energy */ \
+  (((address) >= 158) && ((address) < 162)) ? ((address) - 158 + 25368) : /* forward/reverse reactive energy */ \
+  (((address) >= 162) && ((address) < 170)) ? ((address) - 162 + 25856) : /* AR51 protection phase/residual currents */ \
+  (((address) >= 170) && ((address) < 176)) ? ((address) - 170 + 25850) : /* AR51 measuring phase currents */ \
+  (((address) >= 176) && ((address) < 184)) ? ((address) - 176 + 27820) : /* Air Conditioner KT */ \
+  -1 \
+)
+
+#define Cem9000_Finland_Kannisto_INPUT_INDEX(address) ( \
+  (((address) >= 14) && ((address) < 30)) ? ((address) - 14 + 27750) : /* frequency, HV/LV voltages */ \
+  (((address) >= 46) && ((address) < 60)) ? ((address) - 46 + 27782) : /* LV side 2 voltages */ \
+  (((address) >= 80) && ((address) < 84)) ? ((address) - 80 + 25030) : /* G01 temperature/humidity */ \
+  (((address) >= 84) && ((address) < 92)) ? ((address) - 84 + 25050) : /* G02/G03 temperature/humidity */ \
+  (((address) >= 92) && ((address) < 94)) ? ((address) - 92 + 25034) : /* oil surface temperature */ \
+  (((address) >= 94) && ((address) < 98)) ? ((address) - 94 + 27816) : /* LV room temperature/humidity */ \
+  (((address) >= 104) && ((address) < 112)) ? ((address) - 104 + 25372) : /* HV PM currents, mA -> A in driver */ \
+  (((address) >= 118) && ((address) < 122)) ? ((address) - 118 + 25380) : /* HV PM power factor/frequency */ \
+  (((address) >= 130) && ((address) < 144)) ? ((address) - 130 + 25306) : /* LV room 1 PM1 voltages/currents */ \
+  (((address) >= 144) && ((address) < 146)) ? ((address) - 144 + 25326) : /* total active power */ \
+  (((address) >= 146) && ((address) < 148)) ? ((address) - 146 + 25334) : /* total reactive power */ \
+  (((address) >= 148) && ((address) < 150)) ? ((address) - 148 + 25342) : /* total apparent power */ \
+  (((address) >= 150) && ((address) < 154)) ? ((address) - 150 + 25350) : /* power factor/frequency */ \
+  (((address) >= 154) && ((address) < 158)) ? ((address) - 154 + 25362) : /* forward/reverse active energy */ \
+  (((address) >= 158) && ((address) < 162)) ? ((address) - 158 + 25368) : /* forward/reverse reactive energy */ \
+  (((address) >= 162) && ((address) < 170)) ? ((address) - 162 + 25856) : /* AR51 protection phase/residual currents */ \
+  (((address) >= 170) && ((address) < 176)) ? ((address) - 170 + 25850) : /* AR51 measuring phase currents */ \
+  (((address) >= 176) && ((address) < 178)) ? ((address) - 176 + 27836) : /* Air Conditioner KT */ \
+  (((address) >= 178) && ((address) < 194)) ? ((address) - 178 + 27820) : /* Air Conditioner KT */ \
+  -1 \
+)
+
+
+
+/* Finland YX point = (source register - 1000) * 16 + bit, bit 0 = LSB.
+ * The source has 140 points. Reserved points have no public-register write.
+ * PCS4 is 27626: the user confirmed V0.27's duplicate 27625 is a typo. */
+#define Cem9000_Finland_YX_INDEX(point) ( \
+  (((point) >= 0) && ((point) < 12)) ? ((point) + 27600) : \
+  (((point) >= 13) && ((point) < 15)) ? ((point) + 27600) : \
+  (((point) >= 19) && ((point) < 28)) ? ((point) + 27600) : \
+  (((point) >= 29) && ((point) < 51)) ? ((point) + 27600) : \
+  ((point) == 52) ? 27652 : \
+  (((point) >= 55) && ((point) < 60)) ? ((point) + 27600) : \
+  (((point) >= 68) && ((point) < 80)) ? ((point) + 27600) : \
+  (((point) >= 88) && ((point) < 90)) ? ((point) + 27600) : \
+  (((point) >= 103) && ((point) < 105)) ? ((point) + 27600) : \
+  (((point) >= 110) && ((point) < 114)) ? ((point) + 27600) : \
+  (((point) >= 114) && ((point) < 137)) ? ((point) - 114 + 25972) : /* AR51 digital inputs */ \
+  (((point) >= 137) && ((point) < 140)) ? ((point) - 137 + 25969) : /* AR51 trip/alarm/control-loop fault */ \
+  -1 \
+)
 
 
 

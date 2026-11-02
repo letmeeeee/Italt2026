@@ -156,6 +156,13 @@ extern "C" {
 #define SERVER_TCP_EMS          (3)     //EMS服务器
 #define SERVER_TCP_BMS          (4)     //BMS服务器
 
+//测控协议类型
+#define MEASURE_ITALY_10MW      (1)     //意大利项目10MW
+#define MEASURE_ITALY_5_5MW     (2)     //意大利项目10MW
+#define MEASURE_FINLAND_KORK    (3)     //EU-芬兰Korkeamaa-110MW/240.72MWh
+#define MEASURE_FINLAND_KAN     (4)    //EU-芬兰Kannisto-125MW/270.81MWh
+#define MEASURE_UK              (5)     //英国10MW项目
+
 
 // 按字节对齐
 #pragma pack(push, 1)
@@ -268,8 +275,10 @@ typedef struct {
     INT8U   gw_ip[MAX_GATEWAY_NUM][MAX_IP_LEN];       //网关的IP地址
     INT32U  gw_port[MAX_GATEWAY_NUM];                 //网关的网络端口号
 //[MEASURE_NETWORK]
+    INT8U   measure_protocol[MAX_MEASURE_NUM];  //测控装置协议类型 
     INT8U   measure_ip[MAX_MEASURE_NUM][MAX_IP_LEN];  //测控装置IP地址
     INT32U  measure_port[MAX_MEASURE_NUM];            //测控装置网络端口号
+    
 //[ETH_SERIAL]
     INT8U   eth485_ip[MAX_ETH485_NUM][MAX_IP_LEN];    //485转TCP的IP地址
     INT32U  eth485_port[MAX_ETH485_NUM];              //485转TCP的端口号

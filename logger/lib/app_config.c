@@ -503,6 +503,12 @@ static int Measure_Network_parsing(sysPara* pconfig, const char* section, const 
 {
     char match_str[64] = {0};
     for (int i = 0; i < MAX_MEASURE_NUM; i++) {
+        // Measure协议类型
+        MATCH_SPRINT(match_str, "measure%d_protocol", i + 1);
+        if (MATCH("MEASURE_NETWORK", match_str)) {
+            pconfig->measure_protocol[i] = atoi(value);
+            return 1;
+        }
         //Measure网络地址
         MATCH_SPRINT(match_str, "measure%d_ip", i + 1);
         if (MATCH("MEASURE_NETWORK", match_str)) {
