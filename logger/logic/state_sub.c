@@ -1249,28 +1249,6 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     SET_INPUT(APPARENT_POWERH, (INT16U)((INT32U)S >> 16));
     SET_INPUT(APPARENT_POWERL, (INT16U)((INT32U)S & 0xFFFF));
 
-if(sys_cfg->pcsNum==2)
-{
-   INT32U Available_inductive_reactive_powertotal=sqrt((double)5000 * (double)5000 - (double)p64 * (double)p64);
-
-
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-}
-else if(sys_cfg->pcsNum==4)
-{
-      INT32U Available_inductive_reactive_powertotal=sqrt((double)10000 * (double)10000 - (double)p64 * (double)p64);
-
-
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
-}
    INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
     INT32U Nominal_capctiy = 34500*PCS_num;
 
@@ -1935,28 +1913,6 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
     SET_INPUT(APPARENT_POWERH, (INT16U)((INT32U)S >> 16));
     SET_INPUT(APPARENT_POWERL, (INT16U)((INT32U)S & 0xFFFF));
 
-if(sys_cfg->pcsNum==2)
-{
-   INT32U Available_inductive_reactive_powertotal=sqrt((double)5000 * (double)5000 - (double)p64 * (double)p64);
-
-
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-}
-else if(sys_cfg->pcsNum==4)
-{
-      INT32U Available_inductive_reactive_powertotal=sqrt((double)10000 * (double)10000 - (double)p64 * (double)p64);
-
-
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_INDUCTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF));
-
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
-    SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
-}
    INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
     INT32U Nominal_capctiy = 34500*PCS_num;
 
