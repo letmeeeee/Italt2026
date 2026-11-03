@@ -1720,7 +1720,7 @@ static void Event_SYS_PQ_Mode_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM r
             Clear_Out_Sys(sys_num);
             *(eid + sys_num)   = SYS_EVENT_PQ;
         }
-    }
+}
 
 
 static void Event_Timeout_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)

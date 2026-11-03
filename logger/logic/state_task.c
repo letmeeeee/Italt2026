@@ -157,6 +157,8 @@ void Trina_State_Task(void)
     while(1)
     {
          Check_Black_State();
+
+         
        if((GET_HOLD(12000+700*0+2)==0)&&(GET_HOLD(12000+700*1+2)==0)&&(GET_HOLD(12000+700*2+2)==0)&&(GET_HOLD(12000+700*3+2)==0))
         {
         for(sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
@@ -174,13 +176,16 @@ void Trina_State_Task(void)
         }
     else if((GET_HOLD(12000+700*0+2)==1)||(GET_HOLD(12000+700*1+2)==1)||(GET_HOLD(12000+700*2+2)==1)||(GET_HOLD(12000+700*3+2)==1))
     {
-    if (black_start==1) 
-    {
-        black_start = 0;
+           for(sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+        {         
+            
+          for(sub_num=0; (sub_num < sys_cfg->subNum) && (sub_num<MAX_SUB_NUM);sub_num++)
+            {
+              check_limit(sys_num, sub_num);
+            }
+           SYS_State_Trina_BlackStart_Run(SYS_state, sys_num);
+        }  
 
-        SYS_Trina_State_Init(SYS_state, sys_num);
-
-    }
           //黑启动模式
             usleep(20 * 1000); 
     }

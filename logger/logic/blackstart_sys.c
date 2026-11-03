@@ -128,6 +128,10 @@ static void Event_CMD_Stop_Check_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
 static void Island_CMD_Send(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
 void Island_CMD_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_SYS_BLACKRUN_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
+static void Event_CMD_Stop_Check_Trina_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
+static void Event_Stop_Trina_PCS_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
+static void Event_Wait_Trina_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
+static void Event_SYS_Trina_Black_Mode_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
 /* ===================== 状态转移表 ===================== */
 const static StateSYSform state_list[] = {
     /* 当前状态 ************事件 ******************目标状态 ********* 检测函数 **********************************描述 */
@@ -135,28 +139,53 @@ const static StateSYSform state_list[] = {
 
     {SYSStopPCS,        SYS_EVENT_WAIT_STOPED,             SYSStopped,          Event_Stop_Check,               "下发停机：PCS停机->PCS已停机"},
 
-    {SYSFault,          SYS_EVENT_FAULT_STOP,           SYSStopPCS,       Event_Fault_Stop_Check,             "停机命令：故障停机->停机中"},
+    {SYSFault,          SYS_EVENT_FAULT_STOP,           SYSStopPCS,          Event_Fault_Stop_Check,             "停机命令：故障停机->停机中"},
 
     {SYSStopped,        SYS_EVENT_ISLAND_CMD,          SYSBlackStopsetvalue,         Island_CMD_Send,                   "孤岛参数命令下发：停止->下发孤岛参数"},
    
     {SYSBlackStopsetvalue,   SYS_EVENT_ISLAND_CMD,       SYSBlackStopcheckvalue,           Island_CMD_Check,                "黑启动事件：已停机->孤岛参数已下发"},
  
-    {SYSBlackStopcheckvalue,        SYS_EVENT_CMD_START,   SYSBLACKSTART,        Event_CMD_Start_Check,              "黑启动命令：已停机->启动中"},
+    {SYSBlackStopcheckvalue,  SYS_EVENT_CMD_START,      SYSBLACKSTART,        Event_CMD_Start_Check,              "黑启动命令：已停机->启动中"},
    
   
     {SYSBLACKSTART,        SYS_EVENT_FAULT,                SYSFault,           Event_Fault_Check,                  "故障事件：黑启动中->故障停机"},
    
     {SYSBLACKSTART,        SYS_EVENT_CMD_BLACK_RUN,         SYSBLACKRun,        Event_SYS_BLACKRUN_Check,            "黑启动运行：启动中->黑启动运行"},
+   
+    {SYSBLACKSTART,            SYS_EVENT_ZERO_POWER,           SYSStopPCS,       Event_CMD_Stop_Check,               "停机命令：运行->停机中"},   
+
+   // {SYSBLACKSTART,            SYS_EVENT_STOP,                 SYSInit,         Event_CMD_Stop_Check_PCS,           "停机命令：运行->停机"},   
 
      {SYSBLACKRun,            SYS_EVENT_ZERO_POWER,           SYSStopPCS,       Event_CMD_Stop_Check,               "停机命令：运行->停机中"},
 
     {SYSBLACKRun,            SYS_EVENT_STOP,                 SYSInit,         Event_CMD_Stop_Check_PCS,           "停机命令：运行->停机"},   
+    
+    {SYSBLACKRun,            SYS_EVENT_FAULT,                 SYSFault,         Event_Fault_Check,           "停机命令：运行->停机"},   
+};
+const static StateSYSform trina_state_list[] = {
+    /* 当前状态 ************事件 ******************目标状态 ********* 检测函数 **********************************描述 */
+    {SYSInit,           SYS_EVENT_INIT,                  SYSStopped,         Event_Init_Check,                   "黑启动事件：初始化->停机"},
+
+   // {SYSStopPCS,        SYS_EVENT_WAIT_STOPED,             SYSStopped,          Event_Wait_Trina_Stopped_Check, "下发停机：PCS停机->PCS已停机"},
+
+    {SYSFault,          SYS_EVENT_STOP_PCS,             SYSStopPCS,           Event_Stop_Trina_PCS_Check,             "停机命令：故障停机->停机中"},
+
+    
+   {SYSStopped,        SYS_EVENT_CMD_BLACK_RUN,         SYSBLACKSTART,        Event_SYS_Trina_Black_Mode_Check,  "黑启动命令：已停机->启动中"},
+   
+  
+    {SYSBLACKSTART,        SYS_EVENT_FAULT,                SYSFault,             Event_Fault_Check,                  "故障事件：黑启动中->故障停机"},
+   
+  //  {SYSStopped,         SYS_EVENT_CMD_BLACK_RUN,         SYSBLACKRun,        Event_SYS_BLACKRUN_Check,            "黑启动运行：启动中->黑启动运行"},
+
+   // {SYSBLACKRun,            SYS_EVENT_ZERO_POWER,           SYSStopPCS,       Event_Stop_Trina_PCS_Check,               "停机命令：运行->停机中"},
+
+     {SYSBLACKSTART,            SYS_EVENT_STOP,                 SYSInit,         Event_CMD_Stop_Check_Trina_PCS,           "停机命令：运行->停机"},   
 
 };
-
 #define LIST_SIZE (sizeof(state_list) / sizeof(StateSYSform))
 
-
+#define LIST_SIZE (sizeof(trina_state_list) / sizeof(StateSYSform))
 
 
 
@@ -224,8 +253,31 @@ static void Event_Fault_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
     (void)real_state;
 
     last_time[sys_num] = Timer_GetTick();
-    *(eid + sys_num)   = SYS_EVENT_FAULT_STOP;
-    Set_Out_Sys(sys_num, SYS_EVENT_ZERO_POWER); /* 下发 0 功率 */
+   (void)real_state;
+    int pcs_num=0;
+    int pcs_addr=0;
+
+        pcs_num = (sys_num!= 0) ? 2 : 0;
+        pcs_addr = (sys_num!= 0) ? 1 : 0;
+     if (pcs_num >= 0)
+    {
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 27000+300*sys_num+103;   
+        pcsreq.value    = 0;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false;
+
+        // 去重，保留最新值
+        LOG_INFO("addr is %d,num is %d",pcsreq.addr ,pcs_num);
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
+    }
+        LOG_INFO("下发关机: sys_num=%d", sys_num);
+
+        last_time[sys_num] = Timer_GetTick();
+        *(eid + sys_num)   = SYS_EVENT_ZERO_POWER;
+        Clear_In_Sys(sys_num);
+        LOG_INFO("event_in :%d,sys_num : %d", event_in[sys_num],sys_num);
+  
     Clear_In_Sys(sys_num);
 }
 
@@ -381,7 +433,36 @@ static void Event_CMD_Start_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM rea
    
         }
 }
+static void Event_SYS_Trina_Black_Mode_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
+{
+    (void)real_state;
 
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U is_no_run = 0;
+    INT8U pcs_idx1=0;
+    INT8U pcs_idx2=0;
+    pcs_idx1 = sys_num * 2;
+    pcs_idx2 = sys_num * 2 + 1;
+
+    INT16U PCS1_run_mode   = GET_HOLD(12000 + 700 * pcs_idx1 + 2);
+    INT16U PCS2_run_mode   = GET_HOLD(12000 + 700 * pcs_idx2 + 2);
+
+
+    INT16U PCS1_state       = GET_INPUT(2600 + 300 * pcs_idx1 + 100);
+    INT16U PCS2_state       = GET_INPUT(2600 + 300 * pcs_idx2 + 100);
+
+    INT8U PCS1_state_run = (INT8U)(((PCS1_state >> 0) & 0x1u) == 1u);
+    INT8U PCS2_state_run = (INT8U)(((PCS2_state >> 0) & 0x1u) == 1u);
+
+
+
+        if ((((PCS1_run_mode==1)||(PCS2_run_mode==1)))&&((PCS1_state_run==1)||(PCS2_state_run==1)))
+     {
+            last_time[sys_num] = Timer_GetTick();
+            Clear_Out_Sys(sys_num);
+            *(eid + sys_num)   = SYS_EVENT_CMD_BLACK_RUN;
+        }
+}
 
 /**
  * @brief 检查并处理停止命令事件
@@ -429,6 +510,43 @@ static void Event_CMD_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real
         LOG_INFO("event_in :%d,sys_num : %d", event_in[sys_num],sys_num);
     }
 }
+static void Event_Stop_Trina_PCS_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
+{
+    (void)real_state;
+    int pcs_num=0;
+    int pcs_addr=0;
+    INT8U pcs_idx1=0;
+    INT8U pcs_idx2=0;
+    pcs_idx1 = sys_num * 2;
+    pcs_idx2 = sys_num * 2 + 1;
+
+
+        sleep(1);
+        last_time[sys_num] = Timer_GetTick();
+        Clear_Out_Sys(sys_num);
+    
+
+         //Set_Out_Sys(sys_num, SYS_EVENT_STOP_PCS);
+        PcsWriteReq pcsreq;
+        pcsreq.addr     = 12000+700*pcs_idx1+1;
+        pcsreq.value    = 0;
+        pcsreq.len      = 1;
+        pcsreq.is_multi = false;
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_idx1, &pcsreq);//放入缓冲区中
+        usleep(500); 
+        PcsWriteReq pcsreq2;
+        pcsreq2.addr     = 12000+700*pcs_idx2+1;
+        pcsreq2.value    = 0;
+        pcsreq2.len      = 1;
+        pcsreq2.is_multi = false;
+        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_idx2, &pcsreq2);//放入缓冲区中
+        usleep(500); 
+
+
+        LOG_INFO("发送停机：%d",sys_num);
+        *(eid + sys_num)   = SYS_EVENT_STOP_PCS;
+    }
+
 
 static void Event_CMD_Stop_Check_PCS_Status(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
 {
@@ -471,6 +589,35 @@ static void Event_CMD_Stop_Check_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
     }
 }
 
+static void Event_CMD_Stop_Check_Trina_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
+{
+    (void)real_state;
+    INT8U pcs_idx1=0;
+    INT8U pcs_idx2=0;
+    pcs_idx1 = sys_num * 2;
+    pcs_idx2 = sys_num * 2 + 1;
+
+    INT16U PCS1_state       = GET_INPUT(2600 + 300 * pcs_idx1 + 100);
+    INT16U PCS2_state       = GET_INPUT(2600 + 300 * pcs_idx2 + 100);
+
+    INT8U PCS1_state_fault = (INT8U)(((PCS1_state >> 2) & 0x1u) == 1u);
+    INT8U PCS2_state_fault = (INT8U)(((PCS2_state >> 2) & 0x1u) == 1u);
+
+    INT8U PCS1_state_run = (INT8U)(((PCS1_state >> 0) & 0x1u) == 1u);
+    INT8U PCS2_state_run = (INT8U)(((PCS2_state >> 0) & 0x1u) == 1u);
+
+    INT8U PCS1_state_emergency_stop = (INT8U)(((PCS1_state >> 3) & 0x1u) == 1u);//紧急停机
+    INT8U PCS2_state_emergency_stop = (INT8U)(((PCS2_state >> 3) & 0x1u) == 1u);//紧急停机
+    if (((PCS1_state_fault==1)||(PCS1_state_run!=1)||(PCS1_state==0)||(PCS1_state_emergency_stop==1)) && ((PCS2_state_fault==1)||(PCS2_state_run!=1)||(PCS2_state==0)||(PCS2_state_emergency_stop==1))
+) 
+    {
+
+        last_time[sys_num] = Timer_GetTick();
+        *(eid + sys_num)   = SYS_EVENT_STOP;
+        Clear_In_Sys(sys_num);
+        Clear_Out_Sys(sys_num);
+    }
+}
 
 
 
@@ -546,6 +693,52 @@ static void Event_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_sta
     }
  }
 
+static void Event_Wait_Trina_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
+{
+    (void)real_state;
+
+    sysPara *sys_cfg = SysConf_GetInfo();
+    INT8U is_no_stopped = 0;
+    INT8U pcs_idx1=0;
+    INT8U pcs_idx2=0;
+    pcs_idx1 = sys_num * 2;
+    pcs_idx2 = sys_num * 2 + 1;
+
+    INT16U PCS1_state       = GET_INPUT(2600 + 300 * pcs_idx1 + 100);
+    INT16U PCS2_state       = GET_INPUT(2600 + 300 * pcs_idx2 + 100);
+
+    INT8U PCS1_state_stop = (INT8U)(((PCS1_state >> 1) & 0x1u) == 1u);//停机
+    INT8U PCS2_state_stop = (INT8U)(((PCS2_state >> 1) & 0x1u) == 1u);//停机
+
+    INT8U PCS1_state_fault = (INT8U)(((PCS1_state >> 2) & 0x1u) == 1u);//故障
+    INT8U PCS2_state_fault = (INT8U)(((PCS2_state >> 2) & 0x1u) == 1u);//故障
+
+    INT8U PCS1_state_emergency_stop = (INT8U)(((PCS1_state >> 3) & 0x1u) == 1u);//紧急停机
+    INT8U PCS2_state_emergency_stop = (INT8U)(((PCS2_state >> 3) & 0x1u) == 1u);//紧急停机
+    for (INT8U sub = 0; (sub < sys_cfg->subNum) && (sub < MAX_SUB_NUM); sub++) 
+    {
+        if (!SUB_ENABLED_SYS(sys_num, sub)) continue;
+        SUB_State_ENUM s = Get_State_Sub(sys_num, sub);
+        if ((s != SUBReady) && (s != SUBFault)) 
+        {
+            is_no_stopped = 1;
+           
+            break;
+        }
+    }
+
+    if ((is_no_stopped == 0) &&
+        (((PCS1_state_stop)||((PCS1_state_fault)||(PCS1_state_emergency_stop)||(PCS1_state==0)))&& ((PCS2_state_stop))||(PCS2_state_fault)||(PCS2_state_emergency_stop)||(PCS1_state==0))||
+        (Debug_State_Sys(sys_num, SYS_EVENT_WAIT_STOPED) == 1))
+    {
+        last_time[sys_num] = Timer_GetTick();
+         event_in[sys_num]=0;
+        slave_clean_times[sys_num]=0;
+        *(eid + sys_num)   = SYS_EVENT_WAIT_STOPED;
+        Clear_Out_Sys(sys_num);
+        // LOG_INFO("qing hu");
+    }
+}
 
 #define WARN_DEBOUNCE_TICKS_100ms   (10)   /* 10ms tick -> 5s */
 
@@ -1336,6 +1529,106 @@ void SYS_State_BlackStart_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
                 if (state_list[i].string != NULL) 
                 {
                     LOG_INFO("SYS-%d %s", sys_num, state_list[i].string);
+                }
+            }
+        }
+    }
+}
+
+void SYS_State_Trina_BlackStart_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
+{
+      sysPara *sys_cfg = SysConf_GetInfo();
+    /* 0) 每次循环：同步 EMS 掩码 */
+    EMS_Read_Control_Mask();
+
+    /* --- 强制回初始：PCS 通信断联 --- */
+    if (g_force_init_req[sys_num]) 
+    {
+        g_force_init_req[sys_num] = 0;
+
+        Clear_In_Sys(sys_num);
+        Clear_Out_Sys(sys_num);
+        event_id[sys_num]  = 0;
+        last_time[sys_num] = Timer_GetTick();
+
+        for (INT8U sub = 0; sub < SUBS_PER_SYS; ++sub) 
+        {
+            Clear_In_Sub(sys_num, sub);
+            Clear_Out_Sub(sys_num, sub);
+            if (Get_State_Sub(sys_num, sub) != SUBInit) 
+            {
+                SUB_state[sys_num * SUBS_PER_SYS + sub] = SUBInit;
+            }
+        }
+
+        state[sys_num] = SYSInit;
+
+        /* 断联直接锁存 ALARM，避免后续被 SYSInit/SYSRun 覆盖 */
+        g_sys_alarm_latch[sys_num] = ALARM;
+        g_sys_status_cache[sys_num] = ALARM;
+        g_sys_status_seen_mask |= (INT8U)(1u << sys_num);
+        update_global_SYSTEM_STATUS();
+
+        LOG_INFO("SYS-%d forced to SYSInit (PCS comm lost).", sys_num);
+        return;
+    }
+    if (black_start==1) 
+    {
+        black_start = 0;
+        for(uint8_t sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+        {
+        Clear_In_Sys(sys_num);
+        Clear_Out_Sys(sys_num);
+        event_id[sys_num]  = 0;
+        last_time[sys_num] = Timer_GetTick();
+        state[sys_num] = SYSInit;  
+        }
+
+
+    }
+
+    /* 3) 正常推进：先做通信边沿检测 */
+    check_pcs_limit();
+   // Update_Input_Bit_Status(sys_num);//更新LC对EMS的映射状态点位
+    for (INT8U i = 0; i < LIST_SIZE; i++) {
+        if (trina_state_list[i].now_state == state[sys_num]) 
+        {
+
+            INT16U now = (INT16U)trina_state_list[i].now_state;
+            INT16U out = calc_sys_status_out(sys_num, now);          
+            if (severity_rank(out) > 0) {
+                /* 出现 ALARM/WARN/WARNRUN：锁存（只升不降） */
+                if (severity_rank(out) > severity_rank(g_sys_alarm_latch[sys_num])) 
+                {
+                    g_sys_alarm_latch[sys_num] = out;
+                }
+            } else {
+                /* 非告警态：只有满足清除条件才清锁存 */
+                if (g_sys_alarm_latch[sys_num] != 0 && sys_clear_latch_ok(sys_num)) 
+                {
+                    g_sys_alarm_latch[sys_num] = 0;
+                }
+            }
+
+            /* 对外展示*/
+            if (g_sys_alarm_latch[sys_num] != 0) 
+            {
+                out = g_sys_alarm_latch[sys_num];
+            }
+
+            /* 缓存并聚合到全局 106 */
+            g_sys_status_cache[sys_num] = out;
+            g_sys_status_seen_mask |= (INT8U)(1u << sys_num);
+           // LOG_INFO("sys %d, state %d, out %d,g_sys_status_seen_mask:%d\n", sys_num, state[sys_num], out,g_sys_status_seen_mask);
+            update_global_SYSTEM_STATUS();       
+            trina_state_list[i].fun((INT16U *)event_id, sys_num, state[sys_num]);
+
+            if (trina_state_list[i].eventId == event_id[sys_num]) 
+            {
+                state[sys_num] = trina_state_list[i].next_state;
+                if (trina_state_list[i].string != NULL) 
+                {
+                    LOG_INFO("SYS-%d %s", sys_num, trina_state_list[i].string);
                 }
             }
         }

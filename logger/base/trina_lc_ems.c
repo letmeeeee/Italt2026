@@ -51,7 +51,7 @@ void UpdateTrinaPCStoEMS(void)
     uint16_t group;
     uint16_t pcs;
     uint16_t branch;
-
+    uint16_t blackstart_state;
     for (group = 0U; group < PCS_GROUP_COUNT; group++)
     {
         uint16_t targetBase;
@@ -86,12 +86,13 @@ void UpdateTrinaPCStoEMS(void)
             faultReg = GET_INPUT(sourceBase + 26U);
             alarmReg = GET_INPUT(sourceBase + 27U);
             runReg   = GET_INPUT(sourceBase + 100U);
-
+            /*黑启动状态反馈*/
+            blackstart_state= GET_INPUT(sourceBase + 39U);
             /* 读取当前PCS的电网频率、三相电压 */
             gridFreq = GET_INPUT(sourceBase + 106U);
-            rVoltage = GET_INPUT(sourceBase + 216U);
-            sVoltage = GET_INPUT(sourceBase + 217U);
-            tVoltage = GET_INPUT(sourceBase + 218U);
+            rVoltage = GET_INPUT(sourceBase + 103U);
+            sVoltage = GET_INPUT(sourceBase + 104U);
+            tVoltage = GET_INPUT(sourceBase + 105U);
 
             /* 分别读取两个支路的功率 */
             branchPower[0] = GET_INPUT(sourceBase + 141U);
@@ -159,7 +160,7 @@ void UpdateTrinaPCStoEMS(void)
                 SET_INPUT(targetBase + 200U + index,fault);
                 SET_INPUT(targetBase + 204U + index,alarm);
                 SET_INPUT(targetBase + 208U + index,state);
-
+                SET_INPUT(targetBase + 236U + index,blackstart_state);
                 /* 映射频率：同一台PCS两个支路使用相同值 */
                 SET_INPUT(targetBase + 212U + index,gridFreq);
 

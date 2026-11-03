@@ -196,6 +196,7 @@ int CEM9000_HOLD(INT16S value);
 #define Trina_INPUT_INDEX(pcs_index, address) ( \
   ((address) >= 4000 && (address) < 4007 ? ((address) - 4000 + 2600+0+300*(pcs_index-1)) : /*硬件版本～MS_FPGA变更版本*/\
   ((address) >= 4500 && (address) < 4502 ? ((address) - 4500 + 2600+8+300*(pcs_index-1)) : /*J1版本～J2版本*/\
+  ((address) == 4040) ? 2600+39+300*(pcs_index-1) : /* 黑启动状态 */ \
   ((address) >= 4023 && (address) < 4039 ? ((address) - 4023 + 2600+23+300*(pcs_index-1)) : /*DSP故障信息表1～FPGA告警信息表4*/\
   ((address) >= 4050 && (address) < 4063 ? ((address) - 4050 + 2600+50+300*(pcs_index-1)) : /*ARM与控制DSP间的通讯故障1～ARM系统级故障*/\
   ((address) >= 4064 && (address) < 4088 ? ((address) - 4064 + 2600+64+300*(pcs_index-1)) : /*累积充放电量*/\

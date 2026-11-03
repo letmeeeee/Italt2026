@@ -416,6 +416,13 @@ void PCS_Trina_Task(const char *arg)
  
                     loop++;
                     break;
+                case 20:    
+                       
+                        Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_ADDR, MODBUS_READ_TYPE_04, PCS_Trina_04addr10, PCS_Trina_04size10, CMD_DELAY_100);
+                    
+ 
+                    loop++;
+                    break;
                 default:
                     loop = 0;
                     break;

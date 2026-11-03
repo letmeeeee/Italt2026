@@ -1056,20 +1056,48 @@ static void* Server_Handle_Data(void *arg)
     
                         break;
                     }
-                  else if(Temp.D16 == 10)//并离网设置（只针对天合）
+                    else if(Temp.D16 == 10)//并离网设置（只针对天合）
                     {
 
                         if(sys_cfg->pcs_brand[0] == PCS_TRINA)
                         {
                             for(int n=0;n<4;n++)
                             {
-                             PcsWriteReq pcsreq;
-                            pcsreq.addr     = 12000+700*n+2;
-                            pcsreq.value    = RegVal.D16;
-                            pcsreq.len      = 1;
-                            pcsreq.is_multi = false;
-                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq);//放入缓冲区中
-                            usleep(500); 
+                            /*离网*/
+                             PcsWriteReq pcsreq1;
+                            pcsreq1.addr     = 12000+700*n+2;
+                            pcsreq1.value    = RegVal.D16;
+                            pcsreq1.len      = 1;
+                            pcsreq1.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq1);//放入缓冲区中
+                            usleep(50*1000); 
+                            /*下垂*/
+                             PcsWriteReq pcsreq2;
+                            pcsreq2.addr     = 12000+700*n+3;
+                            pcsreq2.value    = 8;
+                            pcsreq2.len      = 1;
+                            pcsreq2.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq2);//放入缓冲区中
+                            usleep(50*1000); 
+                            /*黑启动使能*/
+
+                            PcsWriteReq pcsreq3;
+                            pcsreq3.addr     = 12000+700*n+27;
+                            pcsreq3.value    = 1;
+                            pcsreq3.len      = 1;
+                            pcsreq3.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq3);//放入缓冲区中
+                            usleep(50*1000); 
+                            /*故障清除*/
+                            PcsWriteReq pcsreq4;
+                            pcsreq4.addr     = 12000+700*n+7;
+                            pcsreq4.value    = 1;
+                            pcsreq4.len      = 1;
+                            pcsreq4.is_multi = false;
+                            Pcs_Write_Enqueue_Dedup_By_Addr(n, &pcsreq4);//放入缓冲区中
+                            usleep(50*1000); 
+
+
                             }
                             
                         }

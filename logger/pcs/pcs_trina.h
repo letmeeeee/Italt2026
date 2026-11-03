@@ -32,6 +32,9 @@ void PCS_Trina_Task(const char *arg);
 #define PCS_Trina_04addr9     (4500)  
 #define PCS_Trina_04size9     (2)    //J1～J2软件版本
 
+#define PCS_Trina_04addr10     (4040)  
+#define PCS_Trina_04size10     (1)    //黑启动状态反馈
+
 #define PCS_Trina_03addr1      (3000)  
 #define PCS_Trina_03size1      (37)    //并联模式～支路充电分配系数
 
