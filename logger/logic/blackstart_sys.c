@@ -1104,6 +1104,10 @@ static void update_global_SYSTEM_STATUS(void)
         {
         SET_INPUT(108, SYSStarting);//启动中
         }
+        else if(g_sys_status_cache[0]==SYSBlackStopsetvalue||g_sys_status_cache[0]==SYSBlackStopcheckvalue)
+        {
+        SET_INPUT(108, SYSBLACKSTART);//黑启动中
+        }
         else 
         {
         SET_INPUT(108, g_sys_status_cache[0]);
@@ -1127,6 +1131,10 @@ static void update_global_SYSTEM_STATUS(void)
         ||g_sys_status_cache[1]==22)
         {
         SET_INPUT(108, SYSStarting);//启动中
+        }
+        else if(g_sys_status_cache[1]==SYSBlackStopsetvalue||g_sys_status_cache[1]==SYSBlackStopcheckvalue)
+        {
+        SET_INPUT(108, SYSBLACKSTART);//黑启动中
         }
         else 
         {
@@ -1188,7 +1196,11 @@ static void update_global_SYSTEM_STATUS(void)
 
         s0 = SYSStarting;   
     }
+    else if(g_sys_status_cache[0]==SYSBlackStopsetvalue||g_sys_status_cache[0]==SYSBlackStopcheckvalue)
+    {
 
+        s0 = SYSBLACKSTART;   
+    }
     if(g_sys_status_cache[1]==13||g_sys_status_cache[1]==14||g_sys_status_cache[1]==23||g_sys_status_cache[1]==24||
     g_sys_status_cache[1]==25||g_sys_status_cache[1]==27)
     {
@@ -1205,6 +1217,11 @@ static void update_global_SYSTEM_STATUS(void)
     {
 
          s1 = SYSStarting;   
+    }
+    else if(g_sys_status_cache[1]==SYSBlackStopsetvalue||g_sys_status_cache[1]==SYSBlackStopcheckvalue)
+    {
+
+        s1 = SYSBLACKSTART;   
     }
     SET_INPUT(108, (sys_state_rank_simple(s1) > sys_state_rank_simple(s0)) ? s1 : s0);
 
