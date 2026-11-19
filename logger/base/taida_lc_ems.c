@@ -539,40 +539,12 @@ void LC_EMS_Update_Power_Percent(int groupnum)
 // }
 static void Update_Bit_Status_By_One_Word(int base,
                                           int src_offset,
-                                          int dst_offset_8,
-                                          int dst_offset_9,
                                           int dst_offset_12,
                                           int dst_offset_13)
 {
     uint16_t value;
 
     value = GET_INPUT(base + src_offset);
-
-    /*
-     * bit8 -> dst_offset_8
-     * bit10 == 1 时，dst_offset_8 写 2
-     */
-    if (value & (1U << 10))
-    {
-        SET_INPUT(base + dst_offset_8, 2);
-    }
-    else
-    {
-        SET_INPUT(base + dst_offset_8, (value >> 8) & 0x01);
-    }
-
-    /*
-     * bit9 -> dst_offset_9
-     * bit11 == 1 时，dst_offset_9 写 2
-     */
-    if (value & (1U << 11))
-    {
-        SET_INPUT(base + dst_offset_9, 2);
-    }
-    else
-    {
-        SET_INPUT(base + dst_offset_9, (value >> 9) & 0x01);
-    }
 
     /* bit12 -> dst_offset_12 */
     SET_INPUT(base + dst_offset_12, (value >> 12) & 0x01);
@@ -595,16 +567,20 @@ void Update_PCS_SEL_Goose_Status(int system_num)
 void Update_Input_Bit_Status(int system_num)
 {
     int base = INPUT_BASE_ADDR + INPUT_GROUP_STEP * system_num;
-    int sysRdyRef = 0;
+    int sysRdyRef = 0, sysRdyRun = 0, acMcbState = 0;
 
     /* 处理 17000 + 300*n + 60 */
+    sysRdyRun = LC_EMS_Get_Input_Bit(base + 60, 2);
+
     sysRdyRef = LC_EMS_Get_Input_Bit(base + 60, 3);
 
+    acMcbState = LC_EMS_Get_Input_Bit(base + 60, 13);
+
     /* 处理 17000 + 300*n + 61 */
-    Update_Bit_Status_By_One_Word(base, 61, 208, 209, 200, 201);
+    Update_Bit_Status_By_One_Word(base, 61, 200, 201);
 
     /* 处理 17000 + 300*n + 62 */
-    Update_Bit_Status_By_One_Word(base, 62, 210, 211, 202, 203);
+    Update_Bit_Status_By_One_Word(base, 62, 202, 203);
 
     /* 对应主机在线且PCS系统故障字bit9~bit12全为0时，通信才正常。
      * 第0组对应PCS0，第1组对应PCS2；断连清零故障字不能视为恢复。
@@ -615,6 +591,7 @@ void Update_Input_Bit_Status(int system_num)
     // LOG_INFO("system_num=%d,comm_normal=%d,pcsSelGooseStatus=%04X", system_num, comm_normal, pcsSelGooseStatus[system_num].StatusAll);
     for(int i=0;i<4;i++)
     {
+        SET_INPUT(base + 208 + i, (sysRdyRun && acMcbState));
         SET_INPUT(base + 212 + i, GET_INPUT(base + 43));
         SET_INPUT(base + 236 + i, sysRdyRef);
         SET_INPUT(base + 240 + i, comm_normal ? 1 : 0);
