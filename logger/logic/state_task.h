@@ -13,6 +13,7 @@
 #include "state_sys.h"
 #include "state_sub.h"
 #define SUBSYSTEM_DEBUG_PRINTF 0 
+#define WARN_DEBOUNCE_TICKS_100ms   (10u)   /* 10ms tick -> 5s */
 /**
  * @brief 系统级状态机、子系统级状态、小系统级状态机轮转任务
  * System-level state machine, subsystem-level state, small system-level state machine rotation task

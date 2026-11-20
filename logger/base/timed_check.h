@@ -101,7 +101,7 @@ INT8U Get_MEASU_Comm(INT8U num);
  * @param[in] num 定时器序号 第几个测控装置
  * @param[in] status 状态 0-正常，1-通讯故障
  */
-void Set_MEASU_Comm(INT8U num, INT8U status);
+void Set_MEASU_Comm(INT8U num, INT8U status, INT8U isreset);
 
 /**
  * @brief 返回气体传感器通讯状态
@@ -129,7 +129,7 @@ INT8U Get_UPS_Comm(INT8U num);
  * @param[in] num 定时器序号 第几个ups
  * @param[in] status 状态 0-正常，1-通讯故障
  */
-void Set_UPS_Comm(INT8U num, INT8U status);
+void Set_UPS_Comm(INT8U num, INT8U status, INT8U isreset);
 
 
 /**

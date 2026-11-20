@@ -85,6 +85,13 @@ void Check_Black_State(void)
     if ((last_state == 1) && (current_state == 0))
     {
         black_end = 1;
+
+       for(uint8_t sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
+        {
+        Clear_In_Sys(sys_num);
+        Clear_Out_Sys(sys_num);
+
+        }
          LOG_INFO("黑启动关闭");
     }
 
@@ -106,9 +113,9 @@ void State_Task(void)
     {
         //LOG_INFO("黑启动启动！！！");
         Check_Black_State();
-        if((GET_HOLD(27000+300*0+21)==0)&&(GET_HOLD(27000+300*1+21)==0))
+        if((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode)==0)&&(GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode)==0))
         {
-         for(sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+         for(sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
         {
             for(sub_num=0; (sub_num < sys_cfg->subNum) && (sub_num<MAX_SUB_NUM);sub_num++)
             {
@@ -120,10 +127,10 @@ void State_Task(void)
             SYS_State_Run(SYS_state, sys_num);
         }    
         }
-        else if ((GET_HOLD(27000+300*0+21)==1)||(GET_HOLD(27000+300*1+21)==1))
+        else if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode)==1)||(GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode)==1))
         {
             //LOG_INFO("黑启动启动！！！");
-           for(sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+           for(sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
         {         
             
           for(sub_num=0; (sub_num < sys_cfg->subNum) && (sub_num<MAX_SUB_NUM);sub_num++)
@@ -161,7 +168,7 @@ void Trina_State_Task(void)
          
        if((GET_HOLD(12000+700*0+2)==0)&&(GET_HOLD(12000+700*1+2)==0)&&(GET_HOLD(12000+700*2+2)==0)&&(GET_HOLD(12000+700*3+2)==0))
         {
-        for(sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+        for(sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
         {
             for(sub_num=0; (sub_num < sys_cfg->subNum) && (sub_num<MAX_SUB_NUM);sub_num++)
             {
@@ -176,7 +183,7 @@ void Trina_State_Task(void)
         }
     else if((GET_HOLD(12000+700*0+2)==1)||(GET_HOLD(12000+700*1+2)==1)||(GET_HOLD(12000+700*2+2)==1)||(GET_HOLD(12000+700*3+2)==1))
     {
-           for(sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+           for(sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
         {         
             
           for(sub_num=0; (sub_num < sys_cfg->subNum) && (sub_num<MAX_SUB_NUM);sub_num++)

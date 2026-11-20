@@ -50,7 +50,7 @@ void Timer_Callback(int signo);
  */
 void Timer_Init();
 
-
+INT8S Soft_Timer(uint64_t last_time,uint64_t check_time_ms);
 /***************************************定时器定义************************************/
 
 //通讯状态设置函数声明类型

@@ -16,6 +16,12 @@
 #include "timed_check.h"
 #include "web_server.h"
 #include "pcs_write_queue.h"   // ★ 新增：写入请求队列
+/* ============================================================================================
+ * 点表地址约定（具体数值见 base/address_map.c）：
+ *   台达 PCS (V0.16)  ：PCS_TAIDA_HOLD_REG / PCS_TAIDA_5MW_HOLD_REG /
+ *                       PCS_TAIDA_CTRL_REG / PCS_TAIDA_GROUP_INPUT_REG
+ *   天合自研 PCS(V1.00)：PCS_TRINA_HOLD_REG / PCS_TRINA_CTRL_REG
+ * ==========================================================================================*/
 
 extern char *const pIsCheckTime;
 static int  PCSnum;
@@ -32,8 +38,8 @@ extern bool MV_Power_Flag;
 bool PCS_BMS_Enable_Flag;
 bool BMS_PCS_Enable_Flag;
 extern volatile bool Set_Time_Flag;
-extern int PCSactivepower[PCS_MAX_NUM];
-extern int PCSPF[PCS_MAX_NUM];
+extern int PCSactivepower[10];
+extern int PCSPF[10];
 /**
  * @brief 将二进制数据以十六进制格式追加到输出字符串中
  * 
@@ -128,7 +134,7 @@ static void* Server_Handle_Data(void *arg)
         {
             close(new_fd_thread);
         }
-        return;
+        return NULL;
     }
 
     connect_num++;
@@ -144,7 +150,7 @@ static void* Server_Handle_Data(void *arg)
         }
         free(ptimecnt);
         free(pconnectID);
-        return;
+        return NULL;
     }
     *ptimecnt = 0;
     *pconnectID = connect_time;
@@ -289,7 +295,8 @@ static void* Server_Handle_Data(void *arg)
                    pcsnum =PCSnum_calculate(Temp.D16);                
                      sys_num = (pcsnum>= 2) ? 1 : 0;
                    //  LOG_INFO("pcsnum=%d,sys_num=%d",pcsnum,sys_num);
-                   if ((pcsnum >= 0)&&(((Temp.D16<27046+sys_num*300))||(Temp.D16>27052+sys_num*300)))
+                   if ((pcsnum >= 0) && ((Temp.D16 < PCS_TAIDA_CTRL_REG[sys_num].MasterBat2DischargePowerCoef) ||
+                                         (Temp.D16 > PCS_TAIDA_CTRL_REG[sys_num].ActivePowerReference)))
                     {
                         PcsWriteReq pcsreq;
                         pcsreq.addr     = Temp.D16;
@@ -342,12 +349,14 @@ static void* Server_Handle_Data(void *arg)
                     Set_Time_Flag=true;
 
                 }
-                else if(((AddrStar>=27046)&&(AddrStar<=27052)))
+                else if((AddrStar >= PCS_TAIDA_CTRL_REG[0].MasterBat2DischargePowerCoef) &&
+                        (AddrStar <= PCS_TAIDA_CTRL_REG[0].ActivePowerReference))
                 {
                         Group1_power_multi_Flag=true;   
                         LOG_INFO("111");
                 }
-                else if((AddrStar>=27346)&&(AddrStar<=27352))
+                else if((AddrStar >= PCS_TAIDA_CTRL_REG[1].MasterBat2DischargePowerCoef) &&
+                        (AddrStar <= PCS_TAIDA_CTRL_REG[1].ActivePowerReference))
                 {
                         Group2_power_multi_Flag=true;
                 }
@@ -508,7 +517,7 @@ static void* Server_Handle_Data(void *arg)
                         }
                     }
                      //英国项目
-                    else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+                    else if((sys_cfg->measure_protocol[0] ==MEASURE_UK_10MW)||(sys_cfg->measure_protocol[0] ==MEASURE_UK_5_5MW))
                     {
                         if(Temp.D16==33201&&RegVal.D16==1)
                         {
@@ -553,9 +562,9 @@ static void* Server_Handle_Data(void *arg)
                     }             
 
                 // 主机 PCS 开/停机
-                    for(INT8U sys_num=0; (sys_num < sys_cfg->sysNum); sys_num++)
+                    for(INT8U sys_num=0; ((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM)); sys_num++)
                     {
-                        if(Temp.D16 == (27000 + 300 * sys_num + 103))//主机PCS开机或者关机
+                        if(Temp.D16 == PCS_TAIDA_CTRL_REG[sys_num].SystemOnOffCmd)//主机PCS开机或者关机
                         {
                             if(RegVal.D16==1) Set_In_Sys(sys_num,SYS_EVENT_CMD_START);
                             else              Set_In_Sys(sys_num,SYS_EVENT_CMD_STOP);
@@ -574,7 +583,7 @@ static void* Server_Handle_Data(void *arg)
                             for(int n=0;n<4;n++)
                             {
                             PcsWriteReq pcsreq;
-                            pcsreq.addr     = 12000+700*n+1;
+                            pcsreq.addr     = PCS_TRINA_HOLD_REG[n].PowerOnCommand;
                             pcsreq.value    = 1;
                             pcsreq.len      = 1;
                             pcsreq.is_multi = false;
@@ -582,7 +591,7 @@ static void* Server_Handle_Data(void *arg)
                             usleep(500); 
 
                             PcsWriteReq pcsreq2;
-                            pcsreq2.addr     = 12000+700*n+3;
+                            pcsreq2.addr     = PCS_TRINA_HOLD_REG[n].OperationMode;
                             pcsreq2.value    = 3;
                             pcsreq2.len      = 1;
                             pcsreq2.is_multi = false;
@@ -605,7 +614,7 @@ static void* Server_Handle_Data(void *arg)
                             for(int n=0;n<4;n++)
                             {
                              PcsWriteReq pcsreq;
-                            pcsreq.addr     = 12000+700*n+4;//0功率
+                            pcsreq.addr     = PCS_TRINA_HOLD_REG[n].ActivePowerSetpoint;//0功率
                             pcsreq.value    = 0;
                             pcsreq.len      = 1;
                             pcsreq.is_multi = false;
@@ -614,7 +623,7 @@ static void* Server_Handle_Data(void *arg)
 
 
                              PcsWriteReq pcsreq2;
-                            pcsreq2.addr     = 12000+700*n+1;//关机指令
+                            pcsreq2.addr     = PCS_TRINA_HOLD_REG[n].PowerOnCommand;//关机指令
                             pcsreq2.value    = 0;
                             pcsreq2.len      = 1;
                             pcsreq2.is_multi = false;
@@ -634,7 +643,7 @@ static void* Server_Handle_Data(void *arg)
                             for(int n=0;n<4;n++)
                             {
                              PcsWriteReq pcsreq;
-                            pcsreq.addr     = 12000+700*n+4;
+                            pcsreq.addr     = PCS_TRINA_HOLD_REG[n].ActivePowerSetpoint;
                             pcsreq.value    = 0;
                             pcsreq.len      = 1;
                             pcsreq.is_multi = false;
@@ -654,14 +663,14 @@ static void* Server_Handle_Data(void *arg)
                          if(sys_cfg->pcs_brand[0] == PCS_Taida)
                          {
                         PcsWriteReq pcsreq;
-                        pcsreq.addr     = 27000;
+                        pcsreq.addr     = PCS_TAIDA_CTRL_REG[0].GroupReset;
                         pcsreq.value    = 1;
                         pcsreq.len      = 1;
                         pcsreq.is_multi = false;
                         Pcs_Write_Enqueue_Dedup_By_Addr(0, &pcsreq);//放入缓冲区中
                         usleep(50);
                         //   PcsWriteReq pcsreq;
-                        pcsreq.addr     = 27300;
+                        pcsreq.addr     = PCS_TAIDA_CTRL_REG[1].GroupReset;
                         pcsreq.value    = 1;
                         pcsreq.len      = 1;
                         pcsreq.is_multi = false;
@@ -672,7 +681,7 @@ static void* Server_Handle_Data(void *arg)
                             for(int n=0;n<4;n++)
                             {
                              PcsWriteReq pcsreq;
-                            pcsreq.addr     = 12000+700*n+8;
+                            pcsreq.addr     = PCS_TRINA_HOLD_REG[n].Reset;
                             pcsreq.value    = 1;
                             pcsreq.len      = 1;
                             pcsreq.is_multi = false;
@@ -694,19 +703,19 @@ static void* Server_Handle_Data(void *arg)
                     }
                     else if(sys_cfg->pcs_brand[0] == PCS_TRINA)
                     {
-                        if(Temp.D16>=12000&&Temp.D16<=12605)
+                        if((Temp.D16 >= PCS_TRINA_HOLD_REG[0].Base) && (Temp.D16 <= (PCS_TRINA_HOLD_REG[0].Base + 605)))
                         {
                             pcsnum = 0;
                         }
-                        else if(Temp.D16>=12700&&Temp.D16<=13305)
+                        else if((Temp.D16 >= PCS_TRINA_HOLD_REG[1].Base) && (Temp.D16 <= (PCS_TRINA_HOLD_REG[1].Base + 605)))
                         {
                             pcsnum = 1;
                         }
-                        else if(Temp.D16>=13400&&Temp.D16<=14005)
+                        else if((Temp.D16 >= PCS_TRINA_HOLD_REG[2].Base) && (Temp.D16 <= (PCS_TRINA_HOLD_REG[2].Base + 605)))
                         {
                             pcsnum = 2;
                         }
-                        else if(Temp.D16>=14100&&Temp.D16<=14705)
+                        else if((Temp.D16 >= PCS_TRINA_HOLD_REG[3].Base) && (Temp.D16 <= (PCS_TRINA_HOLD_REG[3].Base + 605)))
                         {
                             pcsnum = 3;
                         }
@@ -724,7 +733,11 @@ static void* Server_Handle_Data(void *arg)
                         27108-27109, 无功功率参考~表观功率参考
                         27111-27118, 孤岛电压参考~ 放电功率限制
                         */
-                        if((Temp.D16>=27103&&Temp.D16<=27106)||(Temp.D16>=27000&&Temp.D16<=27049)||(Temp.D16==27053)||(Temp.D16>=27108&&Temp.D16<=27109)||(Temp.D16>=27111&&Temp.D16<=27118)) // 主机1
+                        if(((Temp.D16 >= PCS_TAIDA_CTRL_REG[0].SystemOnOffCmd) && (Temp.D16 <= (PCS_TAIDA_CTRL_REG[0].SystemOnOffCmd + 3))) ||
+                           ((Temp.D16 >= PCS_TAIDA_CTRL_REG[0].GroupReset) && (Temp.D16 <= (PCS_TAIDA_CTRL_REG[0].Base + 49))) ||
+                           (Temp.D16 == PCS_TAIDA_CTRL_REG[0].ReactivePowerReference) ||
+                           ((Temp.D16 >= (PCS_TAIDA_CTRL_REG[0].Base + 108)) && (Temp.D16 <= (PCS_TAIDA_CTRL_REG[0].Base + 109))) ||
+                           ((Temp.D16 >= PCS_TAIDA_CTRL_REG[0].IslandVoltageReference) && (Temp.D16 <= (PCS_TAIDA_CTRL_REG[0].IslandVoltageReference + 7)))) // 主机1
                         {
                             pcsnum = 0;
                         }
@@ -734,15 +747,19 @@ static void* Server_Handle_Data(void *arg)
                         27408-27409, 无功功率参考~表观功率参考
                         27411-27418, 孤岛电压参考~ 放电功率限制
                         */
-                        else if((Temp.D16>=27403&&Temp.D16<=27406)||(Temp.D16>=27300&&Temp.D16<=27349)||(Temp.D16==27353)||(Temp.D16>=27408&&Temp.D16<=27409||(Temp.D16>=27411&&Temp.D16<=27418))) // 主机2
+                        else if(((Temp.D16 >= PCS_TAIDA_CTRL_REG[1].SystemOnOffCmd) && (Temp.D16 <= (PCS_TAIDA_CTRL_REG[1].SystemOnOffCmd + 3))) ||
+                                ((Temp.D16 >= PCS_TAIDA_CTRL_REG[1].GroupReset) && (Temp.D16 <= (PCS_TAIDA_CTRL_REG[1].Base + 49))) ||
+                                (Temp.D16 == PCS_TAIDA_CTRL_REG[1].ReactivePowerReference) ||
+                                ((Temp.D16 >= (PCS_TAIDA_CTRL_REG[1].Base + 108)) && (Temp.D16 <= (PCS_TAIDA_CTRL_REG[1].Base + 109))) ||
+                                ((Temp.D16 >= PCS_TAIDA_CTRL_REG[1].IslandVoltageReference) && (Temp.D16 <= (PCS_TAIDA_CTRL_REG[1].IslandVoltageReference + 7)))) // 主机2
                         {
                             pcsnum = 2;
                         }
                         //PCS组1参数设置：有功功率，特殊处理，当运行模式是PF模式的时需要将值传递给PCSactivepower，然后进行转换（台达PCS原因）
-                        else if(Temp.D16==27052)
+                        else if(Temp.D16 == PCS_TAIDA_CTRL_REG[0].ActivePowerReference)
                         {
                           
-                            if(((( GET_INPUT(17000 + 300 * 0 + 64)) >> 1) & 1u) == 1)
+                            if(((( GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemEfficientMode1)) >> 1) & 1u) == 1)
                             {
                                 PCSactivepower[0]=RegVal.D16;
                                 LOG_INFO("pcs1 pf mode,pcs1 active power is %d",PCSactivepower[0]);
@@ -753,10 +770,10 @@ static void* Server_Handle_Data(void *arg)
                             }
                         }
                        //PCS组2参数设置：有功功率，特殊处理，当运行模式是PF模式的时需要将值传递给PCSactivepower，然后进行转换（台达PCS原因）
-                        else if(Temp.D16==27352)
+                        else if(Temp.D16 == PCS_TAIDA_CTRL_REG[1].ActivePowerReference)
                         {
 
-                            if(((( GET_INPUT(17000 + 300 * 1 + 64)) >> 1) & 1u) == 1)
+                            if(((( GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemEfficientMode1)) >> 1) & 1u) == 1)
                             {
                                 PCSactivepower[1]=RegVal.D16;
                             }
@@ -766,9 +783,9 @@ static void* Server_Handle_Data(void *arg)
                             }
                         }
                         //PCS组1参数设置：功率因数，特殊处理，当运行模式是PF模式的时需要将值传递给PCSPF，然后进行转换（台达PCS原因）
-                        else if(Temp.D16==27110)
+                        else if(Temp.D16 == PCS_TAIDA_CTRL_REG[0].PowerFactorReference)
                         {
-                            if(((( GET_INPUT(17000 + 300 * 0 + 64)) >> 1) & 1u) == 1)
+                            if(((( GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemEfficientMode1)) >> 1) & 1u) == 1)
                             {
                                 PCSPF[0]=RegVal.D16;
                             }
@@ -778,9 +795,9 @@ static void* Server_Handle_Data(void *arg)
                             }
                         }
                         //PCS组2参数设置：功率因数，特殊处理，当运行模式是PF模式的时需要将值传递给PCSPF，然后进行转换（台达PCS原因）
-                        else if(Temp.D16==27410)
+                        else if(Temp.D16 == PCS_TAIDA_CTRL_REG[1].PowerFactorReference)
                         {
-                            if(((( GET_INPUT(17000 + 300 * 1 + 64)) >> 1) & 1u) == 1)
+                            if(((( GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemEfficientMode1)) >> 1) & 1u) == 1)
                             {
                                 PCSPF[1]=RegVal.D16;
                             }
@@ -808,17 +825,17 @@ static void* Server_Handle_Data(void *arg)
                         //PCS参数设置   电网放电功率标定 k~从机1 控制启用         
                         if (single_mode == 1)
                         {
-                            if((Temp.D16>=15000&&Temp.D16<=15032)) pcsnum = 0; // 主机1
+                            if((Temp.D16 >= PCS_TAIDA_5MW_HOLD_REG[0].Base) && (Temp.D16 <= (PCS_TAIDA_5MW_HOLD_REG[0].Base + 32))) pcsnum = 0; // 主机1
                             // else if(Temp.D16>=15300&&Temp.D16<=15332) pcsnum = 1; // 从机1-1
-                            else if((Temp.D16>=15600&&Temp.D16<=15632)) pcsnum = 2; // 主机2
+                            else if((Temp.D16 >= PCS_TAIDA_5MW_HOLD_REG[1].Base) && (Temp.D16 <= (PCS_TAIDA_5MW_HOLD_REG[1].Base + 32))) pcsnum = 2; // 主机2
                             // else if(Temp.D16>=15900&&Temp.D16<=15932) pcsnum = 3; // 从机2-1
                         }
                         else
                         {
-                            if((Temp.D16>=12000&&Temp.D16<=12032)) pcsnum = 0; // 主机1
-                            else if(Temp.D16>=12300&&Temp.D16<=12332) pcsnum = 1; // 从机1-1
-                            else if((Temp.D16>=12600&&Temp.D16<=12632)) pcsnum = 2; // 主机2
-                            else if(Temp.D16>=12900&&Temp.D16<=12932) pcsnum = 3; // 从机2-1
+                            if((Temp.D16 >= PCS_TAIDA_HOLD_REG[0].Base) && (Temp.D16 <= (PCS_TAIDA_HOLD_REG[0].Base + 32))) pcsnum = 0; // 主机1
+                            else if((Temp.D16 >= PCS_TAIDA_HOLD_REG[1].Base) && (Temp.D16 <= (PCS_TAIDA_HOLD_REG[1].Base + 32))) pcsnum = 1; // 从机1-1
+                            else if((Temp.D16 >= PCS_TAIDA_HOLD_REG[2].Base) && (Temp.D16 <= (PCS_TAIDA_HOLD_REG[2].Base + 32))) pcsnum = 2; // 主机2
+                            else if((Temp.D16 >= PCS_TAIDA_HOLD_REG[3].Base) && (Temp.D16 <= (PCS_TAIDA_HOLD_REG[3].Base + 32))) pcsnum = 3; // 从机2-1
                         }
 
                     }

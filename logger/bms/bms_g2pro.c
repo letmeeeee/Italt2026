@@ -1,4 +1,7 @@
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
 #define _POSIX_C_SOURCE 200809L
 #include "main.h"
 
@@ -7,7 +10,7 @@
 #include <time.h>
 
 extern int SubNumGlobe;
-void* Bank_G2pro_Read_Task(const char *arg);
+void *Bank_G2pro_Read_Task(void *arg);
 
 void* Rank1_6_G2pro_Read_Task(const char *arg);
 
@@ -19,7 +22,7 @@ void* Bank_G2pro_HB_Task(const char *arg);
  * @param[in] ptr-接收到的缓冲区指针
  * @param[in] num-BMS序号，0代表第一台
  */
-static void Bank_G2pro_DataProcess(unsigned char *ptr, int num)
+static void Bank_G2pro_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[Rack_XIE_BUFF_LEN] = {0};
@@ -40,7 +43,7 @@ static void Bank_G2pro_DataProcess(unsigned char *ptr, int num)
     memcpy(pbuf, ptr, Rack_XIE_BUFF_LEN);
     Rack_id = pbuf[6];
     // 簇数据 读取寄存器返回
-    if (pbuf[7] == 0x04)
+     if (pbuf[7] == 0x03)
     {
         Set_BMS_Comm(num, IsNoFault, TRUE); // BMS通讯正常
         // 返回的数据起始地址
@@ -58,79 +61,15 @@ static void Bank_G2pro_DataProcess(unsigned char *ptr, int num)
         {
             is_ok = false;
         }
-       if ((temp.D16 >=0x1001) && (temp.D16 <=0x3000))
+
+        //瑞典项目G3 BMS的干接点点位为0x637
+        if((temp.D16 ==G3Bank_block_addr17) && ((sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_13_8MW) || (sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_6_25MW)))
         {
-
-         
-            for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < Rack_XIE_BUFF_LEN); i++)           
-            {
-
-                RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
-                RegVal.D8[0] = pbuf[dataddr++]; 
-                address=G2pro_INPUT_B_INDEX(num+1,temp.D16+i);//程序中的num是从0开始的，所以+1
-                SET_INPUT(address, RegVal.D16);
-                //LOG_INFO("协能：address is %d,RegVal.D16 is %d,temp.D16 is %d",address,RegVal.D16,temp.D16+i);
-            } 
+            RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
+            RegVal.D8[0] = pbuf[dataddr++]; 
+            SET_INPUT(38073 + 200 * num, RegVal.D16);
         }
         else if ((temp.D16 >= 0x600) && (temp.D16 <= 0x6A3))
-        {
-
-         
-            for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < Rack_XIE_BUFF_LEN); i++)           
-            {
-
-                RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
-                RegVal.D8[0] = pbuf[dataddr++]; 
-                address=G2pro_INPUT_B_INDEX(num+1,temp.D16+i);//程序中的num是从0开始的，所以+1
-
-                    SET_INPUT(address, RegVal.D16);
-           // LOG_INFO("协能：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,address);
-            } 
-        }
-        else
-        {
-            is_ok = false;
-        }
-        if(is_ok == true)
-        {
-            
-           
-        }
-    }
-    else if (pbuf[7] == 0x03)
-    {
-        Set_BMS_Comm(num, IsNoFault, TRUE); // BMS通讯正常
-        // 返回的数据起始地址
-        temp.D8[1] = pbuf[0];
-        temp.D8[0] = pbuf[1];
-        startaddr = temp.D16; // 寄存器首地址
-        dataddr = 9;
-        is_ok = true;
-        sum = 0;
-        for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < Rack_XIE_BUFF_LEN); i++)
-        { 
-            sum += pbuf[i+dataddr];
-        }
-        if(sum==0)
-        {
-            is_ok = false;
-        }
-        if ((temp.D16 >= 0x3001) && (temp.D16 < 0x6000))
-        {
-
-         
-            for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < Rack_XIE_BUFF_LEN); i++)           
-            {
-
-                RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
-                RegVal.D8[0] = pbuf[dataddr++]; 
-                address=G2pro_HOLD_B_INDEX(num+1,temp.D16+i);//程序中的num是从0开始的，所以+1
-
-                SET_HOLD(address, RegVal.D16);
-              //LOG_INFO("协能：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,address);
-            } 
-        }
-        else if ((temp.D16 >= 0x600) && (temp.D16 <= 0x72F))
         {
 
          
@@ -228,7 +167,7 @@ static void Bank_G2pro_DataProcess(unsigned char *ptr, int num)
  * @param[in] ptr-接收到的缓冲区指针
  * @param[in] num-BMS序号，0代表第一台
  */
-static void G2pro_rack_DataProcess(unsigned char *ptr, int num)
+static void G2pro_rack_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[Rack_XIE_BUFF_LEN] = {0};
@@ -390,13 +329,12 @@ void  BMS_G2pro_Task(const char *_num)
 
 }
 
-//读取BMS的BANK信息
-void* Bank_G2pro_Read_Task(const char *arg) {
+void *Bank_G2pro_Read_Task(void *arg) {
     
 
     sysPara *sys_cfg = SysConf_GetInfo();
 
-    int bms_num = *((int *)arg);  // 获取值
+    const int bms_num = *(const int *)arg; // 获取值
     LOG_INFO("Bank task started for BMS-%d", bms_num);
     INT8U loop = 0;
     INT8U Bank_id = 1;
@@ -404,7 +342,7 @@ void* Bank_G2pro_Read_Task(const char *arg) {
     INT8U is_jump = 0;
     int read_recv_res = 0;
     int i, j;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     INT8U timeout_cnt=0;
     INT8U Task_Is_Over = 0;
     INT8U status;
@@ -571,12 +509,16 @@ void* Bank_G2pro_Read_Task(const char *arg) {
                     break;
 
                 case 35: 
-                    Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03,
-                                    G2PROBank_block_addr17, G2PROBank_block_size17, CMD_DELAY_200);
+                    if((sys_cfg->measure_protocol[0] == MEASURE_SWEDEN_13_8MW) || (sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_6_25MW))
+                    {
+                        Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03,G3Bank_block_addr17, G3Bank_block_size17, CMD_DELAY_200);
+                    }
+                    else
+                    {
+                        Modbus_TCP_Read(socket_Bank, Bank_Env_id, MODBUS_READ_TYPE_03,G2PROBank_block_addr17, G2PROBank_block_size17, CMD_DELAY_200);
+                    }
                     loop++;
                     break;
-
-            
                 case 2:
                 case 4:
                 case 6:
@@ -655,7 +597,7 @@ void* Bank_G2pro_Read_Task(const char *arg) {
         }
     }
     close(socket_Bank);
-    return;
+    return NULL;
 }
 void* Rank1_6_G2pro_Read_Task(const char *arg) {
     sysPara *sys_cfg = SysConf_GetInfo();
@@ -670,7 +612,7 @@ void* Rank1_6_G2pro_Read_Task(const char *arg) {
     int read_recv_res = 0;
     int i, j;
     int socket_Rack1_6 = 0;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     INT8U timeout_cnt=0;
     INT8U Task_Is_Over = 0;
     INT8U status;
@@ -908,7 +850,7 @@ void* Rank1_6_G2pro_Read_Task(const char *arg) {
         }
     }
     close(socket_Rack1_6);
-    return;
+    return NULL;
 }
 //读取BMS的6~10簇信息
 void* Rank7_12_G2pro_Read_Task(const char *arg) {
@@ -924,7 +866,7 @@ void* Rank7_12_G2pro_Read_Task(const char *arg) {
     int read_recv_res = 0;
     int i,j;
     int socket_Rack7_12 = 0;
-    char str_char[2] = "";
+    char str_char[3] = {0};
 
     INT8U Task_Is_Over = 0;
     INT8U status;
@@ -1171,7 +1113,7 @@ void* Rank7_12_G2pro_Read_Task(const char *arg) {
         }
     }
 close(socket_Rack7_12);
-return;
+return NULL;
 }
 }
 /*BMS心跳包发送*/

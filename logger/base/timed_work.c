@@ -95,14 +95,24 @@ return MSecs;
 /**
  * @brief 计算时间戳
  */
-long GetMSecsSinceloop()
-{
-struct timeb timestamp = {};
+// long GetMSecsSinceloop()
+// {
+// struct timeb timestamp = {0};
 
-if (0 == ftime(&timestamp))
-return timestamp.time * 1000 + timestamp.millitm;
-else
-return 0;
+// if (0 == ftime(&timestamp))
+// return timestamp.time * 1000 + timestamp.millitm;
+// else
+// return 0;
+// }
+long GetMSecsSinceloop(void)
+{
+    struct timespec timestamp;
+
+    if (clock_gettime(CLOCK_REALTIME, &timestamp) != 0)
+        return 0;
+
+    return (long)timestamp.tv_sec * 1000L
+         + timestamp.tv_nsec / 1000000L;
 }
 /**
  * @brief 定时任务集合

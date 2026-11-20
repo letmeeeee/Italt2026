@@ -40,7 +40,7 @@ static void MEASURE_ReceDataProcess(unsigned char *ptr, int num)
     /*
     if (pbuf[7] == 0x03)
     {
-        Set_MEASU_Comm(num, IsNoFault); // MEASURE通讯正常
+        Set_MEASU_Comm(num, IsNoFault,0); // MEASURE通讯正常
         //返回的数据起始地址
         temp.D8[1] = pbuf[0];
         temp.D8[0] = pbuf[1];
@@ -58,7 +58,7 @@ static void MEASURE_ReceDataProcess(unsigned char *ptr, int num)
     */
     if (pbuf[7] == 0x01) //读取遥信
     {
-        Set_MEASU_Comm(num, IsNoFault); // MEASURE通讯正常
+        Set_MEASU_Comm(num, IsNoFault,0); // MEASURE通讯正常
         temp.D8[1] = pbuf[0];
         temp.D8[0] = pbuf[1]; //返回的数据起始地址
         startaddr = temp.D16; //寄存器首地址
@@ -175,7 +175,7 @@ static void MEASURE_ReceDataProcess(unsigned char *ptr, int num)
     /*
     else if (pbuf[7] == 0x05)
     {
-        Set_MEASU_Comm(num, IsNoFault); // MEASURE通讯正常
+        Set_MEASU_Comm(num, IsNoFault,0); // MEASURE通讯正常
         //返回的寄存器地址
         temp.D8[1] = pbuf[8];
         temp.D8[0] = pbuf[9];
@@ -306,7 +306,7 @@ void ETH_MEASURE_Task(const char *_item)
         else
         {
             LOG_INFO("MEASURE->ETH-%d: Connect SUCCESS ", measure_num);
-            Set_MEASU_Comm(measure_num, IsNoFault);
+            Set_MEASU_Comm(measure_num, IsNoFault,0);
             Loop = 0;
             while (1)
             {
@@ -354,7 +354,7 @@ void ETH_MEASURE_Task(const char *_item)
                 }
                 else //对接收到数据进行处理, 需要对数据进行格式校验
                 {
-                    Set_MEASU_Comm(measure_num, IsNoFault);                         // MEASURE通讯正常
+                    Set_MEASU_Comm(measure_num, IsNoFault,0);                         // MEASURE通讯正常
                     MEASURE_ReceDataProcess((unsigned char *)ReceBuf, measure_num); //需要增加粘包处理
                 }
                 if (Get_MEASU_Comm(measure_num)) //多次timeout 或者 invalid data，已经判了超时

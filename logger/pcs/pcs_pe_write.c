@@ -31,7 +31,7 @@ void  PCS_PE_write_Task(const char *_num)
     // 创建不同的线程 ID
     pthread_t thread_pcs;
    // 创建线程
-    pthread_create(&thread_pcs, &thread_attrR, Pcs_Pe_Write_Task, (void*)&pcs_num);
+    pthread_create(&thread_pcs, &thread_attrR, (void*)Pcs_Pe_Write_Task, (void*)&pcs_num);
     while(1)
     {
     usleep(50*1000);
@@ -81,7 +81,7 @@ if(PCS_Write_Flag[num]==true)
 }
     
 }
-static void PCS_PE_Write_DataProcess(unsigned char *ptr, int num)
+static void PCS_PE_Write_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[PCS_BUFF_LEN] = {0};
@@ -181,7 +181,7 @@ void* Pcs_Pe_Write_Task(const char *arg) {
     INT8U is_jump = 0;
     int read_recv_res = 0;
     int i, j;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     INT8U Task_Is_Over = 0;
     INT8U status;
  
@@ -275,5 +275,5 @@ void* Pcs_Pe_Write_Task(const char *arg) {
     }
     }
     close(socket_Pcs[pcs_num]);
-    return;
+    return NULL;
 }

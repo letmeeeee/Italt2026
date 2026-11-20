@@ -10,7 +10,7 @@
 #define Master_Discharge_Power_Coef    (3033)//主从机下发功率分配Limitation:0~1000, default:500
 #define Slave_Discharge_Power_Coef    (3035)//主从机下发功率分配Limitation:0~1000, default:500
 
-
+#define ActPowerefaddr    (3700)
 
 #define Master_Charge_Power_Coef  (3034) //
 #define Slave_Charge_Power_Coef  (3036) //
@@ -22,10 +22,10 @@
 #define MVPower                        (1010)
 #define LIMIT(x, min, max) \
     (((x) > (max)) ? (max) : (((x) < (min)) ? (min) : (x)))
-void  PCS_TRina_write_Task(const char *_num);
+void*  PCS_TRina_write_Task(void *arg);
+void Get_System_Time(SYS_TIME_BUF *tbuf);
 
-
-#define TIMEOUT_MS 0  
+// #define TIMEOUT_MS 0  
 
 
 

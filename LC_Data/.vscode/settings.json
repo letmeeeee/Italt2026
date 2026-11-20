@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "main.h": "c",
+        "other_work.h": "c",
+        "timed_check.h": "c",
+        "modbus_ems_server.h": "c"
+    }
+}

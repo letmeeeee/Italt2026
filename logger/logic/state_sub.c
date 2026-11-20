@@ -145,13 +145,13 @@ void Clear_Out_Sub(INT8U sys_num, INT8U sub_num)
 
 void Wait_Out_Sub(INT8U sys_num, INT8U sub_num)
 {
-    INT16U *p = &Event_Out[sys_num * MAX_SUB_NUM + sub_num];
+    volatile INT16U *p = &Event_Out[sys_num * MAX_SUB_NUM + sub_num];
     if ((*p > 0) && (*p <= 100)) *p += 100;
 }
 
 void Success_Out_Sub(INT8U sys_num, INT8U sub_num)
 {
-    INT16U *p = &Event_Out[sys_num * MAX_SUB_NUM + sub_num];
+    volatile INT16U *p = &Event_Out[sys_num * MAX_SUB_NUM + sub_num];
     if ((*p > 100) && (*p <= 200)) *p += 100;
 }
 
@@ -175,7 +175,7 @@ void Clear_In_Sub(INT8U sys_num, INT8U sub_num)
 
 void Wait_In_Sub(INT8U sys_num, INT8U sub_num)
 {
-    INT16U *p = &Event_In[sys_num * MAX_SUB_NUM + sub_num];
+    volatile INT16U *p = &Event_In[sys_num * MAX_SUB_NUM + sub_num];
     if ((*p > 0) && (*p <= 100)) *p += 100;
 }
 
@@ -191,7 +191,7 @@ uint64_t Get_In_Time_Sub(INT8U sys_num, INT8U sub_num)
 
 void Success_In_Sub(INT8U sys_num, INT8U sub_num)
 {
-    INT16U *p = &Event_In[sys_num * MAX_SUB_NUM + sub_num];
+    volatile INT16U *p = &Event_In[sys_num * MAX_SUB_NUM + sub_num];
     if ((*p > 100) && (*p <= 200)) *p += 100;
 }
 
@@ -265,9 +265,9 @@ sysPara* sys_cfg = SysConf_GetInfo();
 // GET_INPUT(64905 + (sys_num*sys_cfg->subNum+sub_num) * 20)!=0    //消防一级
 //     || (INT16U)GET_INPUT(64906 + (sys_num*sys_cfg->subNum+sub_num) * 20)!=0    //消防二级  
 //     ||
-    if ( (INT16U)GET_INPUT(27606)==1    //变压器轻瓦斯报警信号     
-    || (INT16U)GET_INPUT(27619)==1    //烟雾报警信号   
-    || GET_INPUT(27600) == 1                        //测控事故总   
+    if ( (INT16U)GET_INPUT(MVEMS_MV_INPUT_REG.LightGasAlarm)==1    //变压器轻瓦斯报警信号     
+    || (INT16U)GET_INPUT(MVEMS_MV_INPUT_REG.SmokeDetectorTrip)==1    //烟雾报警信号   
+    || GET_INPUT(MVEMS_MV_INPUT_REG.TripSummaryTotal) == 1                        //测控事故总   
     ) 
     {
         is_Fault = 1;
@@ -281,7 +281,7 @@ sysPara* sys_cfg = SysConf_GetInfo();
     }
     else if(((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)|| 
       (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)||
-      (sys_cfg->measure_protocol[0] ==MEASURE_UK))&&(GET_INPUT(25969) == 1))
+        ((sys_cfg->measure_protocol[0] == MEASURE_UK_10MW)||(sys_cfg->measure_protocol[0] == MEASURE_UK_5_5MW)))&&(GET_INPUT(25969) == 1))
     {
         is_Fault = 1;
         if(GET_HOLD(399)==0)//目标功率清0使能
@@ -350,14 +350,14 @@ static void Event_SUB_Run_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SUB_S
 {
     (void)real_state;
     INT8U resD = Debug_State_Sub(sys_num, sub_num, SUB_EVENT_SUB_RUN);
-    INT16U regval = GET_INPUT(38071 + (sys_num * BMS_PER_SYS + sub_num) * 200);
+    INT16U regval = GET_INPUT(BMS_BAU_INPUT_REG[sys_num*BMS_PER_SYS+sub_num].SystemRunMode);
     INT8U BMS_connection_state = GET_INPUT(35001 + sub_num * 300);
     (void)BMS_connection_state;
 
     // if ((((SUB_EVENT_CMD_START + 200) == Get_Out_Sub(sys_num, sub_num)) && (regval == 0 || regval == 1 || regval == 2)) ||
     //     (1 == resD)) 
         
-    if (((GET_INPUT(38062 + (sys_num * BMS_PER_SYS + sub_num) * 200)==2) && (regval == 0 || regval == 1 || regval == 2)) ||
+    if (((GET_INPUT(BMS_BAU_INPUT_REG[sys_num*BMS_PER_SYS+sub_num].GridConnectStatus)==2) && (regval == 0 || regval == 1 || regval == 2)) ||
     (1 == resD))    
         
         {
@@ -387,16 +387,16 @@ static void Event_Fault_Recovery_Check(INT16U *eid, INT8U sys_num, INT8U sub_num
     // || (INT16U)GET_INPUT(64906 + (sys_num*sys_cfg->subNum +sub_num) * 20)!=0    //消防二级  
 
     // || 
-    if ( (INT16U)GET_INPUT(27606)==1    //变压器轻瓦斯报警信号     
-    || (INT16U)GET_INPUT(27619)==1    //烟雾报警信号   
-    || GET_INPUT(27600) == 1          //测控事故总   
+    if ( (INT16U)GET_INPUT(MVEMS_MV_INPUT_REG.LightGasAlarm)==1    //变压器轻瓦斯报警信号     
+    || (INT16U)GET_INPUT(MVEMS_MV_INPUT_REG.SmokeDetectorTrip)==1    //烟雾报警信号   
+    || GET_INPUT(MVEMS_MV_INPUT_REG.TripSummaryTotal) == 1          //测控事故总   
     )                                                                                                                                            
     {
         is_finish = 0;
     } 
     else if(((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)|| 
       (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)||
-      (sys_cfg->measure_protocol[0] ==MEASURE_UK))&&(GET_INPUT(25969) == 1))
+    ((sys_cfg->measure_protocol[0] == MEASURE_UK_10MW)||(sys_cfg->measure_protocol[0] == MEASURE_UK_5_5MW)))&&(GET_INPUT(25969) == 1))
     {
         is_finish = 0;
     }
@@ -500,27 +500,28 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     /* 子系统消防 + 公共告警 */
 // GET_INPUT(64905 + fire_base) != 0 ||     /* 消防一级 */
 //         GET_INPUT(64906 + fire_base) != 0 ||     /* 消防二级 */
-    if ( GET_INPUT(27606) == 1 ||                 /* 轻瓦斯报警 */
-        GET_INPUT(27619) == 1 ||                 /* 烟雾报警 */
-        GET_INPUT(27600) == 1)                   /* 测控事故总 */
+    if ( GET_INPUT(MVEMS_MV_INPUT_REG.LightGasAlarm) == 1 ||                 /* 轻瓦斯报警 */
+        GET_INPUT(MVEMS_MV_INPUT_REG.SmokeDetectorTrip) == 1 ||                 /* 烟雾报警 */
+        GET_INPUT(MVEMS_MV_INPUT_REG.TripSummaryTotal) == 1)                   /* 测控事故总 */
     {
         raw_alarm_now = 1;
     }
     //芬兰项目、英国项目有综保事故总
     if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)|| 
       (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)||
-      (sys_cfg->measure_protocol[0] ==MEASURE_UK))
+      (sys_cfg->measure_protocol[0] ==MEASURE_UK_10MW)||
+      (sys_cfg->measure_protocol[0] ==MEASURE_UK_5_5MW))
     {
-        if (GET_INPUT(25969) == 1)
+        if (GET_INPUT(MVEMS_MV_INPUT_REG.Protection_Summary_Signal) == 1)
         {
             raw_alarm_now = 1;
         } 
     }
     /* PCS 故障字2：烟感 bit9 */
-    if ((((GET_INPUT(17000 + 300 * 0 + 67) >> 9) & 1u) == 1u) ||
-        (((GET_INPUT(17000 + 300 * 1 + 67) >> 9) & 1u) == 1u) ||
-        (((GET_INPUT(2600 + 300 * 1 + 201) >> 9) & 1u) == 1u)||
-        (((GET_INPUT(2600 + 300 * 3 + 201) >> 9) & 1u) == 1u)
+    if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemFaultWord2) >> 9) & 1u) == 1u) ||
+        (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemFaultWord2) >> 9) & 1u) == 1u) ||
+        (((GET_INPUT(PCS_TAIDA_MODULE_INPUT_REG[1].SystemFaultWord2) >> 9) & 1u) == 1u)||
+        (((GET_INPUT(PCS_TAIDA_MODULE_INPUT_REG[3].SystemFaultWord2) >> 9) & 1u) == 1u)
     )
     {
         raw_alarm_now = 1;
@@ -530,34 +531,37 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
      * 2) 原始 Trip raw_trip_now
      * ========================================================= */
     INT8U raw_trip_now = 0;
-    //芬兰项目
-    if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK) || (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN))
+    //芬兰、瑞典：辅助变超温跳闸有效，27612为预留点。
+    if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK) ||
+       (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN) ||
+       (sys_cfg->measure_protocol[0] == MEASURE_SWEDEN_13_8MW)||
+       (sys_cfg->measure_protocol[0] == MEASURE_SWEDEN_6_25MW))
     {
-        raw_trip_now = (GET_INPUT(27611) != 0) ||   /* 油位超低跳闸 */
-        (GET_INPUT(27607) != 0) ||   /* 超温跳闸 */
-        (GET_INPUT(27605) != 0) ||   /* 重瓦斯跳闸 */
-        (GET_INPUT(27610) != 0) ||   /* 压力释放阀动作 */
-        (GET_INPUT(27650) != 0) ||   /* 应急跳闸 */
-        (GET_INPUT(27613) != 0);     /* 辅助变超高温报警 */
+        raw_trip_now = (GET_INPUT(MVEMS_MV_INPUT_REG.UltraLowOilLevelTrip) != 0) ||   /* 油位超低跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.OilUltraHighTempTrip) != 0) ||   /* 超温跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.HeavyGasTrip) != 0) ||   /* 重瓦斯跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.PressureReliefTrip) != 0) ||   /* 压力释放阀动作 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.EmergencyStop) != 0) ||   /* 应急跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.AuxTransformerOverTempTrip) != 0);     /* 辅助变超高温报警 */
     }
-    else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+    else if((sys_cfg->measure_protocol[0] == MEASURE_UK_10MW)||(sys_cfg->measure_protocol[0] == MEASURE_UK_5_5MW))
     {
         /* 英国27612..27618为保留点，不参与故障联动。 */
-        raw_trip_now = (GET_INPUT(27611) != 0) ||   /* 油位超低跳闸 */
-        (GET_INPUT(27607) != 0) ||   /* 超温跳闸 */
-        (GET_INPUT(27605) != 0) ||   /* 重瓦斯跳闸 */
-        (GET_INPUT(27610) != 0) ||   /* 压力释放阀动作 */
-        (GET_INPUT(27650) != 0);    /* 应急跳闸 */
+        raw_trip_now = (GET_INPUT(MVEMS_MV_INPUT_REG.UltraLowOilLevelTrip) != 0) ||   /* 油位超低跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.OilUltraHighTempTrip) != 0) ||   /* 超温跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.HeavyGasTrip) != 0) ||   /* 重瓦斯跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.PressureReliefTrip) != 0) ||   /* 压力释放阀动作 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.EmergencyStop) != 0);    /* 应急跳闸 */
     }
     else //意大利项目
     {
-        raw_trip_now = (GET_INPUT(27611) != 0) ||   /* 油位超低跳闸 */
-        (GET_INPUT(27607) != 0) ||   /* 超温跳闸 */
-        (GET_INPUT(27605) != 0) ||   /* 重瓦斯跳闸 */
-        (GET_INPUT(27610) != 0) ||   /* 压力释放阀动作 */
-        (GET_INPUT(27612) != 0) ||   /* 绕组超温跳闸 */
-        (GET_INPUT(27650) != 0) ||   /* 应急跳闸 */
-        (GET_INPUT(27613) != 0);     /* 辅助变超高温报警 */
+        raw_trip_now = (GET_INPUT(MVEMS_MV_INPUT_REG.UltraLowOilLevelTrip) != 0) ||   /* 油位超低跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.OilUltraHighTempTrip) != 0) ||   /* 超温跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.HeavyGasTrip) != 0) ||   /* 重瓦斯跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.PressureReliefTrip) != 0) ||   /* 压力释放阀动作 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.WindingOverTempTrip) != 0) ||   /* 绕组超温跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.EmergencyStop) != 0) ||   /* 应急跳闸 */
+        (GET_INPUT(MVEMS_MV_INPUT_REG.AuxTransformerOverTempTrip) != 0);     /* 辅助变超高温报警 */
     }   
 
     if (raw_trip_now)
@@ -738,23 +742,24 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
             LOG_INFO("reason: fire level2, sys:%d sub:%d val:%d",
                      sys_num, sub_num, GET_INPUT(64906 + fire_base));
 
-        if (GET_INPUT(27606) == 1) LOG_INFO("reason: transformer gas alarm");
-        if (GET_INPUT(27619) == 1) LOG_INFO("reason: smoke alarm");
-        if (GET_INPUT(27600) == 1) LOG_INFO("reason: measure fault summary");
+        if (GET_INPUT(MVEMS_MV_INPUT_REG.LightGasAlarm) == 1) LOG_INFO("reason: transformer gas alarm");
+        if (GET_INPUT(MVEMS_MV_INPUT_REG.SmokeDetectorTrip) == 1) LOG_INFO("reason: smoke alarm");
+        if (GET_INPUT(MVEMS_MV_INPUT_REG.TripSummaryTotal) == 1) LOG_INFO("reason: measure fault summary");
         //芬兰项目、英国项目有综保事故总
         if((sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KORK)|| 
         (sys_cfg->measure_protocol[0] ==MEASURE_FINLAND_KAN)||
-        (sys_cfg->measure_protocol[0] ==MEASURE_UK))
+        (sys_cfg->measure_protocol[0] ==MEASURE_UK_10MW)||
+        (sys_cfg->measure_protocol[0] ==MEASURE_UK_5_5MW))
         {
-            if (GET_INPUT(25969) == 1)
+            if (GET_INPUT(MVEMS_MV_INPUT_REG.Protection_Summary_Signal) == 1)
             {
                 LOG_INFO("reason: RMU RELAY protection summary signal");
             } 
         }
-        if ((((GET_INPUT(17000 + 300 * 0 + 67) >> 9) & 1u) == 1u) ||
-            (((GET_INPUT(17000 + 300 * 1 + 67) >> 9) & 1u) == 1u)||
-            (((GET_INPUT(2600 + 300 * 1 + 201) >> 9) & 1u) == 1u)||
-            (((GET_INPUT(2600 + 300 * 3 + 201) >> 9) & 1u) == 1u)
+        if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemFaultWord2) >> 9) & 1u) == 1u) ||
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemFaultWord2) >> 9) & 1u) == 1u)||
+            (((GET_INPUT(PCS_TAIDA_MODULE_INPUT_REG[1].SystemFaultWord2) >> 9) & 1u) == 1u)||
+            (((GET_INPUT(PCS_TAIDA_MODULE_INPUT_REG[3].SystemFaultWord2) >> 9) & 1u) == 1u)
         )
         {
             LOG_INFO("reason: PCS fault word2 smoke bit");
@@ -820,10 +825,10 @@ static void taida_5mw_pcs_counts(void)
         unsigned int slot = group * 2;
         /*跳过检查不在线PCS*/
         if (!Project_Pcs_Active(cfg, slot) || !(online & (1u << group))) continue;
-        INT16U state = GET_INPUT(17060 + group * 300);
+        INT16U state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[group].SystemStateWord1);
         warning += (state >> 6) & 1u;
         fault += (state >> 4) & 1u;
-        running += (GET_INPUT(17063 + group * 300) >> 3) & 1u;
+        running += (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[group].SystemOperationStatus) >> 3) & 1u;
     }
     SET_INPUT(NUMBER_OF_WARNING_PCSs, warning);
     SET_INPUT(NUMBER_OF_FAULT_PCSs, fault);
@@ -856,29 +861,29 @@ static INT16U taida_summary_input(INT32S address)
         (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0x0C)) {
 
         INT8U BMS_num =COUNT_BITS_16(taida_summary_input(220));
-        INT16U SOC = BMS_num ? ((Taida_Read_Input(38000 + 2* 200 + 3) +
-                        Taida_Read_Input(38000 + 3 * 200 + 3)
+        INT16U SOC = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[2].TotalSOC) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[3].TotalSOC)
                                                         )) / BMS_num : 0;
         SET_INPUT(SYSTEM_SOC, SOC);
 
-        INT16U SOH = BMS_num ? ((Taida_Read_Input(38000 + 2 * 200 + 4) +
-                        Taida_Read_Input(38000 + 3 * 200 + 4)
+        INT16U SOH = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[2].BAU_SOH) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[3].BAU_SOH)
                                                         )) / BMS_num : 0;
         SET_INPUT(SYSTEM_SOH, SOH);
 
 
-        INT16U ac_freq = GET_INPUT(17000 + 1 * 300 + 43);
+        INT16U ac_freq = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridFrequency);
         SET_INPUT(AC_FREQUENCY, ac_freq);
 
-        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 1 * 300 + 42);
+        INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridPowerFactor);
         SET_INPUT(POWER_FACTOR, Power_Factor);
 
-        INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(38000 + 2 * 200 + 0) +
-                                       Taida_Read_Input(38000 + 3* 200 + 0) )) / BMS_num : 0;
+        INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                       Taida_Read_Input(BMS_BAU_INPUT_REG[3].BankTotalVol) )) / BMS_num : 0;
         SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
         SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-        if (GET_INPUT(17063 + 1 * 300) == 2) {
+        if (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 2) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
         }
         SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) ? 2 : 0));
@@ -888,7 +893,7 @@ static INT16U taida_summary_input(INT32S address)
         
         for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
         {
-            if((Taida_Read_Input(38071 + (fault_BMS+2) * 200) == 4))
+            if((Taida_Read_Input(BMS_BAU_INPUT_REG[fault_BMS+2].SystemRunMode) == 4))
             {
                 faulting_BMS_Num++;
             }
@@ -914,7 +919,7 @@ static INT16U taida_summary_input(INT32S address)
         int running_bms_num =0;
         for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
         {
-            if((Taida_Read_Input(38072 + (Run_BMS_Num+2) * 200) !=0))
+            if((Taida_Read_Input(BMS_BAU_INPUT_REG[Run_BMS_Num+2].ChgDchgStatus) !=0))
             {
                 running_bms_num ++;
             }
@@ -925,53 +930,53 @@ static INT16U taida_summary_input(INT32S address)
         }
         SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
 
-        if ((Taida_Read_Input(38072 + 2* 200) == 2) ||
-            (Taida_Read_Input(38072 + 3 * 200) == 2) ) {
+        if ((Taida_Read_Input(BMS_BAU_INPUT_REG[2].ChgDchgStatus) == 2) ||
+            (Taida_Read_Input(BMS_BAU_INPUT_REG[3].ChgDchgStatus) == 2) ) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
-        } else if ((Taida_Read_Input(38072 + 2 * 200) == 1) ||
-                   (Taida_Read_Input(38072 + 3 * 200) == 1) ) {
+        } else if ((Taida_Read_Input(BMS_BAU_INPUT_REG[2].ChgDchgStatus) == 1) ||
+                   (Taida_Read_Input(BMS_BAU_INPUT_REG[3].ChgDchgStatus) == 1) ) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
         }
 
     } else if (!single_mode &&
         (g_enabled_mask_pcs == 0x03 || g_enabled_mask_bms == 0x03)) {
        INT8U BMS_num =COUNT_BITS_16(taida_summary_input(220));
-        INT16U SOC = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 3) +
-                        Taida_Read_Input(38000 + 1 * 200 + 3) )) / BMS_num : 0;
+        INT16U SOC = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].TotalSOC) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[1].TotalSOC) )) / BMS_num : 0;
         SET_INPUT(SYSTEM_SOC, SOC);
 
-        INT16U SOH = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 4) +
-                        Taida_Read_Input(38000 + 1 * 200 + 4) )) / BMS_num : 0;
+        INT16U SOH = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BAU_SOH) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[1].BAU_SOH) )) / BMS_num : 0;
         SET_INPUT(SYSTEM_SOH, SOH);
 
-        INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
+        INT16U ac_freq = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridFrequency);
         SET_INPUT(AC_FREQUENCY, ac_freq);
 
-        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+        INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridPowerFactor);
         SET_INPUT(POWER_FACTOR, Power_Factor);
 
-        INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 0) +
-                                       Taida_Read_Input(38000 + 1 * 200 + 0) )) / BMS_num : 0;
+        INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                       Taida_Read_Input(BMS_BAU_INPUT_REG[1].BankTotalVol) )) / BMS_num : 0;
         SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
         SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-        if (GET_INPUT(17063 + 0 * 300) == 2) {
+        if (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
         }
         SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
         SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
         SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
-        if ((Taida_Read_Input(38072 + 0 * 200) == 2) ||
-            (Taida_Read_Input(38072 + 1 * 200) == 2) ) {
+        if ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].ChgDchgStatus) == 2) ||
+            (Taida_Read_Input(BMS_BAU_INPUT_REG[1].ChgDchgStatus) == 2) ) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
-        } else if ((Taida_Read_Input(38072 + 0 * 200) == 1) ||
-                   (Taida_Read_Input(38072 + 1 * 200) == 1) ) {
+        } else if ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].ChgDchgStatus) == 1) ||
+                   (Taida_Read_Input(BMS_BAU_INPUT_REG[1].ChgDchgStatus) == 1) ) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
         }
         int faulting_BMS_Num = 0;  
         for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
         {
-            if((Taida_Read_Input(38071 + (fault_BMS) * 200) == 4))
+            if((Taida_Read_Input(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4))
             {
                 faulting_BMS_Num++;
             }
@@ -997,7 +1002,7 @@ static INT16U taida_summary_input(INT32S address)
         int running_bms_num =0;
         for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
         {
-            if((Taida_Read_Input(38072 + (Run_BMS_Num) * 200) !=0))
+            if((Taida_Read_Input(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
             {
                 running_bms_num ++;
             }
@@ -1012,43 +1017,43 @@ static INT16U taida_summary_input(INT32S address)
         if (((single_mode ? sys_cfg->pcsNum : Taida_Read_Input(NUMBER_OF_PCSs)) == 2)&&((single_mode ? sys_cfg->bmsNum : Taida_Read_Input(NUMBER_OF_BMSs)) == 2)) {
 
             INT8U BMS_num =COUNT_BITS_16(taida_summary_input(220));
-            INT16U SOC = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 3) +
-                            Taida_Read_Input(38000 + 1 * 200 + 3) )) / BMS_num : 0;
+            INT16U SOC = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].TotalSOC) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[1].TotalSOC) )) / BMS_num : 0;
             SET_INPUT(SYSTEM_SOC, SOC);
 
-            INT16U SOH = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 4) +
-                            Taida_Read_Input(38000 + 1 * 200 + 4) )) / BMS_num : 0;
+            INT16U SOH = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BAU_SOH) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[1].BAU_SOH) )) / BMS_num : 0;
             SET_INPUT(SYSTEM_SOH, SOH);
 
-            INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
+            INT16U ac_freq = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridFrequency);
             SET_INPUT(AC_FREQUENCY, ac_freq);
 
-            INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+            INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridPowerFactor);
             SET_INPUT(POWER_FACTOR, Power_Factor);
      
-            INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 1 * 200 + 0) )) / BMS_num : 0;
+            INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[1].BankTotalVol) )) / BMS_num : 0;
             SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-            if ((GET_INPUT(17063 + 0 * 300) == 2)&&((GET_INPUT(17062 + 0 * 300) == 1))) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2)&&((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 1))) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
             }
-            if ((GET_INPUT(17063 + 0 * 300) == 16)&&((GET_INPUT(17062 + 0 * 300) == 2))) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 16)&&((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 2))) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);
             }            
-            if ((GET_INPUT(17063 + 0 * 300) == 8) ||
-                (GET_INPUT(17062 + 0 * 300) == 4) ) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 8) ||
+                (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 4) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);
-            } else if ((GET_INPUT(17063 + 0 * 300) == 16) ||
-                    (GET_INPUT(17062 + 0 * 300) == 2) ) {
+            } else if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 16) ||
+                    (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 2) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
             }
             SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
             SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
 
              SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
-            if (((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1U) {
+            if (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) >> 3) & 1) == 1U) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
             } else {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
@@ -1056,7 +1061,7 @@ static INT16U taida_summary_input(INT32S address)
            int faulting_BMS_Num = 0;   // 一定要先清零
             for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
             {
-                if((Taida_Read_Input(38071 + (fault_BMS) * 200) == 4))
+                if((Taida_Read_Input(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4))
                 {
                     faulting_BMS_Num++;
                 }
@@ -1084,7 +1089,7 @@ static INT16U taida_summary_input(INT32S address)
             int running_bms_num =0;
             for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
             {
-                if((Taida_Read_Input(38072 + (Run_BMS_Num) * 200) !=0))
+                if((Taida_Read_Input(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
                 {
                     running_bms_num ++;
                 }
@@ -1094,7 +1099,7 @@ static INT16U taida_summary_input(INT32S address)
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(27000+300*0+21)==1)) {
+             if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode)==1)) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1123,26 +1128,26 @@ static INT16U taida_summary_input(INT32S address)
             
             if(sys1_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 0 * 300 + 42)); 
+                INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridPowerFactor)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else if(sys2_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 1 * 300 + 42)); 
+                INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridPowerFactor)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else
             {
                  SET_INPUT(POWER_FACTOR, 0);
             }
-            if(GET_INPUT(17000 + 0 * 300 + 43)>=GET_INPUT(17000 + 1 * 300 + 43))
+            if(GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridFrequency)>=GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridFrequency))
             {
-                INT16U ac_freq = (GET_INPUT(17000 + 0 * 300 + 43));
+                INT16U ac_freq = (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridFrequency));
                  SET_INPUT(AC_FREQUENCY, ac_freq);
             }
             else 
             {
-                INT16U ac_freq = (GET_INPUT(17000 + 1 * 300 + 43));
+                INT16U ac_freq = (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridFrequency));
                  SET_INPUT(AC_FREQUENCY, ac_freq);
             }
             
@@ -1155,7 +1160,7 @@ static INT16U taida_summary_input(INT32S address)
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
 
-            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) 
+            if (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 1);
@@ -1163,27 +1168,27 @@ static INT16U taida_summary_input(INT32S address)
             } 
             
 
-            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1) 
+            if (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 2);
             } 
-            if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 6) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 6) & 1) ^ ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 6) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 2);
-            } else if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) == 1) &&
-                       (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 6) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 6) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 4);
             } else {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 0);
             }
  
 
-            if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 4) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 4) & 1) ^ ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 4) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_FAULT_PCSs, 2);
 
                 // SET_INPUT(PCS_GROUP_STATUS, 1);
-            } else if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) &&
-                       (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 4) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 4) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_FAULT_PCSs, 4);
                 SET_INPUT(PCS_GROUP_STATUS, 3);
             } 
@@ -1196,26 +1201,26 @@ static INT16U taida_summary_input(INT32S address)
             }
 
         
-            if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) ^ ((GET_INPUT(17063 + 1 * 300) >> 3) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) >> 3) & 1) ^ ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) >> 3) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
-            } else if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1) &&
-                       (((GET_INPUT(17063 + 1 * 300) >> 3) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) >> 3) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) >> 3) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 4);
             } else {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
             }
-            if ((GET_INPUT(17063 + 0 * 300) == 2) && (GET_INPUT(17063 + 1 * 300) == 2)&&(GET_INPUT(17062 + 0 * 300) == 1) && (GET_INPUT(17062 + 1 * 300) == 1)) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 2)&&(GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 1) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 1)) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
             }
-            if ((GET_INPUT(17063 + 0 * 300) == 16) && (GET_INPUT(17063 + 1 * 300) == 16) &&
-                (GET_INPUT(17062 + 0 * 300) == 2) && (GET_INPUT(17062 + 1 * 300) == 2) ) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 16) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 16) &&
+                (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 2) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 2) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);
             } 
-            if ((GET_INPUT(17063 + 0 * 300) == 8) || (GET_INPUT(17063 + 1 * 300) == 8) ||
-                (GET_INPUT(17062 + 0 * 300) == 4) || (GET_INPUT(17062 + 1 * 300) == 4) ) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 8) || (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 8) ||
+                (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 4) || (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 4) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);
-            } else if ((GET_INPUT(17063 + 0 * 300) == 16) || (GET_INPUT(17063 + 1 * 300) == 16) ||
-                       (GET_INPUT(17062 + 0 * 300) == 2) || (GET_INPUT(17062 + 1 * 300) == 2) ) {
+            } else if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 16) || (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 16) ||
+                       (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 2) || (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 2) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
             }
             
@@ -1263,7 +1268,7 @@ static INT16U taida_summary_input(INT32S address)
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
 
-           if ((GET_HOLD(27000+300*0+21)==1)&&(GET_HOLD(27000+300*1+21)==1)) {
+           if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode)==1)&&(GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode)==1)) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1273,38 +1278,38 @@ static INT16U taida_summary_input(INT32S address)
 //该部分数据无论拓扑如何变化都可以这样计算
     /* 系统级数据量 */
     INT32U chg_remain_capacity =
-        Taida_Read_Input(38000 + 0 * 200 + 6) + Taida_Read_Input(38000 + 1 * 200 + 6) +
-        Taida_Read_Input(38000 + 2 * 200 + 6) + Taida_Read_Input(38000 + 3 * 200 + 6) ;
+        Taida_Read_Input(BMS_BAU_INPUT_REG[0].ChgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].ChgRemainCapacity) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[2].ChgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].ChgRemainCapacity) ;
     chg_remain_capacity *= 10;
     SET_INPUT(AVAILABLE_CHARGE_ENERGYH, (INT16U)(chg_remain_capacity >> 16));
     SET_INPUT(AVAILABLE_CHARGE_ENERGYL, (INT16U)(chg_remain_capacity & 0xFFFF));
 
     INT32U dchg_remain_capacity =
-        Taida_Read_Input(38000 + 0 * 200 + 7) + Taida_Read_Input(38000 + 1 * 200 + 7) +
-        Taida_Read_Input(38000 + 2 * 200 + 7) + Taida_Read_Input(38000 + 3 * 200 + 7) ;
+        Taida_Read_Input(BMS_BAU_INPUT_REG[0].DchgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].DchgRemainCapacity) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[2].DchgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].DchgRemainCapacity) ;
     dchg_remain_capacity *= 10;
     SET_INPUT(AVAILABLE_DISCHARGE_ENERGYH, (INT16U)(dchg_remain_capacity >> 16));
     SET_INPUT(AVAILABLE_DISCHARGE_ENERGYL, (INT16U)(dchg_remain_capacity & 0xFFFF));
 
     INT32U chg_power =
-        Taida_Read_Input(38000 + 0 * 200 + 38) + Taida_Read_Input(38000 + 1 * 200 + 38) +
-        Taida_Read_Input(38000 + 2 * 200 + 38) + Taida_Read_Input(38000 + 3 * 200 + 38) ;
+        Taida_Read_Input(BMS_BAU_INPUT_REG[0].ChgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].ChgPower) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[2].ChgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].ChgPower) ;
     chg_power *= 10;
     SET_INPUT(AVAILABLE_CHARGE_POWERH, (INT16U)(chg_power >> 16));
     SET_INPUT(AVAILABLE_CHARGE_POWERL, (INT16U)(chg_power & 0xFFFF));
 
     INT32U dchg_power =
-        Taida_Read_Input(38000 + 0 * 200 + 37) + Taida_Read_Input(38000 + 1 * 200 + 37) +
-        Taida_Read_Input(38000 + 2 * 200 + 37) + Taida_Read_Input(38000 + 3 * 200 + 37) ;
+        Taida_Read_Input(BMS_BAU_INPUT_REG[0].DchgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].DchgPower) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[2].DchgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].DchgPower) ;
     dchg_power *= 10;
     SET_INPUT(AVAILABLE_DISCHARGE_POWERH, (INT16U)(dchg_power >> 16));
     SET_INPUT(AVAILABLE_DISCHARGE_POWERL, (INT16U)(dchg_power & 0xFFFF));
 
-    INT32S Atvice_power = ((INT16S)GET_INPUT(17000 + 0 * 300 + 40) +  (INT16S)GET_INPUT(17000 + 1 * 300 + 40))*10;
+    INT32S Atvice_power = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridTotalActivePower) +  (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridTotalActivePower))*10;
     SET_INPUT(ATVICE_POWERH, (INT16U)(Atvice_power >> 16));
     SET_INPUT(ATVICE_POWERL, (INT16U)(Atvice_power & 0xFFFF));
 
-    INT32S Reactive_power = ((INT16S)GET_INPUT(17000 + 0 * 300 + 41) + (INT16S)GET_INPUT(17000 + 1 * 300 + 41))*10;
+    INT32S Reactive_power = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridTotalReactivePower) + (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridTotalReactivePower))*10;
 
     SET_INPUT(REACTIVE_POWERH, (INT16U)(Reactive_power >> 16));
     SET_INPUT(REACTIVE_POWERL, (INT16U)(Reactive_power & 0xFFFF));
@@ -1349,11 +1354,11 @@ static INT16U taida_summary_input(INT32S address)
     SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
     SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));
 
-    INT32S DC_power = ((INT16S)GET_INPUT(17000 + 0 * 300 + 54) +  (INT16S)Taida_Read_Input(17000 + 1 * 300 + 54))*10;
+    INT32S DC_power = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].BatteryTotalPower) +  (INT16S)Taida_Read_Input(PCS_TAIDA_GROUP_INPUT_REG[1].BatteryTotalPower))*10;
     SET_INPUT(DC_POWERH, (INT16U)(DC_power >> 16));
     SET_INPUT(DC_POWERL, (INT16U)(DC_power & 0xFFFF));
 
-    INT32S DC_current =  ((INT16S)GET_INPUT(17000 + 0 * 300 + 55) +  (INT16S)GET_INPUT(17000 + 1 * 300 + 55))*10;
+    INT32S DC_current =  ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].BatteryTotalCurrent) +  (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].BatteryTotalCurrent))*10;
     SET_INPUT(DC_CURRENTH, (INT16U)(DC_current >> 16));
     SET_INPUT(DC_CURRENTL, (INT16U)(DC_current & 0xFFFF));
 
@@ -1367,23 +1372,23 @@ static INT16U taida_summary_input(INT32S address)
     SET_INPUT(Hour, hour);
     SET_INPUT(Minute, minute);
     SET_INPUT(Second, second);
-    if((GET_INPUT(27631) == 1)&& (GET_INPUT(27632) == 0))//高压侧开关分闸
+    if((GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerOpen) == 1)&& (GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerClosed) == 0))//高压侧开关分闸
     {
         SET_INPUT(High_voltage_switch_status,0xEE);
     }
-    else if(GET_INPUT(27631) == 0 && GET_INPUT(27632) == 1)//高压侧开关合闸
+    else if(GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerOpen) == 0 && GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerClosed) == 1)//高压侧开关合闸
     {
         SET_INPUT(High_voltage_switch_status,0xAA);
     }
-    INT32S PCS1_status = ((INT16S)Taida_Read_Input(2600 + 0 * 300 + 18));
-    INT32S PCS2_status = ((INT16S)Taida_Read_Input(2600 + 1 * 300 + 18));
-    INT32S PCS3_status = ((INT16S)Taida_Read_Input(2600 + 2 * 300 + 18));
-    INT32S PCS4_status = ((INT16S)Taida_Read_Input(2600 + 3 * 300 + 18));
+    INT32S PCS1_status = ((INT16S)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].GridActivePower));
+    INT32S PCS2_status = ((INT16S)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].GridActivePower));
+    INT32S PCS3_status = ((INT16S)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].GridActivePower));
+    INT32S PCS4_status = ((INT16S)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].GridActivePower));
 
-    SET_INPUT(17000 + 300 * 0 + 32, PCS_Status_To_RegValue(PCS1_status));
-    SET_INPUT(17000 + 300 * 0 + 33, PCS_Status_To_RegValue(PCS2_status));
-    SET_INPUT(17000 + 300 * 1 + 32, PCS_Status_To_RegValue(PCS3_status));
-    SET_INPUT(17000 + 300 * 1 + 33, PCS_Status_To_RegValue(PCS4_status));
+    SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].MasterPcsChargeDischargeStatus, PCS_Status_To_RegValue(PCS1_status));
+    SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SlavePcsChargeDischargeStatus, PCS_Status_To_RegValue(PCS2_status));
+    SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].MasterPcsChargeDischargeStatus, PCS_Status_To_RegValue(PCS3_status));
+    SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SlavePcsChargeDischargeStatus, PCS_Status_To_RegValue(PCS4_status));
     if (single_mode) taida_5mw_pcs_counts();
 }
 
@@ -1391,7 +1396,7 @@ static void Event_CMD_Lim_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SUB_S
 {
     (void)real_state;
     INT8U resD = Debug_State_Sub(sys_num, sub_num, SUB_EVENT_CMD_LIM);
-    // if(GET_INPUT((sys_num * MAX_SUB_NUM + sub_num)*200+38003)==1000||GET_INPUT((sys_num * MAX_SUB_NUM + sub_num)*200+38003)==0)
+    // if(GET_INPUT(BMS_BAU_INPUT_REG[sys_num*MAX_SUB_NUM+sub_num].TotalSOC)==1000||GET_INPUT(BMS_BAU_INPUT_REG[sys_num*MAX_SUB_NUM+sub_num].TotalSOC)==0)
     // {
     //         int pcs_num;
     //         if((sys_num * MAX_SUB_NUM + sub_num)==0||(sys_num * MAX_SUB_NUM + sub_num)==1)
@@ -1512,33 +1517,33 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
     if (!single_mode &&
         (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0xF0)) {
        INT8U BMS_num =COUNT_BITS_16(taida_summary_input(STATUS_WORD3));
-        INT16U SOC = BMS_num ? ((Taida_Read_Input(38000 + 4 * 200 + 3) +
-                        Taida_Read_Input(38000 + 5 * 200 + 3) +
-                        Taida_Read_Input(38000 + 6 * 200 + 3) +
-                        Taida_Read_Input(38000 + 7 * 200 + 3))) / BMS_num : 0;
+        INT16U SOC = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[4].TotalSOC) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[5].TotalSOC) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[6].TotalSOC) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[7].TotalSOC))) / BMS_num : 0;
         SET_INPUT(SYSTEM_SOC, SOC);
 
-        INT16U SOH = BMS_num ? ((Taida_Read_Input(38000 + 4 * 200 + 4) +
-                        Taida_Read_Input(38000 + 5 * 200 + 4) +
-                        Taida_Read_Input(38000 + 6 * 200 + 4) +
-                        Taida_Read_Input(38000 + 7 * 200 + 4))) / BMS_num : 0;
+        INT16U SOH = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[4].BAU_SOH) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[5].BAU_SOH) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[6].BAU_SOH) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[7].BAU_SOH))) / BMS_num : 0;
         SET_INPUT(SYSTEM_SOH, SOH);
 
 
-        INT16U ac_freq = GET_INPUT(17000 + 1 * 300 + 43);
+        INT16U ac_freq = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridFrequency);
         SET_INPUT(AC_FREQUENCY, ac_freq);
 
-        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 1 * 300 + 42);
+        INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridPowerFactor);
         SET_INPUT(POWER_FACTOR, Power_Factor);
 
-        INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(38000 + 4 * 200 + 0) +
-                                       Taida_Read_Input(38000 + 5 * 200 + 0) +
-                                       Taida_Read_Input(38000 + 6 * 200 + 0) +
-                                       Taida_Read_Input(38000 + 7 * 200 + 0))) / BMS_num : 0;
+        INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[4].BankTotalVol) +
+                                       Taida_Read_Input(BMS_BAU_INPUT_REG[5].BankTotalVol) +
+                                       Taida_Read_Input(BMS_BAU_INPUT_REG[6].BankTotalVol) +
+                                       Taida_Read_Input(BMS_BAU_INPUT_REG[7].BankTotalVol))) / BMS_num : 0;
         SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
         SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-        if (GET_INPUT(17063 + 1 * 300) == 2) {
+        if (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 2) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
         }
         SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) ? 2 : 0));
@@ -1548,7 +1553,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
         
         for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
         {
-            if((Taida_Read_Input(38071 + (fault_BMS+4) * 200) == 4))
+            if((Taida_Read_Input(BMS_BAU_INPUT_REG[fault_BMS+4].SystemRunMode) == 4))
             {
                 faulting_BMS_Num++;
             }
@@ -1574,7 +1579,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
         int running_bms_num =0;
         for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
         {
-            if((Taida_Read_Input(38072 + (Run_BMS_Num+4) * 200) !=0))
+            if((Taida_Read_Input(BMS_BAU_INPUT_REG[Run_BMS_Num+4].ChgDchgStatus) !=0))
             {
                 running_bms_num ++;
             }
@@ -1585,67 +1590,67 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
         }
         SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
 
-        if ((Taida_Read_Input(38072 + 4 * 200) == 2) ||
-            (Taida_Read_Input(38072 + 5 * 200) == 2) ||
-            (Taida_Read_Input(38072 + 6 * 200) == 2) ||
-            (Taida_Read_Input(38072 + 7 * 200) == 2)) {
+        if ((Taida_Read_Input(BMS_BAU_INPUT_REG[4].ChgDchgStatus) == 2) ||
+            (Taida_Read_Input(BMS_BAU_INPUT_REG[5].ChgDchgStatus) == 2) ||
+            (Taida_Read_Input(BMS_BAU_INPUT_REG[6].ChgDchgStatus) == 2) ||
+            (Taida_Read_Input(BMS_BAU_INPUT_REG[7].ChgDchgStatus) == 2)) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
-        } else if ((Taida_Read_Input(38072 + 4 * 200) == 1) ||
-                   (Taida_Read_Input(38072 + 5 * 200) == 1) ||
-                   (Taida_Read_Input(38072 + 6 * 200) == 1) ||
-                   (Taida_Read_Input(38072 + 7 * 200) == 1)) {
+        } else if ((Taida_Read_Input(BMS_BAU_INPUT_REG[4].ChgDchgStatus) == 1) ||
+                   (Taida_Read_Input(BMS_BAU_INPUT_REG[5].ChgDchgStatus) == 1) ||
+                   (Taida_Read_Input(BMS_BAU_INPUT_REG[6].ChgDchgStatus) == 1) ||
+                   (Taida_Read_Input(BMS_BAU_INPUT_REG[7].ChgDchgStatus) == 1)) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
         }
 
     } else if (!single_mode &&
         (g_enabled_mask_pcs == 0x03 || g_enabled_mask_bms == 0x0F)) {
       INT8U BMS_num =COUNT_BITS_16(taida_summary_input(STATUS_WORD3));
-        INT16U SOC = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 3) +
-                        Taida_Read_Input(38000 + 1 * 200 + 3) +
-                        Taida_Read_Input(38000 + 2 * 200 + 3) +
-                        Taida_Read_Input(38000 + 3 * 200 + 3))) / BMS_num : 0;
+        INT16U SOC = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].TotalSOC) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[1].TotalSOC) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[2].TotalSOC) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[3].TotalSOC))) / BMS_num : 0;
         SET_INPUT(SYSTEM_SOC, SOC);
 
-        INT16U SOH = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 4) +
-                        Taida_Read_Input(38000 + 1 * 200 + 4) +
-                        Taida_Read_Input(38000 + 2 * 200 + 4) +
-                        Taida_Read_Input(38000 + 3 * 200 + 4))) / BMS_num : 0;
+        INT16U SOH = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BAU_SOH) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[1].BAU_SOH) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[2].BAU_SOH) +
+                        Taida_Read_Input(BMS_BAU_INPUT_REG[3].BAU_SOH))) / BMS_num : 0;
         SET_INPUT(SYSTEM_SOH, SOH);
 
-        INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
+        INT16U ac_freq = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridFrequency);
         SET_INPUT(AC_FREQUENCY, ac_freq);
 
-        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+        INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridPowerFactor);
         SET_INPUT(POWER_FACTOR, Power_Factor);
 
-        INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 0) +
-                                       Taida_Read_Input(38000 + 1 * 200 + 0) +
-                                       Taida_Read_Input(38000 + 2 * 200 + 0) +
-                                       Taida_Read_Input(38000 + 3 * 200 + 0))) / BMS_num : 0;
+        INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                       Taida_Read_Input(BMS_BAU_INPUT_REG[1].BankTotalVol) +
+                                       Taida_Read_Input(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                       Taida_Read_Input(BMS_BAU_INPUT_REG[3].BankTotalVol))) / BMS_num : 0;
         SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
         SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-        if (GET_INPUT(17063 + 0 * 300) == 2) {
+        if (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
         }
         SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
         SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
         SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
-        if ((Taida_Read_Input(38072 + 0 * 200) == 2) ||
-            (Taida_Read_Input(38072 + 1 * 200) == 2) ||
-            (Taida_Read_Input(38072 + 2 * 200) == 2) ||
-            (Taida_Read_Input(38072 + 3 * 200) == 2)) {
+        if ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].ChgDchgStatus) == 2) ||
+            (Taida_Read_Input(BMS_BAU_INPUT_REG[1].ChgDchgStatus) == 2) ||
+            (Taida_Read_Input(BMS_BAU_INPUT_REG[2].ChgDchgStatus) == 2) ||
+            (Taida_Read_Input(BMS_BAU_INPUT_REG[3].ChgDchgStatus) == 2)) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
-        } else if ((Taida_Read_Input(38072 + 0 * 200) == 1) ||
-                   (Taida_Read_Input(38072 + 1 * 200) == 1) ||
-                   (Taida_Read_Input(38072 + 2 * 200) == 1) ||
-                   (Taida_Read_Input(38072 + 3 * 200) == 1)) {
+        } else if ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].ChgDchgStatus) == 1) ||
+                   (Taida_Read_Input(BMS_BAU_INPUT_REG[1].ChgDchgStatus) == 1) ||
+                   (Taida_Read_Input(BMS_BAU_INPUT_REG[2].ChgDchgStatus) == 1) ||
+                   (Taida_Read_Input(BMS_BAU_INPUT_REG[3].ChgDchgStatus) == 1)) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
         }
         int faulting_BMS_Num = 0;  
         for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
         {
-            if((Taida_Read_Input(38071 + (fault_BMS) * 200) == 4))
+            if((Taida_Read_Input(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4))
             {
                 faulting_BMS_Num++;
             }
@@ -1671,7 +1676,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
         int running_bms_num =0;
         for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
         {
-            if((Taida_Read_Input(38072 + (Run_BMS_Num) * 200) !=0))
+            if((Taida_Read_Input(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
             {
                 running_bms_num ++;
             }
@@ -1685,50 +1690,50 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
     } else {
         if (((single_mode ? sys_cfg->pcsNum : Taida_Read_Input(NUMBER_OF_PCSs)) == 2)&&((single_mode ? sys_cfg->bmsNum : Taida_Read_Input(NUMBER_OF_BMSs)) == 4)) {
             INT8U BMS_num =COUNT_BITS_16(taida_summary_input(STATUS_WORD3));
-            INT16U SOC = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 3) +
-                            Taida_Read_Input(38000 + 1 * 200 + 3) +
-                            Taida_Read_Input(38000 + 2 * 200 + 3) +
-                            Taida_Read_Input(38000 + 3 * 200 + 3))) / BMS_num : 0;
+            INT16U SOC = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].TotalSOC) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[1].TotalSOC) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[2].TotalSOC) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[3].TotalSOC))) / BMS_num : 0;
                            // LOG_INFO("SOC :%d,BMS : %d",SOC,BMS_num);
             SET_INPUT(SYSTEM_SOC, SOC);
 
-            INT16U SOH = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 4) +
-                            Taida_Read_Input(38000 + 1 * 200 + 4) +
-                            Taida_Read_Input(38000 + 2 * 200 + 4) +
-                            Taida_Read_Input(38000 + 3 * 200 + 4))) / BMS_num : 0;
+            INT16U SOH = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BAU_SOH) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[1].BAU_SOH) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[2].BAU_SOH) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[3].BAU_SOH))) / BMS_num : 0;
             SET_INPUT(SYSTEM_SOH, SOH);
 
-            INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
+            INT16U ac_freq = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridFrequency);
             SET_INPUT(AC_FREQUENCY, ac_freq);
 
-            INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+            INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridPowerFactor);
             SET_INPUT(POWER_FACTOR, Power_Factor);
 
-            INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 1 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 2 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 3 * 200 + 0))) / BMS_num : 0;
+            INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[1].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[3].BankTotalVol))) / BMS_num : 0;
             SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-            if ((GET_INPUT(17063 + 0 * 300) == 2)&&(((GET_INPUT(17062 + 0 * 300) == 1))||((GET_INPUT(17062 + 0 * 300) == 0)))) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2)&&(((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 1))||((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 0)))) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
             }
-            if ((GET_INPUT(17063 + 0 * 300) == 16)&&((GET_INPUT(17062 + 0 * 300) == 2))) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 16)&&((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 2))) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);
             }            
-            if ((GET_INPUT(17063 + 0 * 300) == 8) ||
-                (GET_INPUT(17062 + 0 * 300) == 4) ) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 8) ||
+                (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 4) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);
-            } else if ((GET_INPUT(17063 + 0 * 300) == 16) ||
-                    (GET_INPUT(17062 + 0 * 300) == 2) ) {
+            } else if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 16) ||
+                    (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 2) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
             }
             SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
             SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
 
              SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
-            if (((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1U) {
+            if (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) >> 3) & 1) == 1U) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
             } else {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
@@ -1736,7 +1741,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
            int faulting_BMS_Num = 0;   // 一定要先清零
             for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
             {
-                if((Taida_Read_Input(38071 + (fault_BMS) * 200) == 4))
+                if((Taida_Read_Input(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4))
                 {
                     faulting_BMS_Num++;
                 }
@@ -1764,7 +1769,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
             int running_bms_num =0;
             for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
             {
-                if((Taida_Read_Input(38072 + (Run_BMS_Num) * 200) !=0))
+                if((Taida_Read_Input(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
                 {
                     running_bms_num ++;
                 }
@@ -1774,7 +1779,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(27021 + 0 * 300) ==1)) {
+             if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode) ==1)) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1783,16 +1788,16 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
         } else if(((single_mode ? sys_cfg->pcsNum : Taida_Read_Input(NUMBER_OF_PCSs)) == 4)&&((single_mode ? sys_cfg->bmsNum : Taida_Read_Input(NUMBER_OF_BMSs)) == 8))
         {
              INT8U BMS_num =COUNT_BITS_16(taida_summary_input(STATUS_WORD3));
-            INT16U SOC = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 3) + Taida_Read_Input(38000 + 1 * 200 + 3) +
-                            Taida_Read_Input(38000 + 2 * 200 + 3) + Taida_Read_Input(38000 + 3 * 200 + 3) +
-                            Taida_Read_Input(38000 + 4 * 200 + 3) + Taida_Read_Input(38000 + 5 * 200 + 3) +
-                            Taida_Read_Input(38000 + 6 * 200 + 3) + Taida_Read_Input(38000 + 7 * 200 + 3))) / BMS_num : 0;
+            INT16U SOC = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].TotalSOC) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].TotalSOC) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[2].TotalSOC) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].TotalSOC) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[4].TotalSOC) + Taida_Read_Input(BMS_BAU_INPUT_REG[5].TotalSOC) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[6].TotalSOC) + Taida_Read_Input(BMS_BAU_INPUT_REG[7].TotalSOC))) / BMS_num : 0;
             SET_INPUT(SYSTEM_SOC, SOC);
 
-            INT16U SOH = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 4) + Taida_Read_Input(38000 + 1 * 200 + 4) +
-                            Taida_Read_Input(38000 + 2 * 200 + 4) + Taida_Read_Input(38000 + 3 * 200 + 4) +
-                            Taida_Read_Input(38000 + 4 * 200 + 4) + Taida_Read_Input(38000 + 5 * 200 + 4) +
-                            Taida_Read_Input(38000 + 6 * 200 + 4) + Taida_Read_Input(38000 + 7 * 200 + 4))) / BMS_num : 0;
+            INT16U SOH = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BAU_SOH) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].BAU_SOH) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[2].BAU_SOH) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].BAU_SOH) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[4].BAU_SOH) + Taida_Read_Input(BMS_BAU_INPUT_REG[5].BAU_SOH) +
+                            Taida_Read_Input(BMS_BAU_INPUT_REG[6].BAU_SOH) + Taida_Read_Input(BMS_BAU_INPUT_REG[7].BAU_SOH))) / BMS_num : 0;
             SET_INPUT(SYSTEM_SOH, SOH);
 
             SYS_State_ENUM state[2]; 
@@ -1805,12 +1810,12 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
             
             if(sys1_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 0 * 300 + 42)); 
+                INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridPowerFactor)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else if(sys2_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 1 * 300 + 42)); 
+                INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridPowerFactor)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else
@@ -1818,31 +1823,31 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                  SET_INPUT(POWER_FACTOR, 0);
             }
 
-            if(GET_INPUT(17000 + 0 * 300 + 43)>=GET_INPUT(17000 + 1 * 300 + 43))
+            if(GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridFrequency)>=GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridFrequency))
             {
-                INT16U ac_freq = (GET_INPUT(17000 + 0 * 300 + 43));
+                INT16U ac_freq = (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridFrequency));
                  SET_INPUT(AC_FREQUENCY, ac_freq);
             }
             else 
             {
-                INT16U ac_freq = (GET_INPUT(17000 + 1 * 300 + 43));
+                INT16U ac_freq = (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridFrequency));
                  SET_INPUT(AC_FREQUENCY, ac_freq);
             }
             
 
-            INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(38000 + 0 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 1 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 2 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 3 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 4 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 5 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 6 * 200 + 0) +
-                                           Taida_Read_Input(38000 + 7 * 200 + 0))) / BMS_num : 0;
+            INT32U DC_average_voltage = BMS_num ? ((Taida_Read_Input(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[1].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[3].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[4].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[5].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[6].BankTotalVol) +
+                                           Taida_Read_Input(BMS_BAU_INPUT_REG[7].BankTotalVol))) / BMS_num : 0;
             SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
 
-            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) 
+            if (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 1);
@@ -1850,27 +1855,27 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
             } 
             
 
-            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1) 
+            if (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 2);
             } 
-            if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 6) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 6) & 1) ^ ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 6) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 2);
-            } else if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) == 1) &&
-                       (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 6) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 6) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 4);
             } else {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 0);
             }
  
 
-            if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 4) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 4) & 1) ^ ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 4) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_FAULT_PCSs, 2);
 
                 // SET_INPUT(PCS_GROUP_STATUS, 1);
-            } else if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) &&
-                       (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord1) >> 4) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord1) >> 4) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_FAULT_PCSs, 4);
                 SET_INPUT(PCS_GROUP_STATUS, 3);
             } 
@@ -1883,33 +1888,33 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
             }
 
         
-            if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) ^ ((GET_INPUT(17063 + 1 * 300) >> 3) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) >> 3) & 1) ^ ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) >> 3) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
-            } else if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1) &&
-                       (((GET_INPUT(17063 + 1 * 300) >> 3) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) >> 3) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) >> 3) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 4);
             } else {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
             }
 
-        if ((GET_INPUT(17063 + 0 * 300) == 2) && (GET_INPUT(17063 + 1 * 300) == 2)&&((GET_INPUT(17062 + 0 * 300) == 1)||((GET_INPUT(17062 + 0 * 300) == 0))) && ((GET_INPUT(17062 + 1 * 300) == 1)||((GET_INPUT(17062 + 1 * 300) == 0)))) {
+        if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 2)&&((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 1)||((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 0))) && ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 1)||((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 0)))) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
             }
-            if ((GET_INPUT(17063 + 0 * 300) == 16) && (GET_INPUT(17063 + 1 * 300) == 16) &&
-                (GET_INPUT(17062 + 0 * 300) == 2) && (GET_INPUT(17062 + 1 * 300) == 2) ) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 16) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 16) &&
+                (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 2) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 2) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);
             } 
-            if ((GET_INPUT(17063 + 0 * 300) == 8) || (GET_INPUT(17063 + 1 * 300) == 8) ||
-                (GET_INPUT(17062 + 0 * 300) == 4) || (GET_INPUT(17062 + 1 * 300) == 4) ) {
+            if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 8) || (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 8) ||
+                (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 4) || (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 4) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);
-            } else if ((GET_INPUT(17063 + 0 * 300) == 16) || (GET_INPUT(17063 + 1 * 300) == 16) ||
-                       (GET_INPUT(17062 + 0 * 300) == 2) || (GET_INPUT(17062 + 1 * 300) == 2) ) {
+            } else if ((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 16) || (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 16) ||
+                       (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3) == 2) || (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3) == 2) ) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
             }
             int faulting_BMS_Num = 0;   // 一定要先清零
             for(int fault_BMS=0;fault_BMS<sys_cfg->bmsNum;fault_BMS++)
             {
-                if((Taida_Read_Input(38071 + (fault_BMS) * 200) == 4) )
+                if((Taida_Read_Input(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4) )
                 {
                     faulting_BMS_Num++;
                 }
@@ -1936,7 +1941,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
             int running_bms_num =0;
             for(int Run_BMS_Num=0;Run_BMS_Num<sys_cfg->bmsNum;Run_BMS_Num++)
             {
-                if((Taida_Read_Input(38072 + (Run_BMS_Num) * 200) !=0))
+                if((Taida_Read_Input(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
                 {
                     running_bms_num ++;
      
@@ -1948,7 +1953,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
-           if ((GET_HOLD(27000+300*0+21)==1)&&(GET_HOLD(27000+300*1+21)==1)) {
+           if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode)==1)&&(GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode)==1)) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1958,43 +1963,43 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
 //该部分数据无论拓扑如何变化都可以这样计算
     /* 系统级数据量 */
     INT32U chg_remain_capacity =
-        (Taida_Read_Input(38000 + 0 * 200 + 6) + Taida_Read_Input(38000 + 1 * 200 + 6) +
-        Taida_Read_Input(38000 + 2 * 200 + 6) + Taida_Read_Input(38000 + 3 * 200 + 6) +
-        Taida_Read_Input(38000 + 4 * 200 + 6) + Taida_Read_Input(38000 + 5 * 200 + 6) +
-        Taida_Read_Input(38000 + 6 * 200 + 6) + Taida_Read_Input(38000 + 7 * 200 + 6))*10;
+        (Taida_Read_Input(BMS_BAU_INPUT_REG[0].ChgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].ChgRemainCapacity) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[2].ChgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].ChgRemainCapacity) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[4].ChgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[5].ChgRemainCapacity) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[6].ChgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[7].ChgRemainCapacity))*10;
     SET_INPUT(AVAILABLE_CHARGE_ENERGYH, (INT16U)(chg_remain_capacity >> 16));
     SET_INPUT(AVAILABLE_CHARGE_ENERGYL, (INT16U)(chg_remain_capacity & 0xFFFF));
 
     INT32U dchg_remain_capacity =
-        (Taida_Read_Input(38000 + 0 * 200 + 7) + Taida_Read_Input(38000 + 1 * 200 + 7) +
-        Taida_Read_Input(38000 + 2 * 200 + 7) + Taida_Read_Input(38000 + 3 * 200 + 7) +
-        Taida_Read_Input(38000 + 4 * 200 + 7) + Taida_Read_Input(38000 + 5 * 200 + 7) +
-        Taida_Read_Input(38000 + 6 * 200 + 7) + Taida_Read_Input(38000 + 7 * 200 + 7))*10;
+        (Taida_Read_Input(BMS_BAU_INPUT_REG[0].DchgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].DchgRemainCapacity) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[2].DchgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].DchgRemainCapacity) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[4].DchgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[5].DchgRemainCapacity) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[6].DchgRemainCapacity) + Taida_Read_Input(BMS_BAU_INPUT_REG[7].DchgRemainCapacity))*10;
     SET_INPUT(AVAILABLE_DISCHARGE_ENERGYH, (INT16U)(dchg_remain_capacity >> 16));
     SET_INPUT(AVAILABLE_DISCHARGE_ENERGYL, (INT16U)(dchg_remain_capacity & 0xFFFF));
 
     INT32U chg_power =
-        (Taida_Read_Input(38000 + 0 * 200 + 38) + Taida_Read_Input(38000 + 1 * 200 + 38) +
-        Taida_Read_Input(38000 + 2 * 200 + 38) + Taida_Read_Input(38000 + 3 * 200 + 38) +
-        Taida_Read_Input(38000 + 4 * 200 + 38) + Taida_Read_Input(38000 + 5 * 200 + 38) +
-        Taida_Read_Input(38000 + 6 * 200 + 38) + Taida_Read_Input(38000 + 7 * 200 + 38))*10;
+        (Taida_Read_Input(BMS_BAU_INPUT_REG[0].ChgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].ChgPower) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[2].ChgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].ChgPower) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[4].ChgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[5].ChgPower) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[6].ChgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[7].ChgPower))*10;
     SET_INPUT(AVAILABLE_CHARGE_POWERH, (INT16U)(chg_power >> 16));
     SET_INPUT(AVAILABLE_CHARGE_POWERL, (INT16U)(chg_power & 0xFFFF));
 
     INT32U dchg_power =
-        (Taida_Read_Input(38000 + 0 * 200 + 37) + Taida_Read_Input(38000 + 1 * 200 + 37) +
-        Taida_Read_Input(38000 + 2 * 200 + 37) + Taida_Read_Input(38000 + 3 * 200 + 37) +
-        Taida_Read_Input(38000 + 4 * 200 + 37) + Taida_Read_Input(38000 + 5 * 200 + 37) +
-        Taida_Read_Input(38000 + 6 * 200 + 37) + Taida_Read_Input(38000 + 7 * 200 + 37))*10;
+        (Taida_Read_Input(BMS_BAU_INPUT_REG[0].DchgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[1].DchgPower) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[2].DchgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[3].DchgPower) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[4].DchgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[5].DchgPower) +
+        Taida_Read_Input(BMS_BAU_INPUT_REG[6].DchgPower) + Taida_Read_Input(BMS_BAU_INPUT_REG[7].DchgPower))*10;
 
     SET_INPUT(AVAILABLE_DISCHARGE_POWERH, (INT16U)(dchg_power >> 16));
     SET_INPUT(AVAILABLE_DISCHARGE_POWERL, (INT16U)(dchg_power & 0xFFFF));
 
-    INT32S Atvice_power = ((INT16S)GET_INPUT(17000 + 0 * 300 + 40) +  (INT16S)GET_INPUT(17000 + 1 * 300 + 40))*10;
+    INT32S Atvice_power = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridTotalActivePower) +  (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridTotalActivePower))*10;
     SET_INPUT(ATVICE_POWERH, (INT16U)(Atvice_power >> 16));
     SET_INPUT(ATVICE_POWERL, (INT16U)(Atvice_power & 0xFFFF));
 
-    INT32S Reactive_power = ((INT16S)GET_INPUT(17000 + 0 * 300 + 41) + (INT16S)GET_INPUT(17000 + 1 * 300 + 41))*10;
+    INT32S Reactive_power = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].GridTotalReactivePower) + (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].GridTotalReactivePower))*10;
 
     SET_INPUT(REACTIVE_POWERH, (INT16U)(Reactive_power >> 16));
     SET_INPUT(REACTIVE_POWERL, (INT16U)(Reactive_power & 0xFFFF));
@@ -2024,129 +2029,129 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
     SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
     SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));
 
-    INT32S DC_power = ((INT16S)GET_INPUT(17000 + 0 * 300 + 54) +  (INT16S)GET_INPUT(17000 + 1 * 300 + 54))*10;
+    INT32S DC_power = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].BatteryTotalPower) +  (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].BatteryTotalPower))*10;
     SET_INPUT(DC_POWERH, (INT16U)(DC_power >> 16));
     SET_INPUT(DC_POWERL, (INT16U)(DC_power & 0xFFFF));
 
-    INT32S DC_current = ((INT16S)GET_INPUT(17000 + 0 * 300 + 55) + (INT16S)GET_INPUT(17000 + 1 * 300 + 55))*10;
+    INT32S DC_current = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].BatteryTotalCurrent) + (INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].BatteryTotalCurrent))*10;
     SET_INPUT(DC_CURRENTH, (INT16U)(DC_current >> 16));
     SET_INPUT(DC_CURRENTL, (INT16U)(DC_current & 0xFFFF));
 
  INT32U Total_Daily_discharged_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 26)<<16) + Taida_Read_Input(2600 + 0 * 300 + 27))+((Taida_Read_Input(2600 + 0 * 300 + 66)<<16) + Taida_Read_Input(2600 + 0 * 300 + 67))+
- ((Taida_Read_Input(2600 + 1 * 300 + 26)<<16) + Taida_Read_Input(2600 + 1 * 300 + 27))+((Taida_Read_Input(2600 + 1 * 300 + 66)<<16) + Taida_Read_Input(2600 + 1 * 300 + 67))+
- ((Taida_Read_Input(2600 + 2 * 300 + 26)<<16) + Taida_Read_Input(2600 + 2 * 300 + 27))+((Taida_Read_Input(2600 + 2 * 300 + 66)<<16) + Taida_Read_Input(2600 + 2 * 300 + 67))+
- ((Taida_Read_Input(2600 + 3 * 300 + 26)<<16) + Taida_Read_Input(2600 + 3 * 300 + 27))+((Taida_Read_Input(2600 + 3 * 300 + 66)<<16) + Taida_Read_Input(2600 + 3 * 300 + 67))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module1HourlyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module1HourlyDiscCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module2DailyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module2DailyDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module1HourlyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module1HourlyDiscCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module2DailyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module2DailyDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module1HourlyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module1HourlyDiscCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module2DailyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module2DailyDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module1HourlyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module1HourlyDiscCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module2DailyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module2DailyDiscCapacityLow))
  )*10;
      SET_INPUT(Daily_discharged_EnergyH, (INT16U)(Total_Daily_discharged_Energy >> 16));
      SET_INPUT(Daily_discharged_EnergyL, (INT16U)(Total_Daily_discharged_Energy & 0xFFFF));
 
  INT32U Total_Daily_charged_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 28)<<16) + Taida_Read_Input(2600 + 0 * 300 + 29))+((Taida_Read_Input(2600 + 0 * 300 + 68)<<16) + Taida_Read_Input(2600 + 0 * 300 + 69))+
- ((Taida_Read_Input(2600 + 1 * 300 + 28)<<16) + Taida_Read_Input(2600 + 1 * 300 + 29))+((Taida_Read_Input(2600 + 1 * 300 + 68)<<16) + Taida_Read_Input(2600 + 1 * 300 + 69))+
- ((Taida_Read_Input(2600 + 2 * 300 + 28)<<16) + Taida_Read_Input(2600 + 2 * 300 + 29))+((Taida_Read_Input(2600 + 2 * 300 + 68)<<16) + Taida_Read_Input(2600 + 2 * 300 + 69))+
- ((Taida_Read_Input(2600 + 3 * 300 + 28)<<16) + Taida_Read_Input(2600 + 3 * 300 + 29))+((Taida_Read_Input(2600 + 3 * 300 + 68)<<16) + Taida_Read_Input(2600 + 3 * 300 + 69))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module1HourlyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module1HourlyCharCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module2DailyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module2DailyCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module1HourlyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module1HourlyCharCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module2DailyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module2DailyCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module1HourlyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module1HourlyCharCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module2DailyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module2DailyCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module1HourlyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module1HourlyCharCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module2DailyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module2DailyCharCapacityLow))
  )*10;
      SET_INPUT(Daily_charged_EnergyH, (INT16U)(Total_Daily_charged_Energy >> 16));
      SET_INPUT(Daily_charged_EnergyL, (INT16U)(Total_Daily_charged_Energy & 0xFFFF));
 
 
  INT32U Total_Total_discharged_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 42)<<16) + Taida_Read_Input(2600 + 0 * 300 + 43))+((Taida_Read_Input(2600 + 0 * 300 + 74)<<16) + Taida_Read_Input(2600 + 0 * 300 + 75))+
- ((Taida_Read_Input(2600 + 1 * 300 + 42)<<16) + Taida_Read_Input(2600 + 1 * 300 + 43))+((Taida_Read_Input(2600 + 1 * 300 + 74)<<16) + Taida_Read_Input(2600 + 1 * 300 + 75))+
- ((Taida_Read_Input(2600 + 2 * 300 + 42)<<16) + Taida_Read_Input(2600 + 2 * 300 + 43))+((Taida_Read_Input(2600 + 2 * 300 + 74)<<16) + Taida_Read_Input(2600 + 2 * 300 + 75))+
- ((Taida_Read_Input(2600 + 3 * 300 + 42)<<16) + Taida_Read_Input(2600 + 3 * 300 + 43))+((Taida_Read_Input(2600 + 3 * 300 + 74)<<16) + Taida_Read_Input(2600 + 3 * 300 + 75))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module1TotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module1TotalDiscCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module2TotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module2TotalDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module1TotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module1TotalDiscCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module2TotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module2TotalDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module1TotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module1TotalDiscCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module2TotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module2TotalDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module1TotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module1TotalDiscCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module2TotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module2TotalDiscCapacityLow))
  )*10;
      SET_INPUT(Total_discharged_EnergyH, (INT16U)(Total_Total_discharged_Energy >> 16));
      SET_INPUT(Total_discharged_EnergyL, (INT16U)(Total_Total_discharged_Energy & 0xFFFF));
 
  INT32U Total_Total_charged_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 44)<<16) + Taida_Read_Input(2600 + 0 * 300 + 45))+((Taida_Read_Input(2600 + 0 * 300 + 76)<<16) + Taida_Read_Input(2600 + 0 * 300 + 77))+
- ((Taida_Read_Input(2600 + 1 * 300 + 44)<<16) + Taida_Read_Input(2600 + 1 * 300 + 45))+((Taida_Read_Input(2600 + 1 * 300 + 76)<<16) + Taida_Read_Input(2600 + 1 * 300 + 77))+
- ((Taida_Read_Input(2600 + 2 * 300 + 44)<<16) + Taida_Read_Input(2600 + 2 * 300 + 45))+((Taida_Read_Input(2600 + 2 * 300 + 76)<<16) + Taida_Read_Input(2600 + 2 * 300 + 77))+
- ((Taida_Read_Input(2600 + 3 * 300 + 44)<<16) + Taida_Read_Input(2600 + 3 * 300 + 45))+((Taida_Read_Input(2600 + 3 * 300 + 76)<<16) + Taida_Read_Input(2600 + 3 * 300 + 77))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module1TotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module1TotalCharCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module2TotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].Module2TotalCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module1TotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module1TotalCharCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module2TotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].Module2TotalCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module1TotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module1TotalCharCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module2TotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].Module2TotalCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module1TotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module1TotalCharCapacityLow))+((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module2TotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].Module2TotalCharCapacityLow))
  )*10;
      SET_INPUT(Total_charged_EnergyH, (INT16U)(Total_Total_charged_Energy >> 16));
      SET_INPUT(Total_charged_EnergyL, (INT16U)(Total_Total_charged_Energy & 0xFFFF));
 ////
 
 INT32U AC_Total_Daily_discharged_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 98)<<16) + Taida_Read_Input(2600 + 0 * 300 + 99))+
- ((Taida_Read_Input(2600 + 1 * 300 + 98)<<16) + Taida_Read_Input(2600 + 1 * 300 + 99))+
- ((Taida_Read_Input(2600 + 2 * 300 + 98)<<16) + Taida_Read_Input(2600 + 2 * 300 + 99))+
- ((Taida_Read_Input(2600 + 3 * 300 + 98)<<16) + Taida_Read_Input(2600 + 3 * 300 + 99))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACDailyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACDailyDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACDailyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACDailyDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACDailyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACDailyDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACDailyDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACDailyDiscCapacityLow))
  )*10;
      SET_INPUT(AC_Daily_discharged_EnergyH, (INT16U)(AC_Total_Daily_discharged_Energy >> 16));
      SET_INPUT(AC_Daily_discharged_EnergyL, (INT16U)(AC_Total_Daily_discharged_Energy & 0xFFFF));
 
  INT32U AC_Total_Daily_charged_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 100)<<16) + Taida_Read_Input(2600 + 0 * 300 + 101))+
- ((Taida_Read_Input(2600 + 1 * 300 + 100)<<16) + Taida_Read_Input(2600 + 1 * 300 + 101))+
- ((Taida_Read_Input(2600 + 2 * 300 + 100)<<16) + Taida_Read_Input(2600 + 2 * 300 + 101))+
- ((Taida_Read_Input(2600 + 3 * 300 + 100)<<16) + Taida_Read_Input(2600 + 3 * 300 + 101))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACDailyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACDailyCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACDailyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACDailyCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACDailyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACDailyCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACDailyCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACDailyCharCapacityLow))
  )*10;
      SET_INPUT(AC_Daily_charged_EnergyH, (INT16U)(AC_Total_Daily_charged_Energy >> 16));
      SET_INPUT(AC_Daily_charged_EnergyL, (INT16U)(AC_Total_Daily_charged_Energy & 0xFFFF));
 
 
  INT32U AC_Total_Total_discharged_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 106)<<16) + Taida_Read_Input(2600 + 0 * 300 + 107))+
- ((Taida_Read_Input(2600 + 1 * 300 + 106)<<16) + Taida_Read_Input(2600 + 1 * 300 + 107))+
- ((Taida_Read_Input(2600 + 2 * 300 + 106)<<16) + Taida_Read_Input(2600 + 2 * 300 + 107))+
- ((Taida_Read_Input(2600 + 3 * 300 + 106)<<16) + Taida_Read_Input(2600 + 3 * 300 + 107))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACTotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACTotalDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACTotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACTotalDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACTotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACTotalDiscCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACTotalDiscCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACTotalDiscCapacityLow))
  )*10;
      SET_INPUT(AC_Total_discharged_EnergyH, (INT16U)(AC_Total_Total_discharged_Energy >> 16));
      SET_INPUT(AC_Total_discharged_EnergyL, (INT16U)(AC_Total_Total_discharged_Energy & 0xFFFF));
 
  INT32U AC_Total_Total_charged_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 108)<<16) + Taida_Read_Input(2600 + 0 * 300 + 109))+
- ((Taida_Read_Input(2600 + 1 * 300 + 108)<<16) + Taida_Read_Input(2600 + 1 * 300 + 109))+
- ((Taida_Read_Input(2600 + 2 * 300 + 108)<<16) + Taida_Read_Input(2600 + 2 * 300 + 109))+
- ((Taida_Read_Input(2600 + 3 * 300 + 108)<<16) + Taida_Read_Input(2600 + 3 * 300 + 109))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACTotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACTotalCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACTotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACTotalCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACTotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACTotalCharCapacityLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACTotalCharCapacityHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACTotalCharCapacityLow))
  )*10;
      SET_INPUT(AC_Total_charged_EnergyH, (INT16U)(AC_Total_Total_charged_Energy >> 16));
      SET_INPUT(AC_Total_charged_EnergyL, (INT16U)(AC_Total_Total_charged_Energy & 0xFFFF));
 ///
 INT32U AC_Daily_Cap_Reactive_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 122)<<16) + Taida_Read_Input(2600 + 0 * 300 + 123))+
- ((Taida_Read_Input(2600 + 1 * 300 + 122)<<16) + Taida_Read_Input(2600 + 1 * 300 + 123))+
- ((Taida_Read_Input(2600 + 2 * 300 + 122)<<16) + Taida_Read_Input(2600 + 2 * 300 + 123))+
- ((Taida_Read_Input(2600 + 3 * 300 + 122)<<16) + Taida_Read_Input(2600 + 3 * 300 + 123))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACDailyCapReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACDailyCapReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACDailyCapReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACDailyCapReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACDailyCapReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACDailyCapReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACDailyCapReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACDailyCapReactiveEnergyLow))
  )*10;
      SET_INPUT(AC_Daily_Cap_Reactive_EnergyH, (INT16U)(AC_Daily_Cap_Reactive_Energy >> 16));
      SET_INPUT(AC_Daily_Cap_Reactive_EnergyL, (INT16U)(AC_Daily_Cap_Reactive_Energy & 0xFFFF));
 
  INT32U AC_Daily_Ind_Reactive_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 124)<<16) + Taida_Read_Input(2600 + 0 * 300 + 125))+
- ((Taida_Read_Input(2600 + 1 * 300 + 124)<<16) + Taida_Read_Input(2600 + 1 * 300 + 125))+
- ((Taida_Read_Input(2600 + 2 * 300 + 124)<<16) + Taida_Read_Input(2600 + 2 * 300 + 125))+
- ((Taida_Read_Input(2600 + 3 * 300 + 124)<<16) + Taida_Read_Input(2600 + 3 * 300 + 125))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACDailyIndReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACDailyIndReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACDailyIndReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACDailyIndReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACDailyIndReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACDailyIndReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACDailyIndReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACDailyIndReactiveEnergyLow))
  )*10;
      SET_INPUT(AC_Daily_Ind_Reactive_EnergyH, (INT16U)(AC_Daily_Ind_Reactive_Energy >> 16));
      SET_INPUT(AC_Daily_Ind_Reactive_EnergyL, (INT16U)(AC_Daily_Ind_Reactive_Energy & 0xFFFF));
 
 
  INT32U AC_Total_Cap_Reactive_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 130)<<16) + Taida_Read_Input(2600 + 0 * 131 + 107))+
- ((Taida_Read_Input(2600 + 1 * 300 + 130)<<16) + Taida_Read_Input(2600 + 1 * 131 + 107))+
- ((Taida_Read_Input(2600 + 2 * 300 + 130)<<16) + Taida_Read_Input(2600 + 2 * 131 + 107))+
- ((Taida_Read_Input(2600 + 3 * 300 + 130)<<16) + Taida_Read_Input(2600 + 3 * 131 + 107))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACTotalCapReactiveEnergyHigh)<<16) + Taida_Read_Input(2600 + 0 * 131 + 107))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACTotalCapReactiveEnergyHigh)<<16) + Taida_Read_Input(2600 + 1 * 131 + 107))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACTotalCapReactiveEnergyHigh)<<16) + Taida_Read_Input(2600 + 2 * 131 + 107))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACTotalCapReactiveEnergyHigh)<<16) + Taida_Read_Input(2600 + 3 * 131 + 107))
  )*10;
      SET_INPUT(AC_Total_Cap_Reactive_EnergyH, (INT16U)(AC_Total_Cap_Reactive_Energy >> 16));
      SET_INPUT(AC_Total_Cap_Reactive_EnergyL, (INT16U)(AC_Total_Cap_Reactive_Energy & 0xFFFF));
 
  INT32U AC_Total_Ind_Reactive_Energy = 
- (((Taida_Read_Input(2600 + 0 * 300 + 132)<<16) + Taida_Read_Input(2600 + 0 * 300 + 133))+
- ((Taida_Read_Input(2600 + 1 * 300 + 132)<<16) + Taida_Read_Input(2600 + 1 * 300 + 133))+
- ((Taida_Read_Input(2600 + 2 * 300 + 132)<<16) + Taida_Read_Input(2600 + 2 * 300 + 133))+
- ((Taida_Read_Input(2600 + 3 * 300 + 132)<<16) + Taida_Read_Input(2600 + 3 * 300 + 133))
+ (((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACTotalIndReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].ACTotalIndReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACTotalIndReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].ACTotalIndReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACTotalIndReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].ACTotalIndReactiveEnergyLow))+
+ ((Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACTotalIndReactiveEnergyHigh)<<16) + Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].ACTotalIndReactiveEnergyLow))
  )*10;
      SET_INPUT(AC_Total_Ind_Reactive_EnergyH, (INT16U)(AC_Total_Ind_Reactive_Energy >> 16));
      SET_INPUT(AC_Total_Ind_Reactive_EnergyL, (INT16U)(AC_Total_Ind_Reactive_Energy & 0xFFFF));
 
 ///
     const char *time_str = get_current_time();
-    sscanf(time_str, "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+    sscanf(time_str, "%hu-%hu-%hu %hu:%hu:%hu", &year, &month, &day, &hour, &minute, &second);
 
     SET_INPUT(Year, year);
     SET_INPUT(Month, month);
@@ -2154,66 +2159,71 @@ INT32U AC_Daily_Cap_Reactive_Energy =
     SET_INPUT(Hour, hour);
     SET_INPUT(Minute, minute);
     SET_INPUT(Second, second);
-    if((GET_INPUT(27631) == 1)&& (GET_INPUT(27632) == 0))//高压侧开关分闸
+    if((GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerOpen) == 1)&& (GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerClosed) == 0))//高压侧开关分闸
     {
         SET_INPUT(High_voltage_switch_status,0xEE);
     }
-    else if(GET_INPUT(27631) == 0 && GET_INPUT(27632) == 1)//高压侧开关合闸
+    else if(GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerOpen) == 0 && GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerClosed) == 1)//高压侧开关合闸
     {
         SET_INPUT(High_voltage_switch_status,0xAA);
     }
-    INT32S PCS1_status = ((INT16S)Taida_Read_Input(2600 + 0 * 300 + 18));
-    INT32S PCS2_status = ((INT16S)Taida_Read_Input(2600 + 1 * 300 + 18));
-    INT32S PCS3_status = ((INT16S)Taida_Read_Input(2600 + 2 * 300 + 18));
-    INT32S PCS4_status = ((INT16S)Taida_Read_Input(2600 + 3 * 300 + 18));
+    INT32S PCS1_status = ((INT16S)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[0].GridActivePower));
+    INT32S PCS2_status = ((INT16S)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[1].GridActivePower));
+    INT32S PCS3_status = ((INT16S)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[2].GridActivePower));
+    INT32S PCS4_status = ((INT16S)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[3].GridActivePower));
 
-    SET_INPUT(17000 + 300 * 0 + 32, PCS_Status_To_RegValue(PCS1_status));
-    SET_INPUT(17000 + 300 * 0 + 33, PCS_Status_To_RegValue(PCS2_status));
-    SET_INPUT(17000 + 300 * 1 + 32, PCS_Status_To_RegValue(PCS3_status));
-    SET_INPUT(17000 + 300 * 1 + 33, PCS_Status_To_RegValue(PCS4_status));
+    SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].MasterPcsChargeDischargeStatus, PCS_Status_To_RegValue(PCS1_status));
+    SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SlavePcsChargeDischargeStatus, PCS_Status_To_RegValue(PCS2_status));
+    SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].MasterPcsChargeDischargeStatus, PCS_Status_To_RegValue(PCS3_status));
+    SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SlavePcsChargeDischargeStatus, PCS_Status_To_RegValue(PCS4_status));
     if (single_mode) taida_5mw_pcs_counts();
 }
 void trina_system_value()
 {
+    /* 地址约定：V1.00 点表已定义且语义一致的点使用结构体+成员
+     * （PCS_TRINA_MODULE_INPUT_REG / PCS_TRINA_GROUP_INPUT_REG /
+     *   PCS_TRINA_HOLD_REG / BMS_BAU_INPUT_REG / MVEMS_*）；
+     * 点表未定义或语义不符的点（模块电量统计等）保留原设备偏移，见下方注释。
+     */
     sysPara *sys_cfg = SysConf_GetInfo();
     INT16U year, month, day, hour, minute, second;
 //当设备进行切入切出时。通信拓扑会发生变化，然后根据不同设备进行系统赋值
     if (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0x0C) {
 
-        INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-        INT16U SOC = (GET_INPUT(38000 + 2* 200 + 3) +
-                        GET_INPUT(38000 + 3 * 200 + 3) 
+        INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
+        INT16U SOC = (GET_INPUT(BMS_BAU_INPUT_REG[2].TotalSOC) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[3].TotalSOC) 
                                                         ) / BMS_num;
         SET_INPUT(SYSTEM_SOC, SOC);
 
-        INT16U SOH = (GET_INPUT(38000 + 2 * 200 + 4) +
-                        GET_INPUT(38000 + 3 * 200 + 4) 
+        INT16U SOH = (GET_INPUT(BMS_BAU_INPUT_REG[2].BAU_SOH) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[3].BAU_SOH) 
                                                         ) / BMS_num;
         SET_INPUT(SYSTEM_SOH, SOH);
 
 
-        INT16U ac_freq = GET_INPUT(17000 + 1 * 300 + 43);
+        INT16U ac_freq = GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacyGridFrequency);
         SET_INPUT(AC_FREQUENCY, ac_freq);
 
-        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 1 * 300 + 42);
+        INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacyGridPowerFactor);
         SET_INPUT(POWER_FACTOR, Power_Factor);
 
-        INT32U DC_average_voltage = (GET_INPUT(38000 + 2 * 200 + 0) +
-                                       GET_INPUT(38000 + 3* 200 + 0) )/ BMS_num;
+        INT32U DC_average_voltage = (GET_INPUT(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                       GET_INPUT(BMS_BAU_INPUT_REG[3].BankTotalVol) )/ BMS_num;
         SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
         SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-        if (GET_INPUT(17063 + 1 * 300) == 2) {
+        if (GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemOperationStatus) == 2) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
         }
-        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) ? 2 : 0));
-        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) ? 2 : 0));
-        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 6) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1) ? 2 : 0));
         int faulting_BMS_Num = 0;   
         
         for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
         {
-            if((GET_INPUT(38071 + (fault_BMS+2) * 200) == 4))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[fault_BMS+2].SystemRunMode) == 4))
             {
                 faulting_BMS_Num++;
             }
@@ -2226,7 +2236,7 @@ void trina_system_value()
         int Warning_BMS_Num=0;
         for(int Warn_BMS_Num=0;Warn_BMS_Num<2;Warn_BMS_Num++)
         {
-            if((GET_INPUT(38040 + (Warn_BMS_Num+2) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num+2) * 200) !=0))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num+2].LegacyWarningWord1) !=0)||(GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num+2].LegacyWarningWord2) !=0))
             {
                 Warning_BMS_Num++;
             }
@@ -2239,7 +2249,7 @@ void trina_system_value()
         int running_bms_num =0;
         for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
         {
-            if((GET_INPUT(38072 + (Run_BMS_Num+2) * 200) !=0))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[Run_BMS_Num+2].ChgDchgStatus) !=0))
             {
                 running_bms_num ++;
             }
@@ -2250,52 +2260,52 @@ void trina_system_value()
         }
         SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
 
-        if ((GET_INPUT(38072 + 2* 200) == 2) ||
-            (GET_INPUT(38072 + 3 * 200) == 2) ) {
+        if ((GET_INPUT(BMS_BAU_INPUT_REG[2].ChgDchgStatus) == 2) ||
+            (GET_INPUT(BMS_BAU_INPUT_REG[3].ChgDchgStatus) == 2) ) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
-        } else if ((GET_INPUT(38072 + 2 * 200) == 1) ||
-                   (GET_INPUT(38072 + 3 * 200) == 1) ) {
+        } else if ((GET_INPUT(BMS_BAU_INPUT_REG[2].ChgDchgStatus) == 1) ||
+                   (GET_INPUT(BMS_BAU_INPUT_REG[3].ChgDchgStatus) == 1) ) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
         }
 
     } else if (g_enabled_mask_pcs == 0x03 || g_enabled_mask_bms == 0x03) {
-       INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-        INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) +
-                        GET_INPUT(38000 + 1 * 200 + 3) ) / BMS_num;
+       INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
+        INT16U SOC = (GET_INPUT(BMS_BAU_INPUT_REG[0].TotalSOC) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[1].TotalSOC) ) / BMS_num;
         SET_INPUT(SYSTEM_SOC, SOC);
 
-        INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
-                        GET_INPUT(38000 + 1 * 200 + 4) ) / BMS_num;
+        INT16U SOH = (GET_INPUT(BMS_BAU_INPUT_REG[0].BAU_SOH) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[1].BAU_SOH) ) / BMS_num;
         SET_INPUT(SYSTEM_SOH, SOH);
 
-        INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
+        INT16U ac_freq = GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacyGridFrequency);
         SET_INPUT(AC_FREQUENCY, ac_freq);
 
-        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+        INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacyGridPowerFactor);
         SET_INPUT(POWER_FACTOR, Power_Factor);
 
-        INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
-                                       GET_INPUT(38000 + 1 * 200 + 0) ) /BMS_num;
+        INT32U DC_average_voltage = (GET_INPUT(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                       GET_INPUT(BMS_BAU_INPUT_REG[1].BankTotalVol) ) /BMS_num;
         SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
         SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-        if (GET_INPUT(17063 + 0 * 300) == 2) {
+        if (GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemOperationStatus) == 2) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
         }
-        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
-        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
-        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
-        if ((GET_INPUT(38072 + 0 * 200) == 2) ||
-            (GET_INPUT(38072 + 1 * 200) == 2) ) {
+        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 6) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ? 1 : 0));
+        if ((GET_INPUT(BMS_BAU_INPUT_REG[0].ChgDchgStatus) == 2) ||
+            (GET_INPUT(BMS_BAU_INPUT_REG[1].ChgDchgStatus) == 2) ) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
-        } else if ((GET_INPUT(38072 + 0 * 200) == 1) ||
-                   (GET_INPUT(38072 + 1 * 200) == 1) ) {
+        } else if ((GET_INPUT(BMS_BAU_INPUT_REG[0].ChgDchgStatus) == 1) ||
+                   (GET_INPUT(BMS_BAU_INPUT_REG[1].ChgDchgStatus) == 1) ) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
         }
         int faulting_BMS_Num = 0;  
         for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
         {
-            if((GET_INPUT(38071 + (fault_BMS) * 200) == 4))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4))
             {
                 faulting_BMS_Num++;
             }
@@ -2308,7 +2318,7 @@ void trina_system_value()
         int Warning_BMS_Num=0;
         for(int Warn_BMS_Num=0;Warn_BMS_Num<2;Warn_BMS_Num++)
         {
-            if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord1) !=0)||(GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord2) !=0))
             {
                 Warning_BMS_Num++;
             }
@@ -2321,7 +2331,7 @@ void trina_system_value()
         int running_bms_num =0;
         for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
         {
-            if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
             {
                 running_bms_num ++;
             }
@@ -2335,20 +2345,20 @@ void trina_system_value()
     } else {
         if ((GET_INPUT(NUMBER_OF_PCSs) == 2)&&(GET_INPUT(NUMBER_OF_BMSs) == 2)) {
 
-            INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-            INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) +
-                            GET_INPUT(38000 + 1 * 200 + 3) ) / BMS_num;
+            INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
+            INT16U SOC = (GET_INPUT(BMS_BAU_INPUT_REG[0].TotalSOC) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[1].TotalSOC) ) / BMS_num;
             SET_INPUT(SYSTEM_SOC, SOC);
 
-            INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
-                            GET_INPUT(38000 + 1 * 200 + 4) ) / BMS_num;
+            INT16U SOH = (GET_INPUT(BMS_BAU_INPUT_REG[0].BAU_SOH) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[1].BAU_SOH) ) / BMS_num;
             SET_INPUT(SYSTEM_SOH, SOH);
 
-            uint16_t ac_freq = GET_INPUT(2600+0*300+106);
+            uint16_t ac_freq = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].GridFrequencyPCC);
 
             for (uint8_t n = 1; n < 4; n++)
             {
-                uint16_t value = GET_INPUT(2600 + n * 300 + 106);
+                uint16_t value = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[n].GridFrequencyPCC);
 
                 if (value > ac_freq)
                 {
@@ -2357,37 +2367,37 @@ void trina_system_value()
             }            
                 SET_INPUT(AC_FREQUENCY, ac_freq);
 
-             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord1_PcsComm10MW));
              if(PCS_num!=0)
              {
-             INT16S Power_Factor = ((INT16S)GET_INPUT(2600 + 0 * 300 + 114)+(INT16S)GET_INPUT(2600 + 1* 300 + 114))/PCS_num;
+             INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].PowerFactorTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].PowerFactorTotalPCC))/PCS_num;
             SET_INPUT(POWER_FACTOR, Power_Factor);
              }
 
      
-            INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
-                                           GET_INPUT(38000 + 1 * 200 + 0) ) / BMS_num;
+            INT32U DC_average_voltage = (GET_INPUT(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[1].BankTotalVol) ) / BMS_num;
             SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-            if ((GET_INPUT(2600+100 + 0 * 300) == 2)&&((GET_INPUT(2600+100 + 1* 300) == 2))) {
+            if ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus) == 2)&&((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].SystemRunStatus) == 2))) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);//所有PCS待机
             }
-            else if (((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1)&&((GET_INPUT(2600+100 + 0 * 300)>> 2) & 1 == 1)){
+            else if ((((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 2) & 1) == 1)&&(((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 2) & 1) == 1)){
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);//所有PCS全部关闭，无法启动
             }            
-            else if (((GET_INPUT(2600 +100+ 0 * 300)>> 0) & 1 == 1) ||
-                ((GET_INPUT(2600 +100+ 0 * 300)>> 0) & 1)) {
+            else if ((((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 0) & 1) == 1) ||
+                ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 0) & 1)) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);//运行，任意一个在运行
-            } else if (((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1) ||
-                    ((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1 )) {
+            } else if ((((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 2) & 1) == 1) ||
+                    (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 2) & 1) == 1 )) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);//任意一个故障
             }
-            SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
-            SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
+            SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 6) & 1) ? 2 : 0));
+            SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ? 2 : 0));
 
-             SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
-            if (((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1U) {
+             SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ? 1 : 0));
+            if (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemOperationStatus) >> 3) & 1) == 1U) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
             } else {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
@@ -2395,7 +2405,7 @@ void trina_system_value()
            int faulting_BMS_Num = 0;   // 一定要先清零
             for(int fault_BMS=0;fault_BMS<2;fault_BMS++)
             {
-                if((GET_INPUT(38071 + (fault_BMS) * 200) == 4))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4))
                 {
                     faulting_BMS_Num++;
                 }
@@ -2410,7 +2420,7 @@ void trina_system_value()
             int Warning_BMS_Num=0;
             for(int Warn_BMS_Num=0;Warn_BMS_Num<2;Warn_BMS_Num++)
             {
-                if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord1) !=0)||(GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord2) !=0))
                 {
                     Warning_BMS_Num++;
                 }
@@ -2423,7 +2433,7 @@ void trina_system_value()
             int running_bms_num =0;
             for(int Run_BMS_Num=0;Run_BMS_Num<2;Run_BMS_Num++)
             {
-                if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
                 {
                     running_bms_num ++;
                 }
@@ -2433,7 +2443,7 @@ void trina_system_value()
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(12000+2) == 1U)&&(GET_HOLD(12000+2+700) == 1U)){
+             if ((GET_HOLD(PCS_TRINA_HOLD_REG[0].OnGridOffGridConfig) == 1U)||(GET_HOLD(PCS_TRINA_HOLD_REG[1].OnGridOffGridConfig) == 1U)){
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -2441,13 +2451,13 @@ void trina_system_value()
 
         } else if((GET_INPUT(NUMBER_OF_PCSs) == 4)&&(GET_INPUT(NUMBER_OF_BMSs) == 4))
         {
-             INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-            INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) + GET_INPUT(38000 + 1 * 200 + 3) +
-                            GET_INPUT(38000 + 2 * 200 + 3) + GET_INPUT(38000 + 3 * 200 + 3) ) / BMS_num;
+             INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
+            INT16U SOC = (GET_INPUT(BMS_BAU_INPUT_REG[0].TotalSOC) + GET_INPUT(BMS_BAU_INPUT_REG[1].TotalSOC) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[2].TotalSOC) + GET_INPUT(BMS_BAU_INPUT_REG[3].TotalSOC) ) / BMS_num;
             SET_INPUT(SYSTEM_SOC, SOC);
 
-            INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) + GET_INPUT(38000 + 1 * 200 + 4) +
-                            GET_INPUT(38000 + 2 * 200 + 4) + GET_INPUT(38000 + 3 * 200 + 4)) / BMS_num;
+            INT16U SOH = (GET_INPUT(BMS_BAU_INPUT_REG[0].BAU_SOH) + GET_INPUT(BMS_BAU_INPUT_REG[1].BAU_SOH) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[2].BAU_SOH) + GET_INPUT(BMS_BAU_INPUT_REG[3].BAU_SOH)) / BMS_num;
             SET_INPUT(SYSTEM_SOH, SOH);
 
 
@@ -2462,20 +2472,20 @@ void trina_system_value()
             
             if(sys1_run==1)
             {
-             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord1_PcsComm10MW));
              if (PCS_num!=0)
              {
-             INT16S Power_Factor = ((INT16S)GET_INPUT(2600 + 0 * 300 + 114)+(INT16S)GET_INPUT(2600 + 1* 300 + 114))/PCS_num;
+             INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].PowerFactorTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].PowerFactorTotalPCC))/PCS_num;
             SET_INPUT(POWER_FACTOR, Power_Factor); 
              }
 
             }
             else if(sys2_run==1)
             {
-             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+             INT8U PCS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord1_PcsComm10MW));
              if (PCS_num!=0)
              {
-             INT16S Power_Factor = ((INT16S)GET_INPUT(2600 + 2 * 300 + 114)+(INT16S)GET_INPUT(2600 + 3* 300 + 114))/PCS_num;
+             INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].PowerFactorTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].PowerFactorTotalPCC))/PCS_num;
             SET_INPUT(POWER_FACTOR, Power_Factor); 
              }
             }
@@ -2484,11 +2494,11 @@ void trina_system_value()
                  SET_INPUT(POWER_FACTOR, 0);
             }
 
-            uint16_t ac_freq = GET_INPUT(2600+0*300+106);
+            uint16_t ac_freq = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].GridFrequencyPCC);
 
             for (uint8_t n = 1; n < 4; n++)
             {
-                uint16_t value = GET_INPUT(2600 + n * 300 + 106);
+                uint16_t value = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[n].GridFrequencyPCC);
 
                 if (value > ac_freq)
                 {
@@ -2499,15 +2509,15 @@ void trina_system_value()
 
 
 
-            INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
-                                           GET_INPUT(38000 + 1 * 200 + 0) +
-                                           GET_INPUT(38000 + 2 * 200 + 0) +
-                                           GET_INPUT(38000 + 3 * 200 + 0) ) / BMS_num;
+            INT32U DC_average_voltage = (GET_INPUT(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[1].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[3].BankTotalVol) ) / BMS_num;
             SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
 
-            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) 
+            if (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 1);
@@ -2515,27 +2525,27 @@ void trina_system_value()
             } 
             
 
-            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1) 
+            if (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 2);
             } 
-            if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 6) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 6) & 1) ^ ((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 6) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 2);
-            } else if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) == 1) &&
-                       (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 6) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 6) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 4);
             } else {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 0);
             }
  
 
-            if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 4) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ^ ((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_FAULT_PCSs, 2);
 
                 // SET_INPUT(PCS_GROUP_STATUS, 1);
-            } else if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) &&
-                       (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_FAULT_PCSs, 4);
                 SET_INPUT(PCS_GROUP_STATUS, 3);
             } 
@@ -2545,10 +2555,10 @@ void trina_system_value()
                 SET_INPUT(PCS_GROUP_STATUS, 0);
             }
         
-            if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) ^ ((GET_INPUT(17063 + 1 * 300) >> 3) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemOperationStatus) >> 3) & 1) ^ ((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemOperationStatus) >> 3) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
-            } else if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1) &&
-                       (((GET_INPUT(17063 + 1 * 300) >> 3) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemOperationStatus) >> 3) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemOperationStatus) >> 3) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 4);
             } else {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
@@ -2569,8 +2579,8 @@ void trina_system_value()
             * 8  = 运行
             * 16 = 故障
             */
-            master1_state = GET_INPUT(2600+100 + 0 * 300);
-            master2_state = GET_INPUT(2600+100  + 2 * 300);
+            master1_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus);
+            master2_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].SystemRunStatus);
 
             /*
             * 从机状态：
@@ -2579,8 +2589,8 @@ void trina_system_value()
             * 2 = 故障
             * 4 = 运行
             */
-            slave1_state = GET_INPUT(2600+100  + 1 * 300);
-            slave2_state = GET_INPUT(2600+100 + 3 * 300);
+            slave1_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].SystemRunStatus);
+            slave2_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].SystemRunStatus);
 
             /*
             * 状态1：所有PCS全部故障。
@@ -2652,7 +2662,7 @@ void trina_system_value()
             int faulting_BMS_Num = 0;   // 一定要先清零
             for(int fault_BMS=0;fault_BMS<sys_cfg->bmsNum;fault_BMS++)
             {
-                if((GET_INPUT(38071 + (fault_BMS) * 200) == 4) )
+                if((GET_INPUT(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4) )
                 {
                     faulting_BMS_Num++;
                 }
@@ -2665,7 +2675,7 @@ void trina_system_value()
             int Warning_BMS_Num=0;
             for(int Warn_BMS_Num=0;Warn_BMS_Num<sys_cfg->bmsNum;Warn_BMS_Num++)
             {
-                if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord1) !=0)||(GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord2) !=0))
                 {
                     Warning_BMS_Num++;
                 }
@@ -2679,7 +2689,7 @@ void trina_system_value()
             int running_bms_num =0;
             for(int Run_BMS_Num=0;Run_BMS_Num<sys_cfg->bmsNum;Run_BMS_Num++)
             {
-                if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
                 {
                     running_bms_num ++;             
                 }
@@ -2690,7 +2700,7 @@ void trina_system_value()
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
 
-           if ((GET_HOLD(12000+2) == 1U)&&(GET_HOLD(12000+2+700) == 1U)&&(GET_HOLD(12000+2+1400) == 1U)&&(GET_HOLD(12000+2+2100) == 1U)){
+           if ((GET_HOLD(PCS_TRINA_HOLD_REG[0].OnGridOffGridConfig) == 1U)||(GET_HOLD(PCS_TRINA_HOLD_REG[1].OnGridOffGridConfig) == 1U)||(GET_HOLD(PCS_TRINA_HOLD_REG[2].OnGridOffGridConfig) == 1U)||(GET_HOLD(PCS_TRINA_HOLD_REG[3].OnGridOffGridConfig) == 1U)){
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -2700,44 +2710,44 @@ void trina_system_value()
 //该部分数据无论拓扑如何变化都可以这样计算
     /* 系统级数据量 */
     INT32U chg_remain_capacity =
-        GET_INPUT(38000 + 0 * 200 + 6) + GET_INPUT(38000 + 1 * 200 + 6) +
-        GET_INPUT(38000 + 2 * 200 + 6) + GET_INPUT(38000 + 3 * 200 + 6) ;
+        GET_INPUT(BMS_BAU_INPUT_REG[0].ChgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[1].ChgRemainCapacity) +
+        GET_INPUT(BMS_BAU_INPUT_REG[2].ChgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[3].ChgRemainCapacity) ;
     chg_remain_capacity *= 10;
     SET_INPUT(AVAILABLE_CHARGE_ENERGYH, (INT16U)(chg_remain_capacity >> 16));
     SET_INPUT(AVAILABLE_CHARGE_ENERGYL, (INT16U)(chg_remain_capacity & 0xFFFF));
 
     INT32U dchg_remain_capacity =
-        GET_INPUT(38000 + 0 * 200 + 7) + GET_INPUT(38000 + 1 * 200 + 7) +
-        GET_INPUT(38000 + 2 * 200 + 7) + GET_INPUT(38000 + 3 * 200 + 7) ;
+        GET_INPUT(BMS_BAU_INPUT_REG[0].DchgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[1].DchgRemainCapacity) +
+        GET_INPUT(BMS_BAU_INPUT_REG[2].DchgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[3].DchgRemainCapacity) ;
     dchg_remain_capacity *= 10;
     SET_INPUT(AVAILABLE_DISCHARGE_ENERGYH, (INT16U)(dchg_remain_capacity >> 16));
     SET_INPUT(AVAILABLE_DISCHARGE_ENERGYL, (INT16U)(dchg_remain_capacity & 0xFFFF));
 
     INT32U chg_power =
-        GET_INPUT(38000 + 0 * 200 + 38) + GET_INPUT(38000 + 1 * 200 + 38) +
-        GET_INPUT(38000 + 2 * 200 + 38) + GET_INPUT(38000 + 3 * 200 + 38) ;
+        GET_INPUT(BMS_BAU_INPUT_REG[0].ChgPower) + GET_INPUT(BMS_BAU_INPUT_REG[1].ChgPower) +
+        GET_INPUT(BMS_BAU_INPUT_REG[2].ChgPower) + GET_INPUT(BMS_BAU_INPUT_REG[3].ChgPower) ;
     chg_power *= 10;
     SET_INPUT(AVAILABLE_CHARGE_POWERH, (INT16U)(chg_power >> 16));
     SET_INPUT(AVAILABLE_CHARGE_POWERL, (INT16U)(chg_power & 0xFFFF));
 
     INT32U dchg_power =
-        GET_INPUT(38000 + 0 * 200 + 37) + GET_INPUT(38000 + 1 * 200 + 37) +
-        GET_INPUT(38000 + 2 * 200 + 37) + GET_INPUT(38000 + 3 * 200 + 37) ;
+        GET_INPUT(BMS_BAU_INPUT_REG[0].DchgPower) + GET_INPUT(BMS_BAU_INPUT_REG[1].DchgPower) +
+        GET_INPUT(BMS_BAU_INPUT_REG[2].DchgPower) + GET_INPUT(BMS_BAU_INPUT_REG[3].DchgPower) ;
     dchg_power *= 10;
     SET_INPUT(AVAILABLE_DISCHARGE_POWERH, (INT16U)(dchg_power >> 16));
     SET_INPUT(AVAILABLE_DISCHARGE_POWERL, (INT16U)(dchg_power & 0xFFFF));
 
-    INT32S Atvice_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 111) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 111)+(INT16S)GET_INPUT(2600 + 2 * 300 + 111) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 111))*10;
+    INT32S Atvice_power = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].ActivePowerTotalPCC) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].ActivePowerTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].ActivePowerTotalPCC) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].ActivePowerTotalPCC))*10;
     SET_INPUT(ATVICE_POWERH, (INT16U)(Atvice_power >> 16));
     SET_INPUT(ATVICE_POWERL, (INT16U)(Atvice_power & 0xFFFF));
 
-    INT32S Reactive_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 112) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 112)+(INT16S)GET_INPUT(2600 + 2 * 300 + 112) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 112))*10;
+    INT32S Reactive_power = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].ReactivePowerTotalPCC) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].ReactivePowerTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].ReactivePowerTotalPCC) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].ReactivePowerTotalPCC))*10;
 
     SET_INPUT(REACTIVE_POWERH, (INT16U)(Reactive_power >> 16));
     SET_INPUT(REACTIVE_POWERL, (INT16U)(Reactive_power & 0xFFFF));
 
 
-    INT32S S = (INT32S)((INT16S)GET_INPUT(2600 + 0 * 300 + 113) + (INT16S)GET_INPUT(2600 + 1 * 300 + 113)+(INT16S)GET_INPUT(2600 + 2 * 300 + 113) + (INT16S)GET_INPUT(2600 + 3 * 300 + 113));
+    INT32S S = (INT32S)((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].ApparentPowerTotalPCC) + (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].ApparentPowerTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].ApparentPowerTotalPCC) + (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].ApparentPowerTotalPCC));
 
     // 同样拆成高低字输出
     SET_INPUT(APPARENT_POWERH, (INT16U)((INT32U)S >> 16));
@@ -2765,58 +2775,61 @@ void trina_system_value()
 //     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
 //     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
 // }
-   INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+   INT8U PCS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord1_PcsComm10MW));
     INT32U Nominal_capctiy = 35560*PCS_num;
 
     SET_INPUT(NOMINAL_CAPCTIY_H, (INT16U)(Nominal_capctiy >> 16));
     SET_INPUT(NOMINAL_CAPCTIY_L, (INT16U)(Nominal_capctiy & 0xFFFF));
-    INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+    INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
     INT32U Nominal_energy = 50000*BMS_num;
 
     SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
     SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));
 
-    INT32S DC_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 110) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 110)+(INT16S)GET_INPUT(2600 + 2 * 300 + 110) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 110))*10;
+    INT32S DC_power = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].DCPowerTotal) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].DCPowerTotal)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].DCPowerTotal) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].DCPowerTotal))*10;
     SET_INPUT(DC_POWERH, (INT16U)(DC_power >> 16));
     SET_INPUT(DC_POWERL, (INT16U)(DC_power & 0xFFFF));
 
-   INT32S DC_current = ((INT16S)GET_INPUT(2600 + 0 * 300 + 115) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 115)+(INT16S)GET_INPUT(2600 + 2 * 300 + 115) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 115))*10;
+   INT32S DC_current = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].BatteryCurrentTotal) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].BatteryCurrentTotal)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].BatteryCurrentTotal) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].BatteryCurrentTotal))*10;
     SET_INPUT(DC_CURRENTH, (INT16U)(DC_current >> 16));
     SET_INPUT(DC_CURRENTL, (INT16U)(DC_current & 0xFFFF));
 
+    /* 支路电量（+64~+87，点表 Branch1/2 时/日/总 充放电量）已改用
+     * PCS_TRINA_MODULE_INPUT_REG[n] 成员；所有组合仍保持高16位在前、低16位在后。
+     */
  INT32U Total_Daily_discharged_Energy = 
- (((GET_INPUT(2600 + 0 * 300 + 26)<<16) + GET_INPUT(2600 + 0 * 300 + 27))+((GET_INPUT(2600 + 0 * 300 + 66)<<16) + GET_INPUT(2600 + 0 * 300 + 67))+
- ((GET_INPUT(2600 + 1 * 300 + 26)<<16) + GET_INPUT(2600 + 1 * 300 + 27))+((GET_INPUT(2600 + 1 * 300 + 66)<<16) + GET_INPUT(2600 + 1 * 300 + 67))+
- ((GET_INPUT(2600 + 2 * 300 + 26)<<16) + GET_INPUT(2600 + 2 * 300 + 27))+((GET_INPUT(2600 + 2 * 300 + 66)<<16) + GET_INPUT(2600 + 2 * 300 + 67))+
- ((GET_INPUT(2600 + 3 * 300 + 26)<<16) + GET_INPUT(2600 + 3 * 300 + 27))+((GET_INPUT(2600 + 3 * 300 + 66)<<16) + GET_INPUT(2600 + 3 * 300 + 67))
+ (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyDischargingCapLow))
  )*10;
      SET_INPUT(Daily_discharged_EnergyH, (INT16U)(Total_Daily_discharged_Energy >> 16));
      SET_INPUT(Daily_discharged_EnergyL, (INT16U)(Total_Daily_discharged_Energy & 0xFFFF));
 
  INT32U Total_Daily_charged_Energy = 
- (((GET_INPUT(2600 + 0 * 300 + 28)<<16) + GET_INPUT(2600 + 0 * 300 + 29))+((GET_INPUT(2600 + 0 * 300 + 68)<<16) + GET_INPUT(2600 + 0 * 300 + 69))+
- ((GET_INPUT(2600 + 1 * 300 + 28)<<16) + GET_INPUT(2600 + 1 * 300 + 29))+((GET_INPUT(2600 + 1 * 300 + 68)<<16) + GET_INPUT(2600 + 1 * 300 + 69))+
- ((GET_INPUT(2600 + 2 * 300 + 28)<<16) + GET_INPUT(2600 + 2 * 300 + 29))+((GET_INPUT(2600 + 2 * 300 + 68)<<16) + GET_INPUT(2600 + 2 * 300 + 69))+
- ((GET_INPUT(2600 + 3 * 300 + 28)<<16) + GET_INPUT(2600 + 3 * 300 + 29))+((GET_INPUT(2600 + 3 * 300 + 68)<<16) + GET_INPUT(2600 + 3 * 300 + 69))
+ (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyChargingCapLow))
  )*10;
      SET_INPUT(Daily_charged_EnergyH, (INT16U)(Total_Daily_charged_Energy >> 16));
      SET_INPUT(Daily_charged_EnergyL, (INT16U)(Total_Daily_charged_Energy & 0xFFFF));
 
 
  INT32U Total_Total_discharged_Energy = 
- (((GET_INPUT(2600 + 0 * 300 + 42)<<16) + GET_INPUT(2600 + 0 * 300 + 43))+((GET_INPUT(2600 + 0 * 300 + 74)<<16) + GET_INPUT(2600 + 0 * 300 + 75))+
- ((GET_INPUT(2600 + 1 * 300 + 42)<<16) + GET_INPUT(2600 + 1 * 300 + 43))+((GET_INPUT(2600 + 1 * 300 + 74)<<16) + GET_INPUT(2600 + 1 * 300 + 75))+
- ((GET_INPUT(2600 + 2 * 300 + 42)<<16) + GET_INPUT(2600 + 2 * 300 + 43))+((GET_INPUT(2600 + 2 * 300 + 74)<<16) + GET_INPUT(2600 + 2 * 300 + 75))+
- ((GET_INPUT(2600 + 3 * 300 + 42)<<16) + GET_INPUT(2600 + 3 * 300 + 43))+((GET_INPUT(2600 + 3 * 300 + 74)<<16) + GET_INPUT(2600 + 3 * 300 + 75))
+ (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalDischargingCapLow))
  )*10;
      SET_INPUT(Total_discharged_EnergyH, (INT16U)(Total_Total_discharged_Energy >> 16));
      SET_INPUT(Total_discharged_EnergyL, (INT16U)(Total_Total_discharged_Energy & 0xFFFF));
 
  INT32U Total_Total_charged_Energy = 
- (((GET_INPUT(2600 + 0 * 300 + 44)<<16) + GET_INPUT(2600 + 0 * 300 + 45))+((GET_INPUT(2600 + 0 * 300 + 76)<<16) + GET_INPUT(2600 + 0 * 300 + 77))+
- ((GET_INPUT(2600 + 1 * 300 + 44)<<16) + GET_INPUT(2600 + 1 * 300 + 45))+((GET_INPUT(2600 + 1 * 300 + 76)<<16) + GET_INPUT(2600 + 1 * 300 + 77))+
- ((GET_INPUT(2600 + 2 * 300 + 44)<<16) + GET_INPUT(2600 + 2 * 300 + 45))+((GET_INPUT(2600 + 2 * 300 + 76)<<16) + GET_INPUT(2600 + 2 * 300 + 77))+
- ((GET_INPUT(2600 + 3 * 300 + 44)<<16) + GET_INPUT(2600 + 3 * 300 + 45))+((GET_INPUT(2600 + 3 * 300 + 76)<<16) + GET_INPUT(2600 + 3 * 300 + 77))
+ (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalChargingCapLow))
  )*10;
      SET_INPUT(Total_charged_EnergyH, (INT16U)(Total_Total_charged_Energy >> 16));
      SET_INPUT(Total_charged_EnergyL, (INT16U)(Total_Total_charged_Energy & 0xFFFF));
@@ -2824,15 +2837,15 @@ void trina_system_value()
 
 INT32U AC_Total_Daily_discharged_Energy = 
  (
-    ((GET_INPUT(2600 + 0 * 300 + 70)<<16) + GET_INPUT(2600 + 0 * 300 + 71))+
-    ((GET_INPUT(2600 + 0 * 300 + 82)<<16) + GET_INPUT(2600 + 0 * 300 + 83))+
-    ((GET_INPUT(2600 + 1 * 300 + 70)<<16) + GET_INPUT(2600 + 1 * 300 + 71))+
-    ((GET_INPUT(2600 + 1 * 300 + 82)<<16) + GET_INPUT(2600 + 1 * 300 + 83))+
-    ((GET_INPUT(2600 + 2 * 300 + 70)<<16) + GET_INPUT(2600 + 2 * 300 + 71))+
-    ((GET_INPUT(2600 + 2 * 300 + 82)<<16) + GET_INPUT(2600 + 2 * 300 + 83))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyDischargingCapLow))+
 
-    ((GET_INPUT(2600 + 3 * 300 + 70)<<16) + GET_INPUT(2600 + 3 * 300 + 71))+
-    ((GET_INPUT(2600 + 3 * 300 + 82)<<16) + GET_INPUT(2600 + 3 * 300 + 83))
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyDischargingCapLow))
 
 
 
@@ -2842,14 +2855,14 @@ INT32U AC_Total_Daily_discharged_Energy =
 
  INT32U AC_Total_Daily_charged_Energy = 
  (
-    ((GET_INPUT(2600 + 0 * 300 + 68)<<16) + GET_INPUT(2600 + 0 * 300 + 69))+
-    ((GET_INPUT(2600 + 0 * 300 + 80)<<16) + GET_INPUT(2600 + 0 * 300 + 81))+
-    ((GET_INPUT(2600 + 1 * 300 + 68)<<16) + GET_INPUT(2600 + 1 * 300 + 69))+
-    ((GET_INPUT(2600 + 1 * 300 + 80)<<16) + GET_INPUT(2600 + 1 * 300 + 81))+
-    ((GET_INPUT(2600 + 2 * 300 + 68)<<16) + GET_INPUT(2600 + 2 * 300 + 69))+
-    ((GET_INPUT(2600 + 2 * 300 + 80)<<16) + GET_INPUT(2600 + 2 * 300 + 81))+
-    ((GET_INPUT(2600 + 3 * 300 + 68)<<16) + GET_INPUT(2600 + 3 * 300 + 69))+
-    ((GET_INPUT(2600 + 3 * 300 + 80)<<16) + GET_INPUT(2600 + 3 * 300 + 81))
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyChargingCapLow))
  )*10;
      SET_INPUT(AC_Daily_charged_EnergyH, (INT16U)(AC_Total_Daily_charged_Energy >> 16));
      SET_INPUT(AC_Daily_charged_EnergyL, (INT16U)(AC_Total_Daily_charged_Energy & 0xFFFF));
@@ -2857,14 +2870,14 @@ INT32U AC_Total_Daily_discharged_Energy =
 
  INT32U AC_Total_Total_discharged_Energy = 
  (
- ((GET_INPUT(2600 + 0 * 300 + 74)<<16) + GET_INPUT(2600 + 0 * 300 + 75))+
- ((GET_INPUT(2600 + 0 * 300 + 86)<<16) + GET_INPUT(2600 + 0 * 300 + 87))+
- ((GET_INPUT(2600 + 1 * 300 + 74)<<16) + GET_INPUT(2600 + 1 * 300 + 75))+
- ((GET_INPUT(2600 + 1 * 300 + 86)<<16) + GET_INPUT(2600 + 1 * 300 + 87))+
- ((GET_INPUT(2600 + 2 * 300 + 74)<<16) + GET_INPUT(2600 + 2 * 300 + 75))+
- ((GET_INPUT(2600 + 2 * 300 + 86)<<16) + GET_INPUT(2600 + 2 * 300 + 87))+
- ((GET_INPUT(2600 + 3 * 300 + 74)<<16) + GET_INPUT(2600 + 3 * 300 + 75))+
- ((GET_INPUT(2600 + 3 * 300 + 86)<<16) + GET_INPUT(2600 + 3 * 300 + 87))
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalDischargingCapLow))
  
 )*10;
      SET_INPUT(AC_Total_discharged_EnergyH, (INT16U)(AC_Total_Total_discharged_Energy >> 16));
@@ -2872,21 +2885,21 @@ INT32U AC_Total_Daily_discharged_Energy =
 
  INT32U AC_Total_Total_charged_Energy = 
  (
- ((GET_INPUT(2600 + 0 * 300 + 72)<<16) + GET_INPUT(2600 + 0 * 300 + 73))+
- ((GET_INPUT(2600 + 0 * 300 + 84)<<16) + GET_INPUT(2600 + 0 * 300 + 85))+
- ((GET_INPUT(2600 + 1 * 300 + 72)<<16) + GET_INPUT(2600 + 1 * 300 + 73))+
- ((GET_INPUT(2600 + 1 * 300 + 84)<<16) + GET_INPUT(2600 + 1 * 300 + 85))+
- ((GET_INPUT(2600 + 2 * 300 + 72)<<16) + GET_INPUT(2600 + 2 * 300 + 73))+
- ((GET_INPUT(2600 + 2 * 300 + 84)<<16) + GET_INPUT(2600 + 2 * 300 + 85))+
- ((GET_INPUT(2600 + 3 * 300 + 72)<<16) + GET_INPUT(2600 + 3 * 300 + 73))+
- ((GET_INPUT(2600 + 3 * 300 + 84)<<16) + GET_INPUT(2600 + 3 * 300 + 85))
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalChargingCapLow))
 
 )*10;
      SET_INPUT(AC_Total_charged_EnergyH, (INT16U)(AC_Total_Total_charged_Energy >> 16));
      SET_INPUT(AC_Total_charged_EnergyL, (INT16U)(AC_Total_Total_charged_Energy & 0xFFFF));
     const char *time_str = get_current_time();
 int ret = sscanf(time_str,
-                 "%u-%u-%u %u:%u:%u",
+                 "%hu-%hu-%hu %hu:%hu:%hu",
                  &year,
                  &month,
                  &day,
@@ -2904,24 +2917,27 @@ if (ret == 6)
     SET_INPUT(Second, (INT16U)second);
 }
 
+    /* +18/+19（原台达 GridActivePower/GridReactivePower 偏移）V1.00 点表未定义，
+     * Trina 对应量为 +111/+112（ActivePowerTotalPCC/ReactivePowerTotalPCC），此处保持原偏移不变。
+     */
     INT32S PCS1_status = ((INT16S)GET_INPUT(2600 + 0 * 300 + 18));
     INT32S PCS2_status = ((INT16S)GET_INPUT(2600 + 1 * 300 + 18));
     INT32S PCS3_status = ((INT16S)GET_INPUT(2600 + 2 * 300 + 18));
     INT32S PCS4_status = ((INT16S)GET_INPUT(2600 + 3 * 300 + 18));
 
-    SET_INPUT(17000 + 300 * 0 + 32, PCS_Status_To_RegValue(PCS1_status));
-    SET_INPUT(17000 + 300 * 0 + 33, PCS_Status_To_RegValue(PCS2_status));
-    SET_INPUT(17000 + 300 * 1 + 32, PCS_Status_To_RegValue(PCS3_status));
-    SET_INPUT(17000 + 300 * 1 + 33, PCS_Status_To_RegValue(PCS4_status));
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacyMasterChgDchgStatus, PCS_Status_To_RegValue(PCS1_status));
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySlaveChgDchgStatus, PCS_Status_To_RegValue(PCS2_status));
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacyMasterChgDchgStatus, PCS_Status_To_RegValue(PCS3_status));
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySlaveChgDchgStatus, PCS_Status_To_RegValue(PCS4_status));
 
 
 
 
-    if((GET_INPUT(27631) == 1)&& (GET_INPUT(27632) == 0))//高压侧开关分闸
+    if((GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerOpen) == 1)&& (GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerClosed) == 0))//高压侧开关分闸
     {
         SET_INPUT(High_voltage_switch_status,0xEE);
     }
-    else if(GET_INPUT(27631) == 0 && GET_INPUT(27632) == 1)//高压侧开关合闸
+    else if(GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerOpen) == 0 && GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerClosed) == 1)//高压侧开关合闸
     {
         SET_INPUT(High_voltage_switch_status,0xAA);
     }
@@ -2933,6 +2949,11 @@ if (ret == 6)
 
 void trina_system_value1()
 {
+    /* 地址约定：V1.00 点表已定义且语义一致的点使用结构体+成员
+     * （PCS_TRINA_MODULE_INPUT_REG / PCS_TRINA_GROUP_INPUT_REG /
+     *   PCS_TRINA_HOLD_REG / BMS_BAU_INPUT_REG / MVEMS_*）；
+     * 点表未定义或语义不符的点（模块电量统计等）保留原设备偏移，见下方注释。
+     */
 
 
     sysPara *sys_cfg = SysConf_GetInfo();
@@ -2949,44 +2970,44 @@ void trina_system_value1()
 
 //当设备进行切入切出时。通信拓扑会发生变化，然后根据不同设备进行系统赋值
     if (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0xF0) {
-       INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-        INT16U SOC = (GET_INPUT(38000 + 4 * 200 + 3) +
-                        GET_INPUT(38000 + 5 * 200 + 3) +
-                        GET_INPUT(38000 + 6 * 200 + 3) +
-                        GET_INPUT(38000 + 7 * 200 + 3)) / BMS_num;
+       INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
+        INT16U SOC = (GET_INPUT(BMS_BAU_INPUT_REG[4].TotalSOC) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[5].TotalSOC) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[6].TotalSOC) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[7].TotalSOC)) / BMS_num;
         SET_INPUT(SYSTEM_SOC, SOC);
 
-        INT16U SOH = (GET_INPUT(38000 + 4 * 200 + 4) +
-                        GET_INPUT(38000 + 5 * 200 + 4) +
-                        GET_INPUT(38000 + 6 * 200 + 4) +
-                        GET_INPUT(38000 + 7 * 200 + 4)) / BMS_num;
+        INT16U SOH = (GET_INPUT(BMS_BAU_INPUT_REG[4].BAU_SOH) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[5].BAU_SOH) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[6].BAU_SOH) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[7].BAU_SOH)) / BMS_num;
         SET_INPUT(SYSTEM_SOH, SOH);
 
 
-        INT16U ac_freq = GET_INPUT(17000 + 1 * 300 + 43);
+        INT16U ac_freq = GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacyGridFrequency);
         SET_INPUT(AC_FREQUENCY, ac_freq);
 
-        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 1 * 300 + 42);
+        INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacyGridPowerFactor);
         SET_INPUT(POWER_FACTOR, Power_Factor);
 
-        INT32U DC_average_voltage = (GET_INPUT(38000 + 4 * 200 + 0) +
-                                       GET_INPUT(38000 + 5 * 200 + 0) +
-                                       GET_INPUT(38000 + 6 * 200 + 0) +
-                                       GET_INPUT(38000 + 7 * 200 + 0)) / BMS_num;
+        INT32U DC_average_voltage = (GET_INPUT(BMS_BAU_INPUT_REG[4].BankTotalVol) +
+                                       GET_INPUT(BMS_BAU_INPUT_REG[5].BankTotalVol) +
+                                       GET_INPUT(BMS_BAU_INPUT_REG[6].BankTotalVol) +
+                                       GET_INPUT(BMS_BAU_INPUT_REG[7].BankTotalVol)) / BMS_num;
         SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
         SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-        if (GET_INPUT(17063 + 1 * 300) == 2) {
+        if (GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemOperationStatus) == 2) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
         }
-        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) ? 2 : 0));
-        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) ? 2 : 0));
-        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 6) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1) ? 2 : 0));
         int faulting_BMS_Num = 0;   
         
         for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
         {
-            if((GET_INPUT(38071 + (fault_BMS+4) * 200) == 4))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[fault_BMS+4].SystemRunMode) == 4))
             {
                 faulting_BMS_Num++;
             }
@@ -2999,7 +3020,7 @@ void trina_system_value1()
         int Warning_BMS_Num=0;
         for(int Warn_BMS_Num=0;Warn_BMS_Num<4;Warn_BMS_Num++)
         {
-            if((GET_INPUT(38040 + (Warn_BMS_Num+4) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num+4) * 200) !=0))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num+4].LegacyWarningWord1) !=0)||(GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num+4].LegacyWarningWord2) !=0))
             {
                 Warning_BMS_Num++;
             }
@@ -3012,7 +3033,7 @@ void trina_system_value1()
         int running_bms_num =0;
         for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
         {
-            if((GET_INPUT(38072 + (Run_BMS_Num+4) * 200) !=0))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[Run_BMS_Num+4].ChgDchgStatus) !=0))
             {
                 running_bms_num ++;
             }
@@ -3023,66 +3044,66 @@ void trina_system_value1()
         }
         SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
 
-        if ((GET_INPUT(38072 + 4 * 200) == 2) ||
-            (GET_INPUT(38072 + 5 * 200) == 2) ||
-            (GET_INPUT(38072 + 6 * 200) == 2) ||
-            (GET_INPUT(38072 + 7 * 200) == 2)) {
+        if ((GET_INPUT(BMS_BAU_INPUT_REG[4].ChgDchgStatus) == 2) ||
+            (GET_INPUT(BMS_BAU_INPUT_REG[5].ChgDchgStatus) == 2) ||
+            (GET_INPUT(BMS_BAU_INPUT_REG[6].ChgDchgStatus) == 2) ||
+            (GET_INPUT(BMS_BAU_INPUT_REG[7].ChgDchgStatus) == 2)) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
-        } else if ((GET_INPUT(38072 + 4 * 200) == 1) ||
-                   (GET_INPUT(38072 + 5 * 200) == 1) ||
-                   (GET_INPUT(38072 + 6 * 200) == 1) ||
-                   (GET_INPUT(38072 + 7 * 200) == 1)) {
+        } else if ((GET_INPUT(BMS_BAU_INPUT_REG[4].ChgDchgStatus) == 1) ||
+                   (GET_INPUT(BMS_BAU_INPUT_REG[5].ChgDchgStatus) == 1) ||
+                   (GET_INPUT(BMS_BAU_INPUT_REG[6].ChgDchgStatus) == 1) ||
+                   (GET_INPUT(BMS_BAU_INPUT_REG[7].ChgDchgStatus) == 1)) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
         }
 
     } else if (g_enabled_mask_pcs == 0x03 || g_enabled_mask_bms == 0x0F) {
-      INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-        INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) +
-                        GET_INPUT(38000 + 1 * 200 + 3) +
-                        GET_INPUT(38000 + 2 * 200 + 3) +
-                        GET_INPUT(38000 + 3 * 200 + 3)) / BMS_num;
+      INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
+        INT16U SOC = (GET_INPUT(BMS_BAU_INPUT_REG[0].TotalSOC) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[1].TotalSOC) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[2].TotalSOC) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[3].TotalSOC)) / BMS_num;
         SET_INPUT(SYSTEM_SOC, SOC);
 
-        INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
-                        GET_INPUT(38000 + 1 * 200 + 4) +
-                        GET_INPUT(38000 + 2 * 200 + 4) +
-                        GET_INPUT(38000 + 3 * 200 + 4)) / BMS_num;
+        INT16U SOH = (GET_INPUT(BMS_BAU_INPUT_REG[0].BAU_SOH) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[1].BAU_SOH) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[2].BAU_SOH) +
+                        GET_INPUT(BMS_BAU_INPUT_REG[3].BAU_SOH)) / BMS_num;
         SET_INPUT(SYSTEM_SOH, SOH);
 
-        INT16U ac_freq = GET_INPUT(17000 + 0 * 300 + 43);
+        INT16U ac_freq = GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacyGridFrequency);
         SET_INPUT(AC_FREQUENCY, ac_freq);
 
-        INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+        INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacyGridPowerFactor);
         SET_INPUT(POWER_FACTOR, Power_Factor);
 
-        INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
-                                       GET_INPUT(38000 + 1 * 200 + 0) +
-                                       GET_INPUT(38000 + 2 * 200 + 0) +
-                                       GET_INPUT(38000 + 3 * 200 + 0)) / BMS_num;
+        INT32U DC_average_voltage = (GET_INPUT(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                       GET_INPUT(BMS_BAU_INPUT_REG[1].BankTotalVol) +
+                                       GET_INPUT(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                       GET_INPUT(BMS_BAU_INPUT_REG[3].BankTotalVol)) / BMS_num;
         SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
         SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
-        if (GET_INPUT(17063 + 0 * 300) == 2) {
+        if (GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemOperationStatus) == 2) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);
         }
-        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
-        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
-        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
-        if ((GET_INPUT(38072 + 0 * 200) == 2) ||
-            (GET_INPUT(38072 + 1 * 200) == 2) ||
-            (GET_INPUT(38072 + 2 * 200) == 2) ||
-            (GET_INPUT(38072 + 3 * 200) == 2)) {
+        SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 6) & 1) ? 2 : 0));
+        SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ? 2 : 0));
+        SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ? 1 : 0));
+        if ((GET_INPUT(BMS_BAU_INPUT_REG[0].ChgDchgStatus) == 2) ||
+            (GET_INPUT(BMS_BAU_INPUT_REG[1].ChgDchgStatus) == 2) ||
+            (GET_INPUT(BMS_BAU_INPUT_REG[2].ChgDchgStatus) == 2) ||
+            (GET_INPUT(BMS_BAU_INPUT_REG[3].ChgDchgStatus) == 2)) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);
-        } else if ((GET_INPUT(38072 + 0 * 200) == 1) ||
-                   (GET_INPUT(38072 + 1 * 200) == 1) ||
-                   (GET_INPUT(38072 + 2 * 200) == 1) ||
-                   (GET_INPUT(38072 + 3 * 200) == 1)) {
+        } else if ((GET_INPUT(BMS_BAU_INPUT_REG[0].ChgDchgStatus) == 1) ||
+                   (GET_INPUT(BMS_BAU_INPUT_REG[1].ChgDchgStatus) == 1) ||
+                   (GET_INPUT(BMS_BAU_INPUT_REG[2].ChgDchgStatus) == 1) ||
+                   (GET_INPUT(BMS_BAU_INPUT_REG[3].ChgDchgStatus) == 1)) {
             SET_INPUT(STATE_OF_THE_ENERGY_STATION, 5);
         }
         int faulting_BMS_Num = 0;  
         for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
         {
-            if((GET_INPUT(38071 + (fault_BMS) * 200) == 4))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4))
             {
                 faulting_BMS_Num++;
             }
@@ -3095,7 +3116,7 @@ void trina_system_value1()
         int Warning_BMS_Num=0;
         for(int Warn_BMS_Num=0;Warn_BMS_Num<4;Warn_BMS_Num++)
         {
-            if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord1) !=0)||(GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord2) !=0))
             {
                 Warning_BMS_Num++;
             }
@@ -3108,7 +3129,7 @@ void trina_system_value1()
         int running_bms_num =0;
         for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
         {
-            if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+            if((GET_INPUT(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
             {
                 running_bms_num ++;
             }
@@ -3121,52 +3142,52 @@ void trina_system_value1()
 
     } else {
         if ((GET_INPUT(NUMBER_OF_PCSs) == 2)&&(GET_INPUT(NUMBER_OF_BMSs) == 4)) {
-            INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-            INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) +
-                            GET_INPUT(38000 + 1 * 200 + 3) +
-                            GET_INPUT(38000 + 2 * 200 + 3) +
-                            GET_INPUT(38000 + 3 * 200 + 3)) / BMS_num;
+            INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
+            INT16U SOC = (GET_INPUT(BMS_BAU_INPUT_REG[0].TotalSOC) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[1].TotalSOC) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[2].TotalSOC) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[3].TotalSOC)) / BMS_num;
             SET_INPUT(SYSTEM_SOC, SOC);
 
-            INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) +
-                            GET_INPUT(38000 + 1 * 200 + 4) +
-                            GET_INPUT(38000 + 2 * 200 + 4) +
-                            GET_INPUT(38000 + 3 * 200 + 4)) / BMS_num;
+            INT16U SOH = (GET_INPUT(BMS_BAU_INPUT_REG[0].BAU_SOH) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[1].BAU_SOH) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[2].BAU_SOH) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[3].BAU_SOH)) / BMS_num;
             SET_INPUT(SYSTEM_SOH, SOH);
 
 
 
-            INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
-                                           GET_INPUT(38000 + 1 * 200 + 0) +
-                                           GET_INPUT(38000 + 2 * 200 + 0) +
-                                           GET_INPUT(38000 + 3 * 200 + 0)) / BMS_num;
+            INT32U DC_average_voltage = (GET_INPUT(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[1].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[3].BankTotalVol)) / BMS_num;
             SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
             
 
 
-            INT16S Power_Factor = (INT16S)GET_INPUT(17000 + 0 * 300 + 42);
+            INT16S Power_Factor = (INT16S)GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacyGridPowerFactor);
             SET_INPUT(POWER_FACTOR, Power_Factor);
 
-            if ((GET_INPUT(2600+100 + 0 * 300) == 2)&&((GET_INPUT(2600+100 + 1* 300) == 2))) {
+            if ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus) == 2)&&((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].SystemRunStatus) == 2))) {
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 2);//所有PCS待机
             }
-            else if (((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1)&&((GET_INPUT(2600+100 + 0 * 300)>> 2) & 1 == 1)){
+            else if ((((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 2) & 1) == 1)&&(((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 2) & 1) == 1)){
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 1);//所有PCS全部关闭，无法启动
             }            
-            else if (((GET_INPUT(2600 +100+ 0 * 300)>> 0) & 1 == 1) ||
-                ((GET_INPUT(2600 +100+ 0 * 300)>> 0) & 1)){
+            else if ((((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 0) & 1) == 1) ||
+                ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 0) & 1)){
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 3);//运行，任意一个在运行
-            } else if (((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1) ||
-                    ((GET_INPUT(2600 +100+ 0 * 300)>> 2) & 1 == 1 )){
+            } else if ((((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 2) & 1) == 1) ||
+                    (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus)>> 2) & 1) == 1 )){
                 SET_INPUT(STATE_OF_THE_ENERGY_STATION, 4);//任意一个故障
             }
 
-            SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ? 2 : 0));
-            SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 2 : 0));
+            SET_INPUT(NUMBER_OF_WARNING_PCSs, (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 6) & 1) ? 2 : 0));
+            SET_INPUT(NUMBER_OF_FAULT_PCSs,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ? 2 : 0));
 
-             SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ? 1 : 0));
-            if (((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1U) {
+             SET_INPUT(PCS_GROUP_STATUS,   (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ? 1 : 0));
+            if (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemOperationStatus) >> 3) & 1) == 1U) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
             } else {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
@@ -3174,7 +3195,7 @@ void trina_system_value1()
            int faulting_BMS_Num = 0;   // 一定要先清零
             for(int fault_BMS=0;fault_BMS<4;fault_BMS++)
             {
-                if((GET_INPUT(38071 + (fault_BMS) * 200) == 4))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4))
                 {
                     faulting_BMS_Num++;
                 }
@@ -3189,7 +3210,7 @@ void trina_system_value1()
             int Warning_BMS_Num=0;
             for(int Warn_BMS_Num=0;Warn_BMS_Num<4;Warn_BMS_Num++)
             {
-                if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord1) !=0)||(GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord2) !=0))
                 {
                     Warning_BMS_Num++;
                 }
@@ -3202,7 +3223,7 @@ void trina_system_value1()
             int running_bms_num =0;
             for(int Run_BMS_Num=0;Run_BMS_Num<4;Run_BMS_Num++)
             {
-                if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
                 {
                     running_bms_num ++;
                 }
@@ -3212,16 +3233,16 @@ void trina_system_value1()
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(12000+2) == 1U)&&(GET_HOLD(12000+2+700) == 1U)) {
+             if ((GET_HOLD(PCS_TRINA_HOLD_REG[0].OnGridOffGridConfig) == 1U)||(GET_HOLD(PCS_TRINA_HOLD_REG[1].OnGridOffGridConfig) == 1U)) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
             }
-            uint16_t ac_freq = GET_INPUT(2600+0*300+106);
+            uint16_t ac_freq = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].GridFrequencyPCC);
 
             for (uint8_t n = 1; n < 4; n++)
             {
-                uint16_t value = GET_INPUT(2600 + n * 300 + 106);
+                uint16_t value = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[n].GridFrequencyPCC);
 
                 if (value > ac_freq)
                 {
@@ -3231,17 +3252,17 @@ void trina_system_value1()
                 SET_INPUT(AC_FREQUENCY, ac_freq);
         } else if((GET_INPUT(NUMBER_OF_PCSs) == 4)&&(GET_INPUT(NUMBER_OF_BMSs) == 8))
         {
-             INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
-            INT16U SOC = (GET_INPUT(38000 + 0 * 200 + 3) + GET_INPUT(38000 + 1 * 200 + 3) +
-                            GET_INPUT(38000 + 2 * 200 + 3) + GET_INPUT(38000 + 3 * 200 + 3) +
-                            GET_INPUT(38000 + 4 * 200 + 3) + GET_INPUT(38000 + 5 * 200 + 3) +
-                            GET_INPUT(38000 + 6 * 200 + 3) + GET_INPUT(38000 + 7 * 200 + 3)) / BMS_num;
+             INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
+            INT16U SOC = (GET_INPUT(BMS_BAU_INPUT_REG[0].TotalSOC) + GET_INPUT(BMS_BAU_INPUT_REG[1].TotalSOC) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[2].TotalSOC) + GET_INPUT(BMS_BAU_INPUT_REG[3].TotalSOC) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[4].TotalSOC) + GET_INPUT(BMS_BAU_INPUT_REG[5].TotalSOC) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[6].TotalSOC) + GET_INPUT(BMS_BAU_INPUT_REG[7].TotalSOC)) / BMS_num;
             SET_INPUT(SYSTEM_SOC, SOC);
 
-            INT16U SOH = (GET_INPUT(38000 + 0 * 200 + 4) + GET_INPUT(38000 + 1 * 200 + 4) +
-                            GET_INPUT(38000 + 2 * 200 + 4) + GET_INPUT(38000 + 3 * 200 + 4) +
-                            GET_INPUT(38000 + 4 * 200 + 4) + GET_INPUT(38000 + 5 * 200 + 4) +
-                            GET_INPUT(38000 + 6 * 200 + 4) + GET_INPUT(38000 + 7 * 200 + 4)) / BMS_num;
+            INT16U SOH = (GET_INPUT(BMS_BAU_INPUT_REG[0].BAU_SOH) + GET_INPUT(BMS_BAU_INPUT_REG[1].BAU_SOH) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[2].BAU_SOH) + GET_INPUT(BMS_BAU_INPUT_REG[3].BAU_SOH) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[4].BAU_SOH) + GET_INPUT(BMS_BAU_INPUT_REG[5].BAU_SOH) +
+                            GET_INPUT(BMS_BAU_INPUT_REG[6].BAU_SOH) + GET_INPUT(BMS_BAU_INPUT_REG[7].BAU_SOH)) / BMS_num;
             SET_INPUT(SYSTEM_SOH, SOH);
 
             SYS_State_ENUM state[2]; 
@@ -3254,12 +3275,12 @@ void trina_system_value1()
             
             if(sys1_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 0 * 300 + 42)); 
+                INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacyGridPowerFactor)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else if(sys2_run==1)
             {
-                INT16S Power_Factor = ((INT16S)GET_INPUT(17000 + 1 * 300 + 42)); 
+                INT16S Power_Factor = ((INT16S)GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacyGridPowerFactor)); 
                 SET_INPUT(POWER_FACTOR, Power_Factor);
             }
             else
@@ -3267,11 +3288,11 @@ void trina_system_value1()
                  SET_INPUT(POWER_FACTOR, 0);
             }
 
-            uint16_t ac_freq = GET_INPUT(2600+0*300+106);
+            uint16_t ac_freq = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].GridFrequencyPCC);
 
             for (uint8_t n = 1; n < 4; n++)
             {
-                uint16_t value = GET_INPUT(2600 + n * 300 + 106);
+                uint16_t value = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[n].GridFrequencyPCC);
 
                 if (value > ac_freq)
                 {
@@ -3281,19 +3302,19 @@ void trina_system_value1()
                 SET_INPUT(AC_FREQUENCY, ac_freq);
             
 
-            INT32U DC_average_voltage = (GET_INPUT(38000 + 0 * 200 + 0) +
-                                           GET_INPUT(38000 + 1 * 200 + 0) +
-                                           GET_INPUT(38000 + 2 * 200 + 0) +
-                                           GET_INPUT(38000 + 3 * 200 + 0) +
-                                           GET_INPUT(38000 + 4 * 200 + 0) +
-                                           GET_INPUT(38000 + 5 * 200 + 0) +
-                                           GET_INPUT(38000 + 6 * 200 + 0) +
-                                           GET_INPUT(38000 + 7 * 200 + 0)) / BMS_num;
+            INT32U DC_average_voltage = (GET_INPUT(BMS_BAU_INPUT_REG[0].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[1].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[2].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[3].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[4].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[5].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[6].BankTotalVol) +
+                                           GET_INPUT(BMS_BAU_INPUT_REG[7].BankTotalVol)) / BMS_num;
             SET_INPUT(DC_AVERAGE_VOLTAGEH, DC_average_voltage >> 16);
             SET_INPUT(DC_AVERAGE_VOLTAGEL, DC_average_voltage & 0xFFFF);
 
 
-            if (((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) 
+            if (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 1);
@@ -3301,27 +3322,27 @@ void trina_system_value1()
             } 
             
 
-            if (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1) 
+            if (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1) == 1) 
             {          
                
                 SET_INPUT(PCS_GROUP_STATUS, 2);
             } 
-            if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 6) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 6) & 1) ^ ((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 6) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 2);
-            } else if ((((GET_INPUT(17060 + 0 * 300) >> 6) & 1) == 1) &&
-                       (((GET_INPUT(17060 + 1 * 300) >> 6) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 6) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 6) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 4);
             } else {
                 SET_INPUT(NUMBER_OF_WARNING_PCSs, 0);
             }
  
 
-            if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) ^ ((GET_INPUT(17060 + 1 * 300) >> 4) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) ^ ((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_FAULT_PCSs, 2);
 
                 // SET_INPUT(PCS_GROUP_STATUS, 1);
-            } else if ((((GET_INPUT(17060 + 0 * 300) >> 4) & 1) == 1) &&
-                       (((GET_INPUT(17060 + 1 * 300) >> 4) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemStateWord1) >> 4) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemStateWord1) >> 4) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_FAULT_PCSs, 4);
                 SET_INPUT(PCS_GROUP_STATUS, 3);
             } 
@@ -3331,10 +3352,10 @@ void trina_system_value1()
                 SET_INPUT(PCS_GROUP_STATUS, 0);
             }
         
-            if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) ^ ((GET_INPUT(17063 + 1 * 300) >> 3) & 1)) == 1) {
+            if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemOperationStatus) >> 3) & 1) ^ ((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemOperationStatus) >> 3) & 1)) == 1) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 2);
-            } else if ((((GET_INPUT(17063 + 0 * 300) >> 3) & 1) == 1) &&
-                       (((GET_INPUT(17063 + 1 * 300) >> 3) & 1) == 1)) {
+            } else if ((((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySystemOperationStatus) >> 3) & 1) == 1) &&
+                       (((GET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySystemOperationStatus) >> 3) & 1) == 1)) {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 4);
             } else {
                 SET_INPUT(NUMBER_OF_RUNNING_PCSs, 0);
@@ -3356,8 +3377,8 @@ void trina_system_value1()
             * 8  = 运行
             * 16 = 故障
             */
-            master1_state = GET_INPUT(2600+100 + 0 * 300);
-            master2_state = GET_INPUT(2600+100  + 2 * 300);
+            master1_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].SystemRunStatus);
+            master2_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].SystemRunStatus);
 
             /*
             * 从机状态：
@@ -3366,8 +3387,8 @@ void trina_system_value1()
             * 2 = 故障
             * 4 = 运行
             */
-            slave1_state = GET_INPUT(2600+100  + 1 * 300);
-            slave2_state = GET_INPUT(2600+100 + 3 * 300);
+            slave1_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].SystemRunStatus);
+            slave2_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].SystemRunStatus);
 
             /*
             * 状态1：所有PCS全部故障。
@@ -3440,7 +3461,7 @@ void trina_system_value1()
             int faulting_BMS_Num = 0;   // 一定要先清零
             for(int fault_BMS=0;fault_BMS<sys_cfg->bmsNum;fault_BMS++)
             {
-                if((GET_INPUT(38071 + (fault_BMS) * 200) == 4) )
+                if((GET_INPUT(BMS_BAU_INPUT_REG[fault_BMS].SystemRunMode) == 4) )
                 {
                     faulting_BMS_Num++;
                 }
@@ -3453,7 +3474,7 @@ void trina_system_value1()
             int Warning_BMS_Num=0;
             for(int Warn_BMS_Num=0;Warn_BMS_Num<sys_cfg->bmsNum;Warn_BMS_Num++)
             {
-                if((GET_INPUT(38040 + (Warn_BMS_Num) * 200) !=0)||(GET_INPUT(38041 + (Warn_BMS_Num) * 200) !=0))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord1) !=0)||(GET_INPUT(BMS_BAU_INPUT_REG[Warn_BMS_Num].LegacyWarningWord2) !=0))
                 {
                     Warning_BMS_Num++;
                 }
@@ -3467,7 +3488,7 @@ void trina_system_value1()
             int running_bms_num =0;
             for(int Run_BMS_Num=0;Run_BMS_Num<sys_cfg->bmsNum;Run_BMS_Num++)
             {
-                if((GET_INPUT(38072 + (Run_BMS_Num) * 200) !=0))
+                if((GET_INPUT(BMS_BAU_INPUT_REG[Run_BMS_Num].ChgDchgStatus) !=0))
                 {
                     running_bms_num ++;
      
@@ -3479,7 +3500,7 @@ void trina_system_value1()
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
-           if ((GET_HOLD(12000+2) == 1U)&&(GET_HOLD(12000+2+700) == 1U)&&(GET_HOLD(12000+2+1400) == 1U)&&(GET_HOLD(12000+2+2100) == 1U)) {
+           if ((GET_HOLD(PCS_TRINA_HOLD_REG[0].OnGridOffGridConfig) == 1U)||(GET_HOLD(PCS_TRINA_HOLD_REG[1].OnGridOffGridConfig) == 1U)||(GET_HOLD(PCS_TRINA_HOLD_REG[2].OnGridOffGridConfig) == 1U)||(GET_HOLD(PCS_TRINA_HOLD_REG[3].OnGridOffGridConfig) == 1U)) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -3489,49 +3510,49 @@ void trina_system_value1()
 //该部分数据无论拓扑如何变化都可以这样计算
     /* 系统级数据量 */
     INT32U chg_remain_capacity =
-        (GET_INPUT(38000 + 0 * 200 + 6) + GET_INPUT(38000 + 1 * 200 + 6) +
-        GET_INPUT(38000 + 2 * 200 + 6) + GET_INPUT(38000 + 3 * 200 + 6) +
-        GET_INPUT(38000 + 4 * 200 + 6) + GET_INPUT(38000 + 5 * 200 + 6) +
-        GET_INPUT(38000 + 6 * 200 + 6) + GET_INPUT(38000 + 7 * 200 + 6))*10;
+        (GET_INPUT(BMS_BAU_INPUT_REG[0].ChgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[1].ChgRemainCapacity) +
+        GET_INPUT(BMS_BAU_INPUT_REG[2].ChgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[3].ChgRemainCapacity) +
+        GET_INPUT(BMS_BAU_INPUT_REG[4].ChgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[5].ChgRemainCapacity) +
+        GET_INPUT(BMS_BAU_INPUT_REG[6].ChgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[7].ChgRemainCapacity))*10;
     SET_INPUT(AVAILABLE_CHARGE_ENERGYH, (INT16U)(chg_remain_capacity >> 16));
     SET_INPUT(AVAILABLE_CHARGE_ENERGYL, (INT16U)(chg_remain_capacity & 0xFFFF));
 
     INT32U dchg_remain_capacity =
-        (GET_INPUT(38000 + 0 * 200 + 7) + GET_INPUT(38000 + 1 * 200 + 7) +
-        GET_INPUT(38000 + 2 * 200 + 7) + GET_INPUT(38000 + 3 * 200 + 7) +
-        GET_INPUT(38000 + 4 * 200 + 7) + GET_INPUT(38000 + 5 * 200 + 7) +
-        GET_INPUT(38000 + 6 * 200 + 7) + GET_INPUT(38000 + 7 * 200 + 7))*10;
+        (GET_INPUT(BMS_BAU_INPUT_REG[0].DchgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[1].DchgRemainCapacity) +
+        GET_INPUT(BMS_BAU_INPUT_REG[2].DchgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[3].DchgRemainCapacity) +
+        GET_INPUT(BMS_BAU_INPUT_REG[4].DchgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[5].DchgRemainCapacity) +
+        GET_INPUT(BMS_BAU_INPUT_REG[6].DchgRemainCapacity) + GET_INPUT(BMS_BAU_INPUT_REG[7].DchgRemainCapacity))*10;
     SET_INPUT(AVAILABLE_DISCHARGE_ENERGYH, (INT16U)(dchg_remain_capacity >> 16));
     SET_INPUT(AVAILABLE_DISCHARGE_ENERGYL, (INT16U)(dchg_remain_capacity & 0xFFFF));
 
     INT32U chg_power =
-        (GET_INPUT(38000 + 0 * 200 + 38) + GET_INPUT(38000 + 1 * 200 + 38) +
-        GET_INPUT(38000 + 2 * 200 + 38) + GET_INPUT(38000 + 3 * 200 + 38) +
-        GET_INPUT(38000 + 4 * 200 + 38) + GET_INPUT(38000 + 5 * 200 + 38) +
-        GET_INPUT(38000 + 6 * 200 + 38) + GET_INPUT(38000 + 7 * 200 + 38))*10;
+        (GET_INPUT(BMS_BAU_INPUT_REG[0].ChgPower) + GET_INPUT(BMS_BAU_INPUT_REG[1].ChgPower) +
+        GET_INPUT(BMS_BAU_INPUT_REG[2].ChgPower) + GET_INPUT(BMS_BAU_INPUT_REG[3].ChgPower) +
+        GET_INPUT(BMS_BAU_INPUT_REG[4].ChgPower) + GET_INPUT(BMS_BAU_INPUT_REG[5].ChgPower) +
+        GET_INPUT(BMS_BAU_INPUT_REG[6].ChgPower) + GET_INPUT(BMS_BAU_INPUT_REG[7].ChgPower))*10;
     SET_INPUT(AVAILABLE_CHARGE_POWERH, (INT16U)(chg_power >> 16));
     SET_INPUT(AVAILABLE_CHARGE_POWERL, (INT16U)(chg_power & 0xFFFF));
 
     INT32U dchg_power =
-        (GET_INPUT(38000 + 0 * 200 + 37) + GET_INPUT(38000 + 1 * 200 + 37) +
-        GET_INPUT(38000 + 2 * 200 + 37) + GET_INPUT(38000 + 3 * 200 + 37) +
-        GET_INPUT(38000 + 4 * 200 + 37) + GET_INPUT(38000 + 5 * 200 + 37) +
-        GET_INPUT(38000 + 6 * 200 + 37) + GET_INPUT(38000 + 7 * 200 + 37))*10;
+        (GET_INPUT(BMS_BAU_INPUT_REG[0].DchgPower) + GET_INPUT(BMS_BAU_INPUT_REG[1].DchgPower) +
+        GET_INPUT(BMS_BAU_INPUT_REG[2].DchgPower) + GET_INPUT(BMS_BAU_INPUT_REG[3].DchgPower) +
+        GET_INPUT(BMS_BAU_INPUT_REG[4].DchgPower) + GET_INPUT(BMS_BAU_INPUT_REG[5].DchgPower) +
+        GET_INPUT(BMS_BAU_INPUT_REG[6].DchgPower) + GET_INPUT(BMS_BAU_INPUT_REG[7].DchgPower))*10;
 
     SET_INPUT(AVAILABLE_DISCHARGE_POWERH, (INT16U)(dchg_power >> 16));
     SET_INPUT(AVAILABLE_DISCHARGE_POWERL, (INT16U)(dchg_power & 0xFFFF));
 
-    INT32S Atvice_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 111) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 111)+(INT16S)GET_INPUT(2600 + 2 * 300 + 111) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 111))*10;
+    INT32S Atvice_power = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].ActivePowerTotalPCC) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].ActivePowerTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].ActivePowerTotalPCC) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].ActivePowerTotalPCC))*10;
     SET_INPUT(ATVICE_POWERH, (INT16U)(Atvice_power >> 16));
     SET_INPUT(ATVICE_POWERL, (INT16U)(Atvice_power & 0xFFFF));
 
-    INT32S Reactive_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 112) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 112)+(INT16S)GET_INPUT(2600 + 2 * 300 + 112) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 112))*10;
+    INT32S Reactive_power = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].ReactivePowerTotalPCC) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].ReactivePowerTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].ReactivePowerTotalPCC) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].ReactivePowerTotalPCC))*10;
 
     SET_INPUT(REACTIVE_POWERH, (INT16U)(Reactive_power >> 16));
     SET_INPUT(REACTIVE_POWERL, (INT16U)(Reactive_power & 0xFFFF));
 
 
-    INT32S S = (INT32S)((INT16S)GET_INPUT(2600 + 0 * 300 + 113) + (INT16S)GET_INPUT(2600 + 1 * 300 + 113)+(INT16S)GET_INPUT(2600 + 2 * 300 + 113) + (INT16S)GET_INPUT(2600 + 3 * 300 + 113));
+    INT32S S = (INT32S)((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].ApparentPowerTotalPCC) + (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].ApparentPowerTotalPCC)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].ApparentPowerTotalPCC) + (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].ApparentPowerTotalPCC));
 
     // 同样拆成高低字输出
     SET_INPUT(APPARENT_POWERH, (INT16U)((INT32U)S >> 16));
@@ -3559,58 +3580,61 @@ void trina_system_value1()
 //     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERH, (INT16U)(Available_inductive_reactive_powertotal >> 16));
 //     SET_INPUT(AVAILABLE_CAPACTIVE_REACTIVE_POWERL, (INT16U)(Available_inductive_reactive_powertotal & 0xFFFF)); 
 // }
-   INT8U PCS_num =COUNT_BITS_16(GET_INPUT(218));
+   INT8U PCS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord1_PcsComm10MW));
     INT32U Nominal_capctiy = 35560*PCS_num;
 
     SET_INPUT(NOMINAL_CAPCTIY_H, (INT16U)(Nominal_capctiy >> 16));
     SET_INPUT(NOMINAL_CAPCTIY_L, (INT16U)(Nominal_capctiy & 0xFFFF));
- INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
+ INT8U BMS_num =COUNT_BITS_16(GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3));
     INT32U Nominal_energy = 50000*BMS_num;
 
     SET_INPUT(NOMINAL_ENERGY_H, (INT16U)(Nominal_energy >> 16));
     SET_INPUT(NOMINAL_ENERGY_L, (INT16U)(Nominal_energy & 0xFFFF));
 
-    INT32S DC_power = ((INT16S)GET_INPUT(2600 + 0 * 300 + 110) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 110)+(INT16S)GET_INPUT(2600 + 2 * 300 + 110) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 110))*10;
+    INT32S DC_power = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].DCPowerTotal) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].DCPowerTotal)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].DCPowerTotal) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].DCPowerTotal))*10;
     SET_INPUT(DC_POWERH, (INT16U)(DC_power >> 16));
     SET_INPUT(DC_POWERL, (INT16U)(DC_power & 0xFFFF));
 
-    INT32S DC_current = ((INT16S)GET_INPUT(2600 + 0 * 300 + 115) +  (INT16S)GET_INPUT(2600 + 1 * 300 + 115)+(INT16S)GET_INPUT(2600 + 2 * 300 + 115) +  (INT16S)GET_INPUT(2600 + 3 * 300 + 115))*10;
+    INT32S DC_current = ((INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].BatteryCurrentTotal) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].BatteryCurrentTotal)+(INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].BatteryCurrentTotal) +  (INT16S)GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].BatteryCurrentTotal))*10;
     SET_INPUT(DC_CURRENTH, (INT16U)(DC_current >> 16));
     SET_INPUT(DC_CURRENTL, (INT16U)(DC_current & 0xFFFF));
 
+    /* 支路电量（+64~+87，点表 Branch1/2 时/日/总 充放电量）已改用
+     * PCS_TRINA_MODULE_INPUT_REG[n] 成员；所有组合仍保持高16位在前、低16位在后。
+     */
  INT32U Total_Daily_discharged_Energy = 
- (((GET_INPUT(2600 + 0 * 300 + 26)<<16) + GET_INPUT(2600 + 0 * 300 + 27))+((GET_INPUT(2600 + 0 * 300 + 66)<<16) + GET_INPUT(2600 + 0 * 300 + 67))+
- ((GET_INPUT(2600 + 1 * 300 + 26)<<16) + GET_INPUT(2600 + 1 * 300 + 27))+((GET_INPUT(2600 + 1 * 300 + 66)<<16) + GET_INPUT(2600 + 1 * 300 + 67))+
- ((GET_INPUT(2600 + 2 * 300 + 26)<<16) + GET_INPUT(2600 + 2 * 300 + 27))+((GET_INPUT(2600 + 2 * 300 + 66)<<16) + GET_INPUT(2600 + 2 * 300 + 67))+
- ((GET_INPUT(2600 + 3 * 300 + 26)<<16) + GET_INPUT(2600 + 3 * 300 + 27))+((GET_INPUT(2600 + 3 * 300 + 66)<<16) + GET_INPUT(2600 + 3 * 300 + 67))
+ (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyDischargingCapLow))
  )*10;
      SET_INPUT(Daily_discharged_EnergyH, (INT16U)(Total_Daily_discharged_Energy >> 16));
      SET_INPUT(Daily_discharged_EnergyL, (INT16U)(Total_Daily_discharged_Energy & 0xFFFF));
 
  INT32U Total_Daily_charged_Energy = 
- (((GET_INPUT(2600 + 0 * 300 + 28)<<16) + GET_INPUT(2600 + 0 * 300 + 29))+((GET_INPUT(2600 + 0 * 300 + 68)<<16) + GET_INPUT(2600 + 0 * 300 + 69))+
- ((GET_INPUT(2600 + 1 * 300 + 28)<<16) + GET_INPUT(2600 + 1 * 300 + 29))+((GET_INPUT(2600 + 1 * 300 + 68)<<16) + GET_INPUT(2600 + 1 * 300 + 69))+
- ((GET_INPUT(2600 + 2 * 300 + 28)<<16) + GET_INPUT(2600 + 2 * 300 + 29))+((GET_INPUT(2600 + 2 * 300 + 68)<<16) + GET_INPUT(2600 + 2 * 300 + 69))+
- ((GET_INPUT(2600 + 3 * 300 + 28)<<16) + GET_INPUT(2600 + 3 * 300 + 29))+((GET_INPUT(2600 + 3 * 300 + 68)<<16) + GET_INPUT(2600 + 3 * 300 + 69))
+ (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyChargingCapLow))
  )*10;
      SET_INPUT(Daily_charged_EnergyH, (INT16U)(Total_Daily_charged_Energy >> 16));
      SET_INPUT(Daily_charged_EnergyL, (INT16U)(Total_Daily_charged_Energy & 0xFFFF));
 
 
  INT32U Total_Total_discharged_Energy = 
- (((GET_INPUT(2600 + 0 * 300 + 42)<<16) + GET_INPUT(2600 + 0 * 300 + 43))+((GET_INPUT(2600 + 0 * 300 + 74)<<16) + GET_INPUT(2600 + 0 * 300 + 75))+
- ((GET_INPUT(2600 + 1 * 300 + 42)<<16) + GET_INPUT(2600 + 1 * 300 + 43))+((GET_INPUT(2600 + 1 * 300 + 74)<<16) + GET_INPUT(2600 + 1 * 300 + 75))+
- ((GET_INPUT(2600 + 2 * 300 + 42)<<16) + GET_INPUT(2600 + 2 * 300 + 43))+((GET_INPUT(2600 + 2 * 300 + 74)<<16) + GET_INPUT(2600 + 2 * 300 + 75))+
- ((GET_INPUT(2600 + 3 * 300 + 42)<<16) + GET_INPUT(2600 + 3 * 300 + 43))+((GET_INPUT(2600 + 3 * 300 + 74)<<16) + GET_INPUT(2600 + 3 * 300 + 75))
+ (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalDischargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalDischargingCapLow))
  )*10;
      SET_INPUT(Total_discharged_EnergyH, (INT16U)(Total_Total_discharged_Energy >> 16));
      SET_INPUT(Total_discharged_EnergyL, (INT16U)(Total_Total_discharged_Energy & 0xFFFF));
 
  INT32U Total_Total_charged_Energy = 
- (((GET_INPUT(2600 + 0 * 300 + 44)<<16) + GET_INPUT(2600 + 0 * 300 + 45))+((GET_INPUT(2600 + 0 * 300 + 76)<<16) + GET_INPUT(2600 + 0 * 300 + 77))+
- ((GET_INPUT(2600 + 1 * 300 + 44)<<16) + GET_INPUT(2600 + 1 * 300 + 45))+((GET_INPUT(2600 + 1 * 300 + 76)<<16) + GET_INPUT(2600 + 1 * 300 + 77))+
- ((GET_INPUT(2600 + 2 * 300 + 44)<<16) + GET_INPUT(2600 + 2 * 300 + 45))+((GET_INPUT(2600 + 2 * 300 + 76)<<16) + GET_INPUT(2600 + 2 * 300 + 77))+
- ((GET_INPUT(2600 + 3 * 300 + 44)<<16) + GET_INPUT(2600 + 3 * 300 + 45))+((GET_INPUT(2600 + 3 * 300 + 76)<<16) + GET_INPUT(2600 + 3 * 300 + 77))
+ (((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalChargingCapLow))+((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalChargingCapLow))
  )*10;
      SET_INPUT(Total_charged_EnergyH, (INT16U)(Total_Total_charged_Energy >> 16));
      SET_INPUT(Total_charged_EnergyL, (INT16U)(Total_Total_charged_Energy & 0xFFFF));
@@ -3618,15 +3642,15 @@ void trina_system_value1()
 
 INT32U AC_Total_Daily_discharged_Energy = 
  (
-    ((GET_INPUT(2600 + 0 * 300 + 70)<<16) + GET_INPUT(2600 + 0 * 300 + 71))+
-    ((GET_INPUT(2600 + 0 * 300 + 82)<<16) + GET_INPUT(2600 + 0 * 300 + 83))+
-    ((GET_INPUT(2600 + 1 * 300 + 70)<<16) + GET_INPUT(2600 + 1 * 300 + 71))+
-    ((GET_INPUT(2600 + 1 * 300 + 82)<<16) + GET_INPUT(2600 + 1 * 300 + 83))+
-    ((GET_INPUT(2600 + 2 * 300 + 70)<<16) + GET_INPUT(2600 + 2 * 300 + 71))+
-    ((GET_INPUT(2600 + 2 * 300 + 82)<<16) + GET_INPUT(2600 + 2 * 300 + 83))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyDischargingCapLow))+
 
-    ((GET_INPUT(2600 + 3 * 300 + 70)<<16) + GET_INPUT(2600 + 3 * 300 + 71))+
-    ((GET_INPUT(2600 + 3 * 300 + 82)<<16) + GET_INPUT(2600 + 3 * 300 + 83))
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyDischargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyDischargingCapLow))
 
 
 
@@ -3636,14 +3660,14 @@ INT32U AC_Total_Daily_discharged_Energy =
 
  INT32U AC_Total_Daily_charged_Energy = 
  (
-    ((GET_INPUT(2600 + 0 * 300 + 68)<<16) + GET_INPUT(2600 + 0 * 300 + 69))+
-    ((GET_INPUT(2600 + 0 * 300 + 80)<<16) + GET_INPUT(2600 + 0 * 300 + 81))+
-    ((GET_INPUT(2600 + 1 * 300 + 68)<<16) + GET_INPUT(2600 + 1 * 300 + 69))+
-    ((GET_INPUT(2600 + 1 * 300 + 80)<<16) + GET_INPUT(2600 + 1 * 300 + 81))+
-    ((GET_INPUT(2600 + 2 * 300 + 68)<<16) + GET_INPUT(2600 + 2 * 300 + 69))+
-    ((GET_INPUT(2600 + 2 * 300 + 80)<<16) + GET_INPUT(2600 + 2 * 300 + 81))+
-    ((GET_INPUT(2600 + 3 * 300 + 68)<<16) + GET_INPUT(2600 + 3 * 300 + 69))+
-    ((GET_INPUT(2600 + 3 * 300 + 80)<<16) + GET_INPUT(2600 + 3 * 300 + 81))
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1DailyChargingCapLow))+
+    ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2DailyChargingCapLow))
  )*10;
      SET_INPUT(AC_Daily_charged_EnergyH, (INT16U)(AC_Total_Daily_charged_Energy >> 16));
      SET_INPUT(AC_Daily_charged_EnergyL, (INT16U)(AC_Total_Daily_charged_Energy & 0xFFFF));
@@ -3651,14 +3675,14 @@ INT32U AC_Total_Daily_discharged_Energy =
 
  INT32U AC_Total_Total_discharged_Energy = 
  (
- ((GET_INPUT(2600 + 0 * 300 + 74)<<16) + GET_INPUT(2600 + 0 * 300 + 75))+
- ((GET_INPUT(2600 + 0 * 300 + 86)<<16) + GET_INPUT(2600 + 0 * 300 + 87))+
- ((GET_INPUT(2600 + 1 * 300 + 74)<<16) + GET_INPUT(2600 + 1 * 300 + 75))+
- ((GET_INPUT(2600 + 1 * 300 + 86)<<16) + GET_INPUT(2600 + 1 * 300 + 87))+
- ((GET_INPUT(2600 + 2 * 300 + 74)<<16) + GET_INPUT(2600 + 2 * 300 + 75))+
- ((GET_INPUT(2600 + 2 * 300 + 86)<<16) + GET_INPUT(2600 + 2 * 300 + 87))+
- ((GET_INPUT(2600 + 3 * 300 + 74)<<16) + GET_INPUT(2600 + 3 * 300 + 75))+
- ((GET_INPUT(2600 + 3 * 300 + 86)<<16) + GET_INPUT(2600 + 3 * 300 + 87))
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalDischargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalDischargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalDischargingCapLow))
  
 )*10;
      SET_INPUT(AC_Total_discharged_EnergyH, (INT16U)(AC_Total_Total_discharged_Energy >> 16));
@@ -3666,19 +3690,23 @@ INT32U AC_Total_Daily_discharged_Energy =
 
  INT32U AC_Total_Total_charged_Energy = 
  (
- ((GET_INPUT(2600 + 0 * 300 + 72)<<16) + GET_INPUT(2600 + 0 * 300 + 73))+
- ((GET_INPUT(2600 + 0 * 300 + 84)<<16) + GET_INPUT(2600 + 0 * 300 + 85))+
- ((GET_INPUT(2600 + 1 * 300 + 72)<<16) + GET_INPUT(2600 + 1 * 300 + 73))+
- ((GET_INPUT(2600 + 1 * 300 + 84)<<16) + GET_INPUT(2600 + 1 * 300 + 85))+
- ((GET_INPUT(2600 + 2 * 300 + 72)<<16) + GET_INPUT(2600 + 2 * 300 + 73))+
- ((GET_INPUT(2600 + 2 * 300 + 84)<<16) + GET_INPUT(2600 + 2 * 300 + 85))+
- ((GET_INPUT(2600 + 3 * 300 + 72)<<16) + GET_INPUT(2600 + 3 * 300 + 73))+
- ((GET_INPUT(2600 + 3 * 300 + 84)<<16) + GET_INPUT(2600 + 3 * 300 + 85))
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch1TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[0].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch1TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[1].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch1TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[2].Branch2TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch1TotalChargingCapLow))+
+ ((GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalChargingCapHigh)<<16) + GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[3].Branch2TotalChargingCapLow))
 
 )*10;
      SET_INPUT(AC_Total_charged_EnergyH, (INT16U)(AC_Total_Total_charged_Energy >> 16));
      SET_INPUT(AC_Total_charged_EnergyL, (INT16U)(AC_Total_Total_charged_Energy & 0xFFFF));
 ///
+    /* 以下容性/感性无功电量使用的 +122~+133 在 V1.00 点表中是
+     * PowerFactorPOI / GridFrequencyPOI / GridVoltage POI~HV，无对应电量点，
+     * 故保留原始数字地址（待设备侧确认实际偏移后再改）。
+     */
 INT32U AC_Daily_Cap_Reactive_Energy = 
  (((GET_INPUT(2600 + 0 * 300 + 122)<<16) + GET_INPUT(2600 + 0 * 300 + 123))+
  ((GET_INPUT(2600 + 1 * 300 + 122)<<16) + GET_INPUT(2600 + 1 * 300 + 123))+
@@ -3719,7 +3747,7 @@ INT32U AC_Daily_Cap_Reactive_Energy =
 ///
     const char *time_str = get_current_time();
 int ret = sscanf(time_str,
-                 "%u-%u-%u %u:%u:%u",
+                 "%hu-%hu-%hu %hu:%hu:%hu",
                  &year,
                  &month,
                  &day,
@@ -3736,25 +3764,28 @@ if (ret == 6)
     SET_INPUT(Minute, (INT16U)minute);
     SET_INPUT(Second, (INT16U)second);
 }
-    if((GET_INPUT(27631) == 1)&& (GET_INPUT(27632) == 0))//高压侧开关分闸
+    if((GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerOpen) == 1)&& (GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerClosed) == 0))//高压侧开关分闸
     {
         SET_INPUT(High_voltage_switch_status,0xEE);
-        led_on();//临时调试使用
+        //led_on();//临时调试使用
     }
-    else if(GET_INPUT(27631) == 0 && GET_INPUT(27632) == 1)//高压侧开关合闸
+    else if(GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerOpen) == 0 && GET_INPUT(MVEMS_MV_INPUT_REG.G02BreakerClosed) == 1)//高压侧开关合闸
     {
         SET_INPUT(High_voltage_switch_status,0xAA);
-        led_off();//临时调试使用
+        //led_off();//临时调试使用
     }
+    /* +18/+19（原台达 GridActivePower/GridReactivePower 偏移）V1.00 点表未定义，
+     * Trina 对应量为 +111/+112（ActivePowerTotalPCC/ReactivePowerTotalPCC），此处保持原偏移不变。
+     */
     INT32S PCS1_status = ((INT16S)GET_INPUT(2600 + 0 * 300 + 18));
     INT32S PCS2_status = ((INT16S)GET_INPUT(2600 + 1 * 300 + 18));
     INT32S PCS3_status = ((INT16S)GET_INPUT(2600 + 2 * 300 + 18));
     INT32S PCS4_status = ((INT16S)GET_INPUT(2600 + 3 * 300 + 18));
 
-    SET_INPUT(17000 + 300 * 0 + 32, PCS_Status_To_RegValue(PCS1_status));
-    SET_INPUT(17000 + 300 * 0 + 33, PCS_Status_To_RegValue(PCS2_status));
-    SET_INPUT(17000 + 300 * 1 + 32, PCS_Status_To_RegValue(PCS3_status));
-    SET_INPUT(17000 + 300 * 1 + 33, PCS_Status_To_RegValue(PCS4_status));
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacyMasterChgDchgStatus, PCS_Status_To_RegValue(PCS1_status));
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].LegacySlaveChgDchgStatus, PCS_Status_To_RegValue(PCS2_status));
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacyMasterChgDchgStatus, PCS_Status_To_RegValue(PCS3_status));
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].LegacySlaveChgDchgStatus, PCS_Status_To_RegValue(PCS4_status));
 }
 
 

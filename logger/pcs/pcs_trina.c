@@ -1,11 +1,16 @@
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
 #define _POSIX_C_SOURCE 200809L
+#include <math.h>
 #include "main.h"
 #include "time.h"
 #include "modbus_protocol.h"
 
 int Trina_Pcs_Read_Socket[10]={0};//pcs socket
-static void Trina_DataProcess(unsigned char *ptr, int num)
+void Update_Trina_Pcs_Diff_Status(uint8_t pcs_total_num);
+static void Trina_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[PCS_BUFF_LEN] = {0};
@@ -53,7 +58,7 @@ static void Trina_DataProcess(unsigned char *ptr, int num)
                 RegVal.D8[0] = pbuf[dataddr++]; 
                 index= Trina_HOLD_INDEX(num+1,temp.D16+i);//按照对外协议点表，
                 SET_HOLD(index, RegVal.D16);
-            //   LOG_INFO("天合：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
+             // LOG_INFO("天合：temp.D16 is %d,RegVal.D16 is %d,index is %d",temp.D16,RegVal.D16,index);
             } 
         }
         else if ((temp.D16 >= PCS_Trina_03addr8) && (temp.D16 < PCS_Trina_03addr9))
@@ -193,7 +198,7 @@ static int PCS_Power(const int pcs_num,const int sub_num)
 void PCS_Trina_Task(const char *arg)
 {
     //初始化
-    int pcs_num = *((int *)arg);  // 获取值
+    const int pcs_num = *(const int *)arg;  // 获取值
     sysPara *sys_cfg = SysConf_GetInfo();
   
     int loop = 0;
@@ -251,20 +256,20 @@ void PCS_Trina_Task(const char *arg)
                     pcs_idx2 = sys_num * 2 + 1;
                     if(SYS_EVENT_STOP_PCS==Get_Out_Sys(sys_num))
                     {
-                      if (Trina_Pcs_Read_Socket[pcs_idx1] != NULL) {
+                      if (Trina_Pcs_Read_Socket[pcs_idx1] != -1) {
                         Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_idx1], PCS_Trina_SLAVE_ADDR, Power_on_addr, 0, CMD_DELAY_200);
                         }
-                        if (Trina_Pcs_Read_Socket[pcs_idx2] != NULL) {
+                        if (Trina_Pcs_Read_Socket[pcs_idx2] != -1) {
                             Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_idx2], PCS_Trina_SLAVE_ADDR, Power_on_addr, 0, CMD_DELAY_200);
                         }
                         Wait_Out_Sys(sys_num);
                     }
                     else if(SYS_EVENT_START_PCS==Get_Out_Sys(sys_num))
                     {
-                      if (Trina_Pcs_Read_Socket[pcs_idx1] != NULL) {
+                      if (Trina_Pcs_Read_Socket[pcs_idx1] != -1) {
                         Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_idx1], PCS_Trina_SLAVE_ADDR, Power_on_addr, 1, CMD_DELAY_200);
                         }
-                        if (Trina_Pcs_Read_Socket[pcs_idx2] != NULL) {
+                        if (Trina_Pcs_Read_Socket[pcs_idx2] != -1) {
                             Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_idx2], PCS_Trina_SLAVE_ADDR, Power_on_addr, 1, CMD_DELAY_200);
                         }
                         Wait_Out_Sys(sys_num);
@@ -272,10 +277,10 @@ void PCS_Trina_Task(const char *arg)
 
                     else if(SYS_EVENT_START_PQ==Get_Out_Sys(sys_num))
                     {
-                      if (Trina_Pcs_Read_Socket[pcs_idx1] != NULL) {
+                      if (Trina_Pcs_Read_Socket[pcs_idx1] != -1) {
                         Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_idx1], PCS_Trina_SLAVE_ADDR, control_mode_addr, 3, CMD_DELAY_200);
                         }
-                        if (Trina_Pcs_Read_Socket[pcs_idx2] != NULL) {
+                        if (Trina_Pcs_Read_Socket[pcs_idx2] != -1) {
                             Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_idx2], PCS_Trina_SLAVE_ADDR, control_mode_addr, 3, CMD_DELAY_200);
                         }
                           Wait_Out_Sys(sys_num);
@@ -283,10 +288,10 @@ void PCS_Trina_Task(const char *arg)
 
                     else if(SYS_EVENT_ZERO_POWER==Get_Out_Sys(sys_num))
                     {
-                      if (Trina_Pcs_Read_Socket[pcs_idx1] != NULL) {
+                      if (Trina_Pcs_Read_Socket[pcs_idx1] != -1) {
                         Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_idx1], PCS_Trina_SLAVE_ADDR, Activate_power_addr, 0, CMD_DELAY_200);
                         }
-                        if (Trina_Pcs_Read_Socket[pcs_idx2] != NULL) {
+                        if (Trina_Pcs_Read_Socket[pcs_idx2] != -1) {
                             Modbus_TCP_Write06_SingleRegist(Trina_Pcs_Read_Socket[pcs_idx2], PCS_Trina_SLAVE_ADDR, Activate_power_addr, 0, CMD_DELAY_200);
                         }                    
                 
@@ -421,6 +426,11 @@ void PCS_Trina_Task(const char *arg)
                         Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_ADDR, MODBUS_READ_TYPE_04, PCS_Trina_04addr10, PCS_Trina_04size10, CMD_DELAY_100);
                     
  
+                    loop++;
+                    break;
+                 case 21:
+                    Modbus_TCP_Read(Trina_Pcs_Read_Socket[pcs_num], PCS_Trina_SLAVE_ADDR, MODBUS_READ_TYPE_03, PCS_Trina_03addr10, PCS_Trina_03size10, CMD_DELAY_100);
+                  //LOG_INFO("主从pcs_num：%d",pcs_num);
                     loop++;
                     break;
                 default:

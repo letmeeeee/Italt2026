@@ -166,6 +166,7 @@ extern INT16S volatile LimPcharge[MAX_PCS_NUM][MAX_SUB_NUM];
 extern INT16S volatile LimPdischarge[MAX_PCS_NUM][MAX_SUB_NUM];
 void PCS_Unpack_To_Set_Hold(INT16U value);
 void BMS_Unpack_To_Set_Hold(INT16U value);
+void EMS_Read_Control_Mask(void);
 extern volatile INT8U  g_enabled_mask_pcs;      // 低 4bit：PCS0..3
 extern volatile INT16U g_enabled_mask_bms ;      // 低 8bit：BMS0..7
 extern volatile  INT16U measureflag ;

@@ -21,7 +21,7 @@ void Cem9000_Task(const char *arg);
 #define high_vol_switch_addr 2000 //远方分闸地址
 
 
-#define addresslimit     2020
+
 
 //芬兰协议
 

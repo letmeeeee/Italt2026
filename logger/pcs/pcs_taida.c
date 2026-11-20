@@ -1,5 +1,9 @@
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
 #define _POSIX_C_SOURCE 200809L
+#include <math.h>
 #include "main.h"
 #include "time.h"
 #include "modbus_protocol.h"
@@ -12,7 +16,7 @@ volatile INT16U Slave2_sys_state2=0;
 volatile INT16U Slave1_sys_state1=0;
 volatile INT16U Slave2_sys_state1=0;
 volatile pcsSelGooseStatus_t pcsSelGooseStatus[2] = {0};
-extern int PCSactivepower[PCS_MAX_NUM];
+extern int PCSactivepower[10];
 static void taida_pcs_versionbit6_process(int num, uint16_t addr, uint16_t value)
 {
     static int one[5] = {0};
@@ -67,7 +71,7 @@ static void taida_pcs_versionbit6_process(int num, uint16_t addr, uint16_t value
 
         flag[num] = 0;   
 
-      SET_INPUT(2600+num*300+151, version);
+      SET_INPUT(PCS_TAIDA_MODULE_INPUT_REG[num].SoftwareVersionWord6, version);
     }
 
  
@@ -97,7 +101,7 @@ static uint16_t Merge_Bit8_To_Bit13(uint16_t main_value, uint16_t slave_value)
  * @note 处理完成后会设置PCS通讯状态为正常
  */
 
-static void Taida_DataProcess(unsigned char *ptr, int num)
+static void Taida_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[PCS_BUFF_LEN] = {0};
@@ -201,15 +205,15 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
                 RegVal.D8[1] = pbuf[dataddr++];     //（高字节在前、低字节在后）
                 RegVal.D8[0] = pbuf[dataddr++]; 
                 index= Master_Taida_HOLD_INDEX(pcsnum+1,temp.D16+i);
-            if(((( GET_INPUT(17000 + 300 * pcsnum + 64)) >> 1) & 1u) == 1)//如果是在功率因数模式下，则做特殊处理
+            if(((( GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].SystemEfficientMode1)) >> 1) & 1u) == 1)//如果是在功率因数模式下，则做特殊处理
             {
-               if(index==27000+300*pcsnum+52)//台达功率因数符号转换后，再回读有功功率，有功会被清零，因此做特殊处理
+               if(index==PCS_TAIDA_CTRL_REG[pcsnum].ActivePowerReference)//台达功率因数符号转换后，再回读有功功率，有功会被清零，因此做特殊处理
                 {
                    // P_PF_read_to_S_pf_out(GET_HOLD(17000+300*pcsnum+107),GET_HOLD(17000+300*pcsnum+108),RegVal.D16,&S_OUT,&PF_OUT);
                
                     SET_HOLD(index, PCSactivepower[pcsnum]);
                 }
-                else if(index==27000+300*pcsnum+110)//台达功率因数符号转换
+                else if(index==PCS_TAIDA_CTRL_REG[pcsnum].PowerFactorReference)//台达功率因数符号转换
                 {
                     SET_HOLD(index, PCSPF[pcsnum]);
                 }
@@ -315,13 +319,13 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
                     merge_value |= (((Slave2_sys_state1 >> 9) & 0x01U) << 14);
                     SET_INPUT(index, merge_value);
                 }
-                else if(index==17000+300*pcsnum+42)//台达功率因数符号转换
+                else if(index==PCS_TAIDA_GROUP_INPUT_REG[pcsnum].GridPowerFactor)//台达功率因数符号转换
                 {
                         float value;
                         int16_t PF_Value;
 
-                        int16_t p_read_s16  = (int16_t)GET_INPUT(17000 + 300 * pcsnum + 40);
-                        int16_t q_read_s16  = (int16_t)GET_INPUT(17000 + 300 * pcsnum + 41);
+                        int16_t p_read_s16  = (int16_t)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].GridTotalActivePower);
+                        int16_t q_read_s16  = (int16_t)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].GridTotalReactivePower);
                         int16_t pf_read_s16 = (int16_t)RegVal.D16;
 
                         value = (float)pf_read_s16 / 10000.0f;
@@ -338,9 +342,9 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
                         SET_INPUT(index, (uint16_t)PF_Value);
 
                         // LOG_INFO("40_raw=%u,40_s16=%d,41_raw=%u,41_s16=%d,RegVal_raw=%u,pf_s16=%d,value=%f,PF_OUT=%f,PF_Value=%d",
-                        //         GET_INPUT(17000 + 300 * pcsnum + 40),
+                        //         GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].GridTotalActivePower),
                         //         p_read_s16,
-                        //         GET_INPUT(17000 + 300 * pcsnum + 41),
+                        //         GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].GridTotalReactivePower),
                         //         q_read_s16,
                         //         RegVal.D16,
                         //         pf_read_s16,
@@ -348,13 +352,13 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
                         //         PF_OUT,
                         //         PF_Value);
                 }
-                else if(index==17000+300*pcsnum+52)//台达功率因数符号转换
+                else if(index==PCS_TAIDA_GROUP_INPUT_REG[pcsnum].POIPowerFactor)//台达功率因数符号转换
                 {
                         float value;
                         int16_t PF_Value;
 
-                        int16_t p_read_s16  = (int16_t)GET_INPUT(17000 + 300 * pcsnum + 50);
-                        int16_t q_read_s16  = (int16_t)GET_INPUT(17000 + 300 * pcsnum + 51);
+                        int16_t p_read_s16  = (int16_t)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].POIActivePower);
+                        int16_t q_read_s16  = (int16_t)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].POIReactivePower);
                         int16_t pf_read_s16 = (int16_t)RegVal.D16;
 
                         value = (float)pf_read_s16 / 10000.0f;
@@ -440,12 +444,12 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
         if (((SYS_EVENT_STOP_PCS + 100) == Get_Out_Sys(sys_num)) && (PCS_Taida_start_addr == startaddr))
         {
             Success_Out_Sys(sys_num);
-            SET_HOLD(27000 + 300 * sys_num+ 103,0);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[sys_num].SystemOnOffCmd, 0);
         }
         else if (((SYS_EVENT_START_PCS + 100) == Get_Out_Sys(sys_num)) && (PCS_Taida_start_addr == startaddr))
         {
             Success_Out_Sys(sys_num);
-            SET_HOLD(27000 + 300 * sys_num+ 103,1);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[sys_num].SystemOnOffCmd, 1);
         }
         else if (((SYS_EVENT_START_FAULT + 100) == Get_Out_Sys(sys_num)) && (PCS_Taida_OPRATE_addr == startaddr))
         {
@@ -476,17 +480,17 @@ static void Taida_DataProcess(unsigned char *ptr, int num)
         // else if (((SUB_EVENT_CMD_Power + 100) == Get_Out_Sys(sys_num)) && ((PCS_Taida_ACPower_addr) == startaddr))
         // {
         //     Success_Out_Sub(sys_num,1);
-        //     SET_HOLD(27300,RegVal.D16);
+        //     SET_HOLD(PCS_TAIDA_CTRL_REG[1].GroupReset, RegVal.D16);
         // }
         else if (((SUB_EVENT_CMD_LIM + 100) == Get_Out_Sub(sys_num,0)) && (PCS_PE_ACPower_addr == startaddr))
         {
             Success_Out_Sub(sys_num,0);
-            SET_HOLD(27000,RegVal.D16);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[0].GroupReset, RegVal.D16);
         }
         else if (((SUB_EVENT_CMD_LIM + 100) == Get_Out_Sub(sys_num,1)) && ((PCS_PE_ACPower_addr+1) == startaddr))
         {
             Success_Out_Sub(sys_num,1);
-            SET_HOLD(27300,RegVal.D16);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[1].GroupReset, RegVal.D16);
         }
     }
     else if (pbuf[7] == 0x10)
@@ -539,7 +543,7 @@ static int PCS_Power(int socket_fd, const int pcs_num,const int sub_num)
 void PCS_Taida_Task(const char *arg)
 {
     //初始化
-    int pcs_num = *((int *)arg);  // 获取值
+    const int pcs_num = *(const int *)arg; // 获取值
     sysPara *sys_cfg = SysConf_GetInfo();
     int socket_fd = 0;
     int loop = 0;
@@ -802,7 +806,7 @@ void PCS_Taida_Task(const char *arg)
                   case 24:
                      if(pcs_num==0||pcs_num==2) 
                     {
-                    Modbus_TCP_Read(socket_fd, PCS_Taida_SLAVE_ADDR, MODBUS_READ_TYPE_04, PCS_Master_Taida_addr9, PCS_Master_Taida_size9, CMD_DELAY_20);
+                    Modbus_TCP_Read(socket_fd, PCS_Taida_SLAVE_ADDR, MODBUS_READ_TYPE_04,PCS_Master_Taida_time_addr, PCS_Master_Taida_time_size,CMD_DELAY_20);
                     
                     }
                     loop++;
@@ -889,11 +893,11 @@ static uint8_t Pcs_Is_Online(uint8_t pcs)
     }
     if (single_mode == 1)
     {
-        online_flag = GET_INPUT(228);
+        online_flag = GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord11_PcsComm5MW);
     }
     else
     {
-        online_flag = GET_INPUT(218);
+        online_flag = GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord1_PcsComm10MW);
     }
 
     if ((online_flag & (1U << (pcs - 1))) != 0)
@@ -980,7 +984,6 @@ static uint8_t Check_Pcs_software_version_Diff(uint8_t pcs_total_num,
 }
 
 static uint8_t Check_Pcs_Mode_Bit_Diff(uint8_t pcs_total_num,
-                                       uint16_t reg_offset,
                                        uint16_t bit_mask)
 {
     uint8_t pcs;
@@ -1003,7 +1006,7 @@ static uint8_t Check_Pcs_Mode_Bit_Diff(uint8_t pcs_total_num,
     {
 
 
-        cur_val = GET_INPUT(PCS_INPUT_BASE2 + PCS_ADDR_STEP * (pcs - 1) + reg_offset) & bit_mask;
+        cur_val = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcs - 1].SystemEfficientMode1) & bit_mask;
 
         if (ref_valid == 0)
         {
@@ -1045,10 +1048,8 @@ static uint8_t Check_Pcs_Bus_Mode_Bit_Diff(uint8_t pcs_total_num)
     {
 
 
-      cur_val = (GET_INPUT(PCS_INPUT_BASE2 +
-                     PCS_ADDR_STEP * (pcs - 1) + 60) >> 9) & 0x01;//主机BUS模式
-      ref_val = (GET_INPUT(PCS_INPUT_BASE2 +
-                     PCS_ADDR_STEP * (pcs - 1) + 62) >> 14) & 0x01;//从机BUS模式
+      cur_val = (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcs - 1].SystemStateWord1) >> 9) & 0x01;//主机BUS模式
+      ref_val = (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcs - 1].SystemStateWord3) >> 14) & 0x01;//从机BUS模式
       // LOG_INFO("pcs %d, cur_val = %d, ref_val = %d ,pcs_total_num =%d \n", pcs, cur_val, ref_val,pcs_total_num);
             if ((cur_val != ref_val) && (single_mode == 0))
             {
@@ -1085,8 +1086,8 @@ static uint8_t Check_Pcs_Master_Slave_diff(uint8_t pcs_total_num)
     {
         if (Pcs_Is_Online(1) && Pcs_Is_Online(2))
         {
-            pcs1_val = GET_HOLD(PCS_HOLD_BASE + PCS_ADDR_STEP * 0 + 24);
-            pcs2_val = GET_HOLD(PCS_HOLD_BASE + PCS_ADDR_STEP * 1 + 24);
+            pcs1_val = GET_HOLD(PCS_TAIDA_HOLD_REG[0].SetPCSMaster);
+            pcs2_val = GET_HOLD(PCS_TAIDA_HOLD_REG[1].SetPCSMaster);
 
             if (pcs1_val == pcs2_val)
             {
@@ -1107,8 +1108,8 @@ static uint8_t Check_Pcs_Master_Slave_diff(uint8_t pcs_total_num)
     {
         if (Pcs_Is_Online(1) && Pcs_Is_Online(2))
         {
-            pcs1_val = GET_HOLD(PCS_HOLD_BASE + PCS_ADDR_STEP * 0 + 24);
-            pcs2_val = GET_HOLD(PCS_HOLD_BASE + PCS_ADDR_STEP * 1 + 24);
+            pcs1_val = GET_HOLD(PCS_TAIDA_HOLD_REG[0].SetPCSMaster);
+            pcs2_val = GET_HOLD(PCS_TAIDA_HOLD_REG[1].SetPCSMaster);
 
             if (pcs1_val == pcs2_val)
             {
@@ -1118,8 +1119,8 @@ static uint8_t Check_Pcs_Master_Slave_diff(uint8_t pcs_total_num)
 
         if (Pcs_Is_Online(3) && Pcs_Is_Online(4))
         {
-            pcs3_val = GET_HOLD(PCS_HOLD_BASE + PCS_ADDR_STEP * 2 + 24);
-            pcs4_val = GET_HOLD(PCS_HOLD_BASE + PCS_ADDR_STEP * 3 + 24);
+            pcs3_val = GET_HOLD(PCS_TAIDA_HOLD_REG[2].SetPCSMaster);
+            pcs4_val = GET_HOLD(PCS_TAIDA_HOLD_REG[3].SetPCSMaster);
 
             if (pcs3_val == pcs4_val)
             {
@@ -1138,7 +1139,7 @@ static uint8_t Check_5MW_Pcs_Master_diff(uint8_t pcs_total_num)
     if (pcs_total_num > 2) pcs_total_num = 2;
     for (uint8_t pcs = 1; pcs <= pcs_total_num; ++pcs) {
         if (!Pcs_Is_Online(pcs)) continue;
-        if (GET_HOLD(PCS_5MW_HOLD_BASE + PCS_5MW_ADDR_STEP * (pcs - 1) + 24) == 0)
+        if (GET_HOLD(PCS_TAIDA_5MW_HOLD_REG[pcs - 1].SetPCSMaster) == 0)
             return 1;
     }
     return 0;
@@ -1184,7 +1185,7 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
     if (Check_Pcs_software_version_Diff(pcs_total_num, 183, 185))
         input223 |= (1U << 7);
 
-    SET_INPUT(223, input223);
+    SET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord6_PcsVersionCheck, input223);
 
     /*
      * 认证标准
@@ -1192,7 +1193,7 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
     if (Check_Pcs_software_version_Diff(pcs_total_num, 186, 186))
         input224 |= (1U << 0);
 
-    SET_INPUT(224, input224);
+    SET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord7_PcsSafetyCheck, input224);
 
     /*
      * SET_INPUT(225)
@@ -1209,10 +1210,10 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
     if (Check_Pcs_Bus_Mode_Bit_Diff(sys_num))
         input225 |= (1U << 0);
 
-    if (Check_Pcs_Mode_Bit_Diff(sys_num, 64, (1U << 5)))
+    if (Check_Pcs_Mode_Bit_Diff(sys_num, (1U << 5)))
         input225 |= (1U << 1);
 
-    if (Check_Pcs_Mode_Bit_Diff(sys_num, 64, 0x001F))
+    if (Check_Pcs_Mode_Bit_Diff(sys_num, 0x001F))
         input225 |= (1U << 2);
 
     // 5MW一体机校验是否都为主机
@@ -1227,5 +1228,5 @@ void Update_Pcs_Diff_Status(uint8_t pcs_total_num)
         if (Check_Pcs_Master_Slave_diff(pcs_total_num))
             input225 |= (1U << 3);
     }
-    SET_INPUT(225, input225);
+    SET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord8_PcsModeCheck, input225);
 }

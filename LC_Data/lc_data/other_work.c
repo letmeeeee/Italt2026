@@ -286,6 +286,8 @@ void *other_task(void *arg)
     char current_day[9] = {0};
     FILE *fp = NULL;
     char csv_path[512] = {0};
+    uint16_t last_value = 0;
+    static char has_last_value = 0;
    sleep(30);
     while (1) {
         sleep(1);
@@ -297,6 +299,7 @@ void *other_task(void *arg)
 
         /* 日期变化或首次打开：切换文件 */
         if (fp == NULL || strcmp(day, current_day) != 0) {
+            has_last_value = 0;
             if (fp) {
                 fclose(fp);
                 fp = NULL;
@@ -324,10 +327,21 @@ void *other_task(void *arg)
         // pthread_mutex_unlock(&g_get_input_lock);
 
         /* 追加一行 CSV */
-        fprintf(fp, "%s,%u\n", ts, v);
+        // fprintf(fp, "%s,%u\n", ts, v);
 
-        /* 建议每行 flush，避免掉电丢数据；如果担心 IO，可改为每 N 行 flush */
-        fflush(fp);
+        // /* 建议每行 flush，避免掉电丢数据；如果担心 IO，可改为每 N 行 flush */
+        // fflush(fp);
+        if ((has_last_value==1) && (v == last_value)) {
+            continue;
+        }
+        if (fprintf(fp, "%s,%d\n", ts, v) >= 0 ) 
+        {
+            if(fflush(fp) == 0)
+            {
+                last_value = v;
+                has_last_value = 1;
+            }
+        }
     }
 
     /* 正常不会到这里 */

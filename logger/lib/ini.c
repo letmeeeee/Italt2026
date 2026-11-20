@@ -84,8 +84,8 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
     char* new_line;
     int offset;
 #endif
-    char section[MAX_SECTION] = "";
-    char prev_name[MAX_NAME] = "";
+    char section[MAX_SECTION] = {0};
+    char prev_name[MAX_NAME] = {0};
 
     char* start;
     char* end;
@@ -310,7 +310,15 @@ int ini_update(const char *section, const char *field, const char *value, const 
             if (!strstr(bufferOp, "\n"))
                 strcat(bufferOp, "\n");
 
-            snprintf(lineBuffer, sizeof(lineBuffer), "%s = %s", bufferField, bufferOp);
+            //snprintf(lineBuffer, sizeof(lineBuffer), "%s = %s", bufferField, bufferOp);
+            int written = snprintf(lineBuffer, sizeof(lineBuffer), "%s = %s",
+                       bufferField, bufferOp);
+
+            if (written < 0 || (size_t)written >= sizeof(lineBuffer))
+            {
+                fclose(fp);
+                return -1;
+            }
         }
 
         strncat(fileBuffer, lineBuffer,  sizeof(fileBuffer) - 1);

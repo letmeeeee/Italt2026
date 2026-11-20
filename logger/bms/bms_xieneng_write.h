@@ -1,7 +1,7 @@
 #ifndef BMS_XIENENG_WRITE_H
 #define BMS_XIENENG_WRITE_H
 
-void  BMS_XieNeng_write_Task(const char *_num);
+void  *BMS_XieNeng_write_Task(void *arg);
 
 
 

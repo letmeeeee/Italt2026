@@ -127,19 +127,18 @@ static void MV_CalcGroupActivePower(
 /*
  * 
  *
- * Group1总有功：
- *      GET_HOLD(27000 + 52)
+ * 地址来自点表控制点表 PCS_TAIDA_CTRL_REG[n]（27000 + 300*n），n=0 为 Group1，n=1 为 Group2。
  *
- * Group2总有功：
- *      GET_HOLD(27000 + 300 + 52)
+ * Group1总有功：PCS_TAIDA_CTRL_REG[0].ActivePowerReference
+ * Group2总有功：PCS_TAIDA_CTRL_REG[1].ActivePowerReference
  *
  * 放电：
- *      Group1 Master = 27050 + 27046
- *      Group2 Master = 27350 + 27346
+ *      Group1 Master = MasterBat1DischargePowerCoef + MasterBat2DischargePowerCoef
+ *      Group2 Master = MasterBat1DischargePowerCoef + MasterBat2DischargePowerCoef
  *
  * 充电：
- *      Group1 Master = 27051 + 27048
- *      Group2 Master = 27351 + 27348
+ *      Group1 Master = MasterBat1ChargePowerCoef + MasterBat2ChargePowerCoef
+ *      Group2 Master = MasterBat1ChargePowerCoef + MasterBat2ChargePowerCoef
  *
  * Slave系数 = 1000 - Master系数
  */
@@ -154,8 +153,8 @@ static void MV_CalcPCSActivePower( MV_Power_Distribution *result)
 
     if (SysConf_GetInfo()->singlePcsMaster) {
         /* Mode2 has no slave: rounding of branch ratios must not create slave power. */
-        result->group1_total_p = (int16_t)GET_HOLD(27052);
-        result->group2_total_p = (int16_t)GET_HOLD(27352);
+        result->group1_total_p = (int16_t)GET_HOLD(PCS_TAIDA_CTRL_REG[0].ActivePowerReference);
+        result->group2_total_p = (int16_t)GET_HOLD(PCS_TAIDA_CTRL_REG[1].ActivePowerReference);
         result->group1_master_discharge_coef = PCS_POWER_COEF_BASE;
         result->group1_master_charge_coef = PCS_POWER_COEF_BASE;
         result->group2_master_discharge_coef = PCS_POWER_COEF_BASE;
@@ -173,15 +172,17 @@ static void MV_CalcPCSActivePower( MV_Power_Distribution *result)
 
     /* ---------------- Group1 ---------------- */
 
-    result->group1_total_p =(int16_t)((uint16_t)GET_HOLD(27000 + 52));
+    result->group1_total_p =(int16_t)((uint16_t)GET_HOLD(PCS_TAIDA_CTRL_REG[0].ActivePowerReference));
 
-    temp_coef = (uint32_t)GET_HOLD(27000 + 50)+(uint32_t)GET_HOLD(27000 + 46);
+    temp_coef = (uint32_t)GET_HOLD(PCS_TAIDA_CTRL_REG[0].MasterBat1DischargePowerCoef)
+              + (uint32_t)GET_HOLD(PCS_TAIDA_CTRL_REG[0].MasterBat2DischargePowerCoef);
 
     result->group1_master_discharge_coef =MV_LimitPowerCoef(temp_coef);
 
     result->group1_slave_discharge_coef =PCS_POWER_COEF_BASE-result->group1_master_discharge_coef;
 
-    temp_coef =(uint32_t)GET_HOLD(27000 + 51)+(uint32_t)GET_HOLD(27000 + 48);
+    temp_coef =(uint32_t)GET_HOLD(PCS_TAIDA_CTRL_REG[0].MasterBat1ChargePowerCoef)
+             + (uint32_t)GET_HOLD(PCS_TAIDA_CTRL_REG[0].MasterBat2ChargePowerCoef);
 
     result->group1_master_charge_coef = MV_LimitPowerCoef(temp_coef);
 
@@ -197,15 +198,17 @@ static void MV_CalcPCSActivePower( MV_Power_Distribution *result)
 
     /* ---------------- Group2 ---------------- */
 
-    result->group2_total_p = (int16_t)((uint16_t)GET_HOLD(27000 + 300 + 52));
+    result->group2_total_p = (int16_t)((uint16_t)GET_HOLD(PCS_TAIDA_CTRL_REG[1].ActivePowerReference));
 
-    temp_coef =(uint32_t)GET_HOLD(27000 + 300 + 50)+(uint32_t)GET_HOLD(27000 + 300 + 46);
+    temp_coef =(uint32_t)GET_HOLD(PCS_TAIDA_CTRL_REG[1].MasterBat1DischargePowerCoef)
+             + (uint32_t)GET_HOLD(PCS_TAIDA_CTRL_REG[1].MasterBat2DischargePowerCoef);
 
     result->group2_master_discharge_coef =MV_LimitPowerCoef(temp_coef);
 
     result->group2_slave_discharge_coef =PCS_POWER_COEF_BASE-result->group2_master_discharge_coef;
 
-    temp_coef =(uint32_t)GET_HOLD(27000 + 300 + 51)+(uint32_t)GET_HOLD(27000 + 300 + 48);
+    temp_coef =(uint32_t)GET_HOLD(PCS_TAIDA_CTRL_REG[1].MasterBat1ChargePowerCoef)
+             + (uint32_t)GET_HOLD(PCS_TAIDA_CTRL_REG[1].MasterBat2ChargePowerCoef);
 
     result->group2_master_charge_coef = MV_LimitPowerCoef(temp_coef);
 
@@ -346,10 +349,12 @@ static float PCS_CalcQMax(
 /*
  * 
  *
- * PCS1：17061
- * PCS2：17062
- * PCS3：17361
- * PCS4：17362
+ * 支路状态字来自点表组输入表 PCS_TAIDA_GROUP_INPUT_REG[n]（17000 + 300*n）：
+ *
+ * PCS1（Group1 主机）：PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord2
+ * PCS2（Group1 从机）：PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3
+ * PCS3（Group2 主机）：PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord2
+ * PCS4（Group2 从机）：PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3
  */
 static void MV_Q_ReadPCSInfo(
         uint16_t master1_p_raw,
@@ -372,7 +377,7 @@ static void MV_Q_ReadPCSInfo(
     }
 
     /* PCS1：Group1 Master */
-    pcs_state = (uint16_t)GET_INPUT(17061);
+    pcs_state = (uint16_t)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord2);
 
     PCS_ParseBranchStatus( pcs_state, &master1->branch);
 
@@ -380,7 +385,7 @@ static void MV_Q_ReadPCSInfo(
 
     master1->p_kw =MV_U16ToSignedFloat(master1_p_raw);
     /* PCS2：Group1 Slave */
-    pcs_state = (uint16_t)GET_INPUT(17062);
+    pcs_state = (uint16_t)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemStateWord3);
 
     PCS_ParseBranchStatus(pcs_state,&slave1->branch);
 
@@ -390,7 +395,7 @@ static void MV_Q_ReadPCSInfo(
 
 
     /* PCS3：Group2 Master */
-    pcs_state = (uint16_t)GET_INPUT(17361);
+    pcs_state = (uint16_t)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord2);
 
     PCS_ParseBranchStatus(pcs_state,&master2->branch);
 
@@ -400,7 +405,7 @@ static void MV_Q_ReadPCSInfo(
 
 
     /* PCS4：Group2 Slave */
-    pcs_state = (uint16_t)GET_INPUT(17362);
+    pcs_state = (uint16_t)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemStateWord3);
 
     PCS_ParseBranchStatus(pcs_state,&slave2->branch);
 
@@ -651,8 +656,8 @@ static void MV_ReactivePowerControl_Common(
     if ((available1 == 0u) ||
         (available2 == 0u))
     {
-        SET_INPUT(17000 + 300 * 0 + 31, 0u);
-        SET_INPUT(17000 + 300 * 1 + 31, 0u);
+        SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].Base + 31, 0u);
+        SET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].Base + 31, 0u);
         SET_INPUT(117, 0u);
         return;
     }
@@ -667,11 +672,11 @@ static void MV_ReactivePowerControl_Common(
     }
 
     SET_INPUT(
-        17000 + 300 * 0 + 31,
+        PCS_TAIDA_GROUP_INPUT_REG[0].Base + 31,
         MV_PositiveFloatToU16(balance_q_max));
 
     SET_INPUT(
-        17000 + 300 * 1 + 31,
+        PCS_TAIDA_GROUP_INPUT_REG[1].Base + 31,
         MV_PositiveFloatToU16(balance_q_max));
 
     SET_INPUT(

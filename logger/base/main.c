@@ -177,7 +177,7 @@ void *nvme_log_monitor_thread(void *arg)
     //创建一个netlink socket，协议类型为NETLINK_KOBJECT_UEVENT
     int s = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT);
     if(s < 0)
-        return -1;
+        return NULL;
     setsockopt(s, SOL_SOCKET, SO_RCVBUF, & size, sizeof(size));  //设置接收缓冲区大小
     struct sockaddr_nl  sockaddr; 
     sockaddr.nl_family = AF_NETLINK;   //必须设置为 AF_NETLINK 或者 PF_NETLINK
@@ -187,14 +187,14 @@ void *nvme_log_monitor_thread(void *arg)
     if(ret < 0)
     {
         close(s);
-        return -1;
+        return NULL;
     }
     fd = open(DEVPATH,O_RDONLY);  //打开供电状态文件
     if(fd < 0)    
     {
         close(s);
         LOG_INFO("供电检测文件打开失败");
-        return -1;
+        return NULL;
     }
     while (1)
     {
@@ -537,7 +537,7 @@ void *nvme_log_monitor_thread(void *arg)
 
     // 初始化
     if (acl_db_global_init() != 0) {
-    LOG_INFO(stderr, "mysql_library_init failed\n");
+    LOG_INFO("mysql_library_init failed\n");
     return 1;
     }
 
@@ -574,7 +574,7 @@ void *nvme_log_monitor_thread(void *arg)
     pthread_create(&new_pthread_Timed_Work, &thread_attr, (void*)Task_Timed_Work, NULL);
     pthread_t new_pthread_Serial_Work = 0;
     // 初始化串口硬件
-    pthread_create(&new_pthread_Serial_Work, &thread_attr, (void *)Serial_Device_Task, (void *)4);
+    pthread_create(&new_pthread_Serial_Work, &thread_attr, (void *)Serial_Device_Task, (void *)&pthread_index[4]);
     usleep(10*1000);
 
 
@@ -638,7 +638,7 @@ void *nvme_log_monitor_thread(void *arg)
     // 建立PCS线程
     pthread_t thread_eth_PCS[MAX_PCS_NUM] = {0};
     pthread_t thread_eth_PCS_write[MAX_PCS_NUM] = {0};
-    for (i = 0; i < sys_cfg->pcsNum; i++)
+     for(i = 0; (i < sys_cfg->pcsNum) && (i < MAX_PCS_NUM); i++)
     {
     if (!Project_Pcs_Active(sys_cfg, i)) continue;
     if (sys_cfg->pcs_brand[i] == PCS_ShangNeng)

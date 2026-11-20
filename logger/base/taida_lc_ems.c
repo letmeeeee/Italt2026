@@ -33,30 +33,31 @@ int LC_EMS_Get_Input_Bit(int addr, int bit)
  */
 int LC_EMS_Convert_Address(int pcsnum, int addr)
 {
-    int base = BASE_ADDR + STEP * pcsnum;
+    /* 组控制点基址：PCS_TAIDA_CTRL_REG[pcsnum].Base == 27000 + 300*pcsnum */
+    int base = PCS_TAIDA_CTRL_REG[pcsnum].Base;
 
-    /* 200 ~ 203  -> 103 */
+    /* 台达原始 +200 ~ +203 -> 点表 +103 SystemOnOffCmd */
     if (addr >= (base + 200) && addr <= (base + 203))
     {
-        return base + 103;//开关机
+        return PCS_TAIDA_CTRL_REG[pcsnum].SystemOnOffCmd;//开关机
     }
 
-    /* 208 ~ 211 -> 108 */
+    /* 台达原始 +208 ~ +211 -> 点表 +53 ReactivePowerReference */
     if (addr >= (base + 208) && addr <= (base + 211))
     {
-        return base + 53;//无功功率
+        return PCS_TAIDA_CTRL_REG[pcsnum].ReactivePowerReference;//无功功率
     }
 
-    /* 212 ~ 215 -> 111 */
+    /* 台达原始 +212 ~ +215 -> 点表 +111 IslandVoltageReference */
     if (addr >= (base + 212) && addr <= (base + 215))
     {
-        return base + 111;//孤岛电压
+        return PCS_TAIDA_CTRL_REG[pcsnum].IslandVoltageReference;//孤岛电压
     }
 
-    /* 216 ~ 219 -> 112 */
+    /* 台达原始 +216 ~ +219 -> 点表 +112 IslandFrequencyReference */
     if (addr >= (base + 216) && addr <= (base + 219))
     {
-        return base + 112;//孤岛频率
+        return PCS_TAIDA_CTRL_REG[pcsnum].IslandFrequencyReference;//孤岛频率
     }
 
     return -1;
@@ -71,11 +72,13 @@ int LC_EMS_Convert_Address(int pcsnum, int addr)
  * @param sum     该组总功率，正=放电，负=充电
  * @param result  3 路分配比例（千分比），由 LC_EMS_Calc_Power_Percent 算出
  *
- * 寄存器偏移约定（以 base 为组基址，D_BUS 分支）：
- *   base+46 ~ base+49  
- *   base+50 ~ base+51  
- *   base+52            ：本组总功率（有符号，正放负充）
- * 非 D_BUS 分支只用 base+50 ~ base+52 这 3 个寄存器。
+ * 寄存器成员约定（PCS_TAIDA_CTRL_REG[pcsnum]，即 27000 + 300*n，D_BUS 分支）：
+ *   MasterBat2DischargePowerCoef(+46) / SlaveBat1DischargePowerCoef(+47)
+ *   MasterBat2ChargePowerCoef(+48)    / SlaveBat1ChargePowerCoef(+49)
+ *   MasterBat1DischargePowerCoef(+50) / MasterBat1ChargePowerCoef(+51)
+ *   ActivePowerReference(+52)         ：本组总功率（有符号，正放负充）
+ * 非 D_BUS 分支只用 +50 ~ +52（MasterBat1DischargePowerCoef / MasterBat1ChargePowerCoef /
+ * ActivePowerReference）这 3 个寄存器。
  */
 static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
 {
@@ -88,8 +91,8 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
     {
         return;
     }
-    /* 计算本组寄存器基址：不同组偏移一个 STEP */
-    base = BASE_ADDR + STEP * pcsnum;
+    /* 本组寄存器基址：取点表控制点表项 Base（27000 / 27300），后续连续块按 Base+offset 访问 */
+    base = PCS_TAIDA_CTRL_REG[pcsnum].Base;
     const int16_t master_default = SysConf_GetInfo()->singlePcsMaster ? 500 : POWER_DEFAULT_RATIO;
     const int16_t slave_default = SysConf_GetInfo()->singlePcsMaster ? 0 : POWER_DEFAULT_RATIO;
     if(BusType==D_BUS)
@@ -112,38 +115,38 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
         if (sum < 0)
         {
              /* 充电：第一套比例复位默认，第二套写实际值 */
-            SET_HOLD(base + 50, master_default);
-            SET_HOLD(base + 46, master_default);
-            SET_HOLD(base + 47, slave_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1DischargePowerCoef, master_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat2DischargePowerCoef, master_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].SlaveBat1DischargePowerCoef, slave_default);
 
-            SET_HOLD(base + 51, result[0]);
-            SET_HOLD(base + 48, result[1]);
-            SET_HOLD(base + 49, result[2]);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1ChargePowerCoef, result[0]);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat2ChargePowerCoef, result[1]);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].SlaveBat1ChargePowerCoef, result[2]);
         }
         else if(sum > 0)
         {
             /* 放电：第一套写实际值，第二套复位默认 */
-            SET_HOLD(base + 50, result[0]);
-            SET_HOLD(base + 46, result[1]);
-            SET_HOLD(base + 47, result[2]);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1DischargePowerCoef, result[0]);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat2DischargePowerCoef, result[1]);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].SlaveBat1DischargePowerCoef, result[2]);
 
-            SET_HOLD(base + 51, master_default);
-            SET_HOLD(base + 48, master_default);
-            SET_HOLD(base + 49, slave_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1ChargePowerCoef, master_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat2ChargePowerCoef, master_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].SlaveBat1ChargePowerCoef, slave_default);
             
         }
         else
     	 {
             /* 0kW：两套全部复位为默认比例 */
-            SET_HOLD(base + 50, master_default);
-            SET_HOLD(base + 46, master_default);
-            SET_HOLD(base + 47, slave_default);
-            SET_HOLD(base + 51, master_default);
-            SET_HOLD(base + 48, master_default);
-            SET_HOLD(base + 49, slave_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1DischargePowerCoef, master_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat2DischargePowerCoef, master_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].SlaveBat1DischargePowerCoef, slave_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1ChargePowerCoef, master_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat2ChargePowerCoef, master_default);
+            SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].SlaveBat1ChargePowerCoef, slave_default);
     	 }
          /* 写入本组总功率（有符号，正放负充） */
-        SET_HOLD(base + 52, (int16_t)sum);
+        SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].ActivePowerReference, (int16_t)sum);
         /* ---- 去重：与上一次快照对比，7 个寄存器都没变就不下发 ---- */
         isUpdate = false;
         for (int i = 0; i < 7; i++)
@@ -158,7 +161,9 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
         {
             return;
         }
-        LOG_INFO("Group%d 功率分配下发: sum=%d, 寄存器范围[%d~%d]",pcsnum, sum, base + 46, base + 52);
+        LOG_INFO("Group%d 功率分配下发: sum=%d, 寄存器范围[%d~%d]",pcsnum, sum,
+                 PCS_TAIDA_CTRL_REG[pcsnum].MasterBat2DischargePowerCoef,
+                 PCS_TAIDA_CTRL_REG[pcsnum].ActivePowerReference);
          /* ---- 有变化时，置标志位，由上层任务统一组包下发 ---- */
         if (pcsnum == 0)
         {
@@ -180,21 +185,21 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
       const INT16U default_ratio = SysConf_GetInfo()->singlePcsMaster ? 1000 : 500;
       if(sum>0)
       {
-        SET_HOLD(base + 50, result[0]);
-        SET_HOLD(base + 51,default_ratio);
+        SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1DischargePowerCoef, result[0]);
+        SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1ChargePowerCoef,default_ratio);
       }
       else if(sum<0)
       {
-        SET_HOLD(base + 50, default_ratio);
-        SET_HOLD(base + 51, result[0]);
+        SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1DischargePowerCoef, default_ratio);
+        SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1ChargePowerCoef, result[0]);
       }
       else
       {
-          SET_HOLD(base + 50, default_ratio);
-          SET_HOLD(base + 51, default_ratio);
+          SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1DischargePowerCoef, default_ratio);
+          SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1ChargePowerCoef, default_ratio);
       }
        /* 本组总功率 */
-      SET_HOLD(base + 52, (int16_t)sum);
+      SET_HOLD(PCS_TAIDA_CTRL_REG[pcsnum].ActivePowerReference, (int16_t)sum);
        /* ---- 去重：3 个寄存器都没变则不下发 ---- */
       isUpdate = false;
       for (int i = 0; i < 3; i++)
@@ -209,7 +214,9 @@ static void Set_Group_Power_Multi(int pcsnum, int32_t sum, int16_t result[3])
         {
             return;
         }
-        LOG_INFO("Group%d 功率分配下发: sum=%d, 寄存器范围[%d~%d]",pcsnum, sum, base + 50, base + 52);
+        LOG_INFO("Group%d 功率分配下发: sum=%d, 寄存器范围[%d~%d]",pcsnum, sum,
+                 PCS_TAIDA_CTRL_REG[pcsnum].MasterBat1DischargePowerCoef,
+                 PCS_TAIDA_CTRL_REG[pcsnum].ActivePowerReference);
         /* ---- 逐个入队下发：非 D_BUS 用单寄存器写(F06) ---- */
         int num = (pcsnum>= 1) ? 2 : 0;
         for(INT8U i=0;i<3;i++)
@@ -248,7 +255,7 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
     if (pcsnum < 0 || pcsnum > 1) return;
     /* Keep physical group stride: two slots in S_BUS, four in D_BUS. */
     int bms_stride = Project_Bms_Group_Stride(sys_cfg);
-    int base = BASE_ADDR + STEP * pcsnum;
+    int base = PCS_TAIDA_CTRL_REG[pcsnum].Base;
     u16_conv DchgPower;         /* 放电允许功率 */
     u16_conv ChgPower;          /* 充电允许功率 */
     INT16U state;               /* 状态输入寄存器值 */
@@ -266,21 +273,21 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
         {
              /* ---- 放电方向 ---- */
             /* 检查 BMS 状态：非正常、非禁充则本路功率清零 */
-            state = GET_INPUT(38071 + 200 * bms_slot);
+            state = GET_INPUT(BMS_BAU_INPUT_REG[bms_slot].SystemRunMode);
             if((state!=0)&&(state!=1)) //不是正常，也不是禁充
             {
                 value[i]=0;
                 continue;
             }
             /* 检查 PCS 侧状态：非 0 视为不可用 */
-            state = GET_INPUT(17200+ STEP * pcsnum+i);
+            state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].Base + 200 + i);
             if(state!=0)
             {
                 value[i]=0;
                 continue;
             }
             /* 按放电允许功率限幅 */
-            DchgPower.D16 = GET_INPUT(38037 + 200 * bms_slot);
+            DchgPower.D16 = GET_INPUT(BMS_BAU_INPUT_REG[bms_slot].DchgPower);
             if((DchgPower.DS16>=0)&&(value[i]>DchgPower.DS16))
             {
                 value[i]=DchgPower.DS16;
@@ -295,21 +302,21 @@ void LC_EMS_Calc_Power_Percent(int pcsnum)
         {
             /* ---- 充电方向 ---- */
             /* 检查 BMS 状态：非正常、非禁放则本路功率清零 */
-            state = GET_INPUT(38071 + 200 * bms_slot);
+            state = GET_INPUT(BMS_BAU_INPUT_REG[bms_slot].SystemRunMode);
             if((state!=0)&&(state!=2)) //不是正常，也不是禁放
             {
                 value[i]=0;
                 continue;
             }
             /* 检查 PCS 侧状态 */
-            state = GET_INPUT(17200+ STEP * pcsnum+i);
+            state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[pcsnum].Base + 200 + i);
             if(state!=0)
             {
                 value[i]=0;
                 continue;
             }
             /* 按充电允许功率限幅（注意负号） */
-            ChgPower.D16 = GET_INPUT(38038 + 200 * bms_slot);
+            ChgPower.D16 = GET_INPUT(BMS_BAU_INPUT_REG[bms_slot].ChgPower);
             if((ChgPower.DS16>=0)&&(value[i]<(-1)*ChgPower.DS16))
             {
                 value[i]=(-1)*ChgPower.DS16;
@@ -546,7 +553,7 @@ void LC_EMS_Update_Power_Percent(int groupnum)
 
 // }
 static void Update_Bit_Status_By_One_Word(int base,
-                                          int src_offset,
+                                          int src_addr,
                                           int dst_offset_8,
                                           int dst_offset_9,
                                           int dst_offset_12,
@@ -554,7 +561,7 @@ static void Update_Bit_Status_By_One_Word(int base,
 {
     uint16_t value;
 
-    value = GET_INPUT(base + src_offset);
+    value = GET_INPUT(src_addr);
 
     /*
      * bit8 -> dst_offset_8
@@ -591,8 +598,8 @@ static void Update_Bit_Status_By_One_Word(int base,
 
 void Update_PCS_SEL_Goose_Status(int system_num)
 {
-    int base = INPUT_BASE_ADDR + STEP * system_num;
-    uint16_t value = GET_INPUT(base + 68);
+    /* 17000 + 300*n + 68 -> 点表 SystemFaultWord3 */
+    uint16_t value = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[system_num].SystemFaultWord3);
 
     pcsSelGooseStatus[system_num].sel_ems = (value >> 9) & 0x01;
     pcsSelGooseStatus[system_num].sel_pt = (value >> 10) & 0x01;
@@ -602,17 +609,21 @@ void Update_PCS_SEL_Goose_Status(int system_num)
 
 void Update_Input_Bit_Status(int system_num)
 {
-    int base = INPUT_BASE_ADDR + INPUT_GROUP_STEP * system_num;
+    int base = PCS_TAIDA_GROUP_INPUT_REG[system_num].Base;
     int sysRdyRef = 0;
     int slot = system_num * 2;
-    /* 处理 17000 + 300*n + 60 */
-    sysRdyRef = LC_EMS_Get_Input_Bit(base + 60, 3);
+    /* 处理 17000 + 300*n + 60 -> SystemStateWord1 */
+    sysRdyRef = LC_EMS_Get_Input_Bit(PCS_TAIDA_GROUP_INPUT_REG[system_num].SystemStateWord1, 3);
 
-    /* 处理 17000 + 300*n + 61 */
-    Update_Bit_Status_By_One_Word(base, 61, 208, 209, 200, 201);
+    /* 处理 17000 + 300*n + 61 -> SystemStateWord2 */
+    Update_Bit_Status_By_One_Word(base,
+                                  PCS_TAIDA_GROUP_INPUT_REG[system_num].SystemStateWord2,
+                                  208, 209, 200, 201);
 
-    /* 处理 17000 + 300*n + 62 */
-    Update_Bit_Status_By_One_Word(base, 62, 210, 211, 202, 203);
+    /* 处理 17000 + 300*n + 62 -> SystemStateWord3 */
+    Update_Bit_Status_By_One_Word(base,
+                                  PCS_TAIDA_GROUP_INPUT_REG[system_num].SystemStateWord3,
+                                  210, 211, 202, 203);
 
     /* 对应主机在线且PCS系统故障字bit9~bit12全为0时，通信才正常。
      * 第0组对应PCS0，第1组对应PCS2；断连清零故障字不能视为恢复。
@@ -623,7 +634,7 @@ void Update_Input_Bit_Status(int system_num)
     // LOG_INFO("system_num=%d,comm_normal=%d,pcsSelGooseStatus=%04X", system_num, comm_normal, pcsSelGooseStatus[system_num].StatusAll);
     for(int i=0;i<4;i++)
     {
-        SET_INPUT(base + 212 + i, GET_INPUT(base + 43));
+        SET_INPUT(base + 212 + i, GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[system_num].GridFrequency));
         SET_INPUT(base + 236 + i, sysRdyRef);
         SET_INPUT(base + 240 + i, comm_normal ? 1 : 0);
     }
@@ -631,17 +642,17 @@ void Update_Input_Bit_Status(int system_num)
     /*有符号值运算后写入*/
     for(int i=0;i<2;i++)
     {
-        SET_INPUT(base + 228 + i, Taida_Read_Input(2600 + 16 + i + slot * 300));
-        SET_INPUT(base + 230 + i, Taida_Read_Input(2600 + 16 + i + (slot + 1) * 300));
-        SET_INPUT(base + 232 + i, (int16_t)Taida_Read_Input(2600 + 19 + slot * 300) / 2);
-        SET_INPUT(base + 234 + i, (int16_t)Taida_Read_Input(2600 + 19 + (slot + 1) * 300) / 2);
+        SET_INPUT(base + 228 + i, Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[slot].Base + 16 + i));
+        SET_INPUT(base + 230 + i, Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[slot + 1].Base + 16 + i));
+        SET_INPUT(base + 232 + i, (int16_t)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[slot].GridReactivePower) / 2);
+        SET_INPUT(base + 234 + i, (int16_t)Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[slot + 1].GridReactivePower) / 2);
     }
     for(int j=0;j<3;j++)
     {
-        SET_INPUT(base + 216 + j, Taida_Read_Input(2600 + 300 * slot + 20 + j));
-        SET_INPUT(base + 219 + j, Taida_Read_Input(2600 + 300 * slot + 20 + j));
-        SET_INPUT(base + 222 + j, Taida_Read_Input(2600 + 300 * (slot + 1) + 20 + j));
-        SET_INPUT(base + 225 + j, Taida_Read_Input(2600 + 300 * (slot + 1) + 20 + j));
+        SET_INPUT(base + 216 + j, Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[slot].Base + 20 + j));
+        SET_INPUT(base + 219 + j, Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[slot].Base + 20 + j));
+        SET_INPUT(base + 222 + j, Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[slot + 1].Base + 20 + j));
+        SET_INPUT(base + 225 + j, Taida_Read_Input(PCS_TAIDA_MODULE_INPUT_REG[slot + 1].Base + 20 + j));
     }
 
 

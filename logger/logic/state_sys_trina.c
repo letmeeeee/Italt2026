@@ -21,7 +21,7 @@ static uint64_t clear_req_ts[MAX_SYS_NUM]  = {0};
 static INT32U last_time[MAX_SYS_NUM]; 
 
 
-#define MAX_PCS 4
+//#define MAX_PCS 4
 
 static INT8U  s_prev_comm_fault[MAX_PCS] = {0};  /* 0:正常, 1:故障 */
 static INT8U  s_inited = 0;
@@ -117,7 +117,7 @@ static void Event_CMD_Stop_PQ_Check   (INT16U *event_id, INT8U sys_num, SYS_Stat
 static void Event_SYS_ZERO_POWER_Check(INT16U *event_id, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_Stop_Check          (INT16U *event_id, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_Warning_Check       (INT16U *event_id, INT8U sys_num, SYS_State_ENUM real_state);
-static void Event_Check_Sub_Check     (INT16U *event_id, INT8U sys_num, SYS_State_ENUM real_state);
+//static void Event_Check_Sub_Check     (INT16U *event_id, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_SYS_PQ_Check        (INT16U *event_id, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_SYS_STOP_PQ_Mode_Check(INT16U *event_id, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_Warning_Recovery    (INT16U *event_id, INT8U sys_num, SYS_State_ENUM real_state);
@@ -242,12 +242,12 @@ const static StateSYSform state_list[] = {
 
 
 
-// INT8U Debug_State_Sys(INT8U sys_num, INT8U sta)
-// {
-//     (void)sys_num;
-//     INT8U debug_sta = 0;
-//     return (debug_sta == sta) ? 1 : 0;
-// }
+static  INT8U Debug_State_Sys(INT8U sys_num, INT8U sta)
+{
+    (void)sys_num;
+    INT8U debug_sta = 0;
+    return (debug_sta == sta) ? 1 : 0;
+}
 
 // SYS_State_ENUM Get_State_Sys(INT8U sys_num)
 // {
@@ -445,7 +445,7 @@ volatile static INT8U warningflag[2]={0};
 
 static INT8U s_prev_warn[2] = {0};              // 上一次告警状态（用于边沿）
 
-#define WARN_DEBOUNCE_TICKS_100ms   (10u)   /* 10ms tick -> 5s */
+//#define WARN_DEBOUNCE_TICKS_100ms   (10u)   /* 10ms tick -> 5s */
 static inline INT8U bms_is_online(INT16U mask, INT8U bitpos)
 {
     if (bitpos >= 16) return 0;                // 简单保护；若只有 8 台也可以 >=8
@@ -1123,7 +1123,9 @@ static void Event_Master_slave_Mode_Check(INT16U *eid, INT8U sys_num, SYS_State_
 
     if(sys_cfg->pcsNum>=2)
     {
-        if((((PCS1_Master_slave_Mode==0)&&(Get_PCS_Comm(pcs_idx1) ==0))&&((PCS2_Master_slave_Mode==0)&&(Get_PCS_Comm(pcs_idx2) ==0)) ||((PCS1_Master_slave_Mode==1)&&(PCS2_Master_slave_Mode==1))))
+        if ((((PCS1_Master_slave_Mode == 0) && (Get_PCS_Comm(pcs_idx1) == 0)) &&
+             ((PCS2_Master_slave_Mode == 0) && (Get_PCS_Comm(pcs_idx2) == 0))) ||
+            ((PCS1_Master_slave_Mode == 1) && (PCS2_Master_slave_Mode == 1)))
     {
         last_time[sys_num] = Timer_GetTick();
         *(event_id + sys_num) = SYS_EVENT_START_FAULT;
@@ -1145,7 +1147,10 @@ static void Event_Master_slave_Mode_Recovery(INT16U *eid, INT8U sys_num, SYS_Sta
 
     if(sys_cfg->pcsNum>=2)
     {
-     if(((PCS1_Master_slave_Mode==1)&&(Get_PCS_Comm(pcs_idx1) ==0))&&((PCS2_Master_slave_Mode==0)&&(Get_PCS_Comm(pcs_idx2) ==0))||(((PCS1_Master_slave_Mode==0)&&(Get_PCS_Comm(pcs_idx1) ==0))&&((PCS2_Master_slave_Mode==1)&&(Get_PCS_Comm(pcs_idx2) ==0))))
+        if ((((PCS1_Master_slave_Mode == 1) && (Get_PCS_Comm(pcs_idx1) == 0)) &&
+             ((PCS2_Master_slave_Mode == 0) && (Get_PCS_Comm(pcs_idx2) == 0))) ||
+            (((PCS1_Master_slave_Mode == 0) && (Get_PCS_Comm(pcs_idx1) == 0)) &&
+             ((PCS2_Master_slave_Mode == 1) && (Get_PCS_Comm(pcs_idx2) == 0))))
     {
         last_time[sys_num] = Timer_GetTick();
         *(event_id + sys_num) = SYS_WARNING_STOP;
@@ -1452,7 +1457,7 @@ static void Event_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_sta
  }
 
 
-#define WARN_DEBOUNCE_TICKS_100ms   (10)   /* 10ms tick -> 5s */
+//#define WARN_DEBOUNCE_TICKS_100ms   (10)   /* 10ms tick -> 5s */
 
 /**
  * @brief 处理系统告警恢复事件
@@ -1784,8 +1789,13 @@ static void Event_Wait_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
         }
     }
 
-    if ((is_no_stopped == 0) &&
-        (((PCS1_state_stop)||((PCS1_state_fault)||(PCS1_state_emergency_stop)||(PCS1_state==0)))&& ((PCS2_state_stop))||(PCS2_state_fault)||(PCS2_state_emergency_stop)||(PCS1_state==0))||
+    /* PCS1 停机条件：停机、故障、急停或状态字为 0 */
+    INT8U pcs1_stopped = (INT8U)(PCS1_state_stop || PCS1_state_fault || PCS1_state_emergency_stop || (PCS1_state == 0));
+    /* PCS2 停机条件：故障/急停/状态字为 0 单独有效；停机位需同时满足 PCS1 条件 */
+    INT8U pcs2_stopped = (INT8U)((pcs1_stopped && PCS2_state_stop) || PCS2_state_fault ||
+                                 PCS2_state_emergency_stop || (PCS1_state == 0));
+
+    if (((is_no_stopped == 0) && pcs2_stopped) ||
         (Debug_State_Sys(sys_num, SYS_EVENT_WAIT_STOPED) == 1))
     {
         last_time[sys_num] = Timer_GetTick();
@@ -1814,30 +1824,30 @@ static void Event_Wait_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
  * @note 最大检查的子系统数量由MAX_SUB_NUM定义
  * @note 当检测到任一子系统处于限制状态时立即终止检查
  */
-static void Event_Check_Sub_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
-{
-    (void)real_state;
+// static void Event_Check_Sub_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
+// {
+//     (void)real_state;
 
-    sysPara *sys_cfg = SysConf_GetInfo();
-    uint64_t t = Get_State_Time_Sys(sys_num);
-    INT8U is_lim = 0;
+//     sysPara *sys_cfg = SysConf_GetInfo();
+//     uint64_t t = Get_State_Time_Sys(sys_num);
+//     INT8U is_lim = 0;
 
-    for (INT8U sub = 0; (sub < sys_cfg->subNum) && (sub < MAX_SUB_NUM); sub++) 
-    {
-        SUB_State_ENUM s = Get_State_Sub(sys_num, sub);
-        if (s == SUBLim) 
-        { 
-            is_lim = 1; 
-            break; 
-        }
-    }
+//     for (INT8U sub = 0; (sub < sys_cfg->subNum) && (sub < MAX_SUB_NUM); sub++) 
+//     {
+//         SUB_State_ENUM s = Get_State_Sub(sys_num, sub);
+//         if (s == SUBLim) 
+//         { 
+//             is_lim = 1; 
+//             break; 
+//         }
+//     }
 
-    if ((is_lim == 0) || (t > 5000) || (Debug_State_Sys(sys_num, SYS_EVENT_CHECK_SUB) == 1)) 
-    {
-        last_time[sys_num] = Timer_GetTick();
-        *(eid + sys_num)   = SYS_EVENT_CHECK_SUB;
-    }
-}
+//     if ((is_lim == 0) || (t > 5000) || (Debug_State_Sys(sys_num, SYS_EVENT_CHECK_SUB) == 1)) 
+//     {
+//         last_time[sys_num] = Timer_GetTick();
+//         *(eid + sys_num)   = SYS_EVENT_CHECK_SUB;
+//     }
+// }
 
 
 /**
@@ -2017,7 +2027,6 @@ static void Event_SYS_Run_Check(INT16U *event_id, INT8U sys_num, SYS_State_ENUM 
     }
 
 }
-/*
 /* ===================== 全局状态聚合 + 锁存 ===================== */
 
 
@@ -2197,6 +2206,7 @@ static INT16U calc_sys_status_out(INT8U sys_num, INT16U now_state)
         return SYSZEROPOWER;
   
     }
+    return FAULT; 
 }
 
 
@@ -2490,7 +2500,7 @@ void SYS_Trina_State_Init(volatile SYS_State_ENUM *state, INT8U sys_num)
 {
         sysPara *sys_cfg = SysConf_GetInfo();
 
-         for(uint8_t sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+         for(uint8_t sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
         {
         Clear_In_Sys(sys_num);
         Clear_Out_Sys(sys_num);
@@ -2504,7 +2514,7 @@ void SYS_Trina_State_Init(volatile SYS_State_ENUM *state, INT8U sys_num)
 void SYS_Trina_State_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
 {
 
-
+    sysPara* sys_cfg = SysConf_GetInfo();
     /* --- 强制回初始：PCS 通信断联 --- */
     if (g_force_init_req[sys_num]) 
     {
@@ -2540,7 +2550,29 @@ void SYS_Trina_State_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
 
     /* 3) 正常推进：先做通信边沿检测 */
     check_pcs_limit();
+    if (black_end==1) 
+    {
+        black_end = 0;
+        for(uint8_t sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
+        {
+        Clear_In_Sys(sys_num);
+        Clear_Out_Sys(sys_num);
+        event_id[sys_num]  = 0;
+        last_time[sys_num] = Timer_GetTick();
+        state[sys_num] = SYSInit;  
+       
 
+        for (INT8U sub = 0; sub < SUBS_PER_SYS; ++sub) 
+        {
+            Clear_In_Sub(sys_num, sub);
+            Clear_Out_Sub(sys_num, sub);
+            if (Get_State_Sub(sys_num, sub) != SUBInit) 
+            {
+                SUB_state[sys_num * SUBS_PER_SYS + sub] = SUBInit;
+            }
+        }
+       }  
+    }
     for (INT8U i = 0; i < LIST_SIZE; i++) {
         if (state_list[i].now_state == state[sys_num]) 
         {

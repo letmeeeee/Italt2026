@@ -2,7 +2,7 @@
 #include "main.h"
 #include "modbus_protocol.h"
 unsigned short pcs_state[MAX_PCS_NUM] = {0};
-static void PE_DataProcess(unsigned char *ptr, int num)
+static void PE_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[PCS_BUFF_LEN] = {0};

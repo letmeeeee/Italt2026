@@ -34,7 +34,7 @@ uint16_t bms_sys_Warn[MAX_BMS_Num] = {0};
 INT8U pcs_mask_raw = 0x0F;
 INT8U bms_mask_raw = 0x0F;
 
-#define MAX_PCS 4
+//#define MAX_PCS 4
 INT8U BMS_PER_SYS;
 INT8U SUBS_PER_SYS;
 INT8U MAX_BMS;
@@ -84,13 +84,13 @@ extern INT8U BusType;
  * @param n 模块号，用于计算故障字的基地址
  * 
  * @note 函数会跳过值为0的故障项
- * @note 故障字地址计算公式：base = 2600 + 300 * n
+ * @note 故障字地址计算公式：base = PCS_TAIDA_MODULE_INPUT_REG[n].Base
  * @note 打印格式：故障项名称 (addr=地址) = 值
  */
 static void PrintModuleFaultWords(INT16U n)
 {
 
-    INT16U base = (INT16U)(2600 + 300u * (INT16U)(n));
+    INT16U base = PCS_TAIDA_MODULE_INPUT_REG[n].Base;
 
     for (size_t i = 0; i < sizeof(g_fault_items)/sizeof(g_fault_items[0]); i++) 
     {
@@ -131,28 +131,28 @@ static void pcs_clear_points_on_fault(int pcs_group)
     //     SET_INPUT(i + pcs * 300, 0);
 
     /* 清 INPUT 17000~17298 (偏移 group*300) */
-    for (int i = 17000; i < 17299; ++i)
-        SET_INPUT(i + pcs_group * 300, 0);
+    for (int i = PCS_TAIDA_GROUP_INPUT_REG[pcs_group].Base; i < PCS_TAIDA_GROUP_INPUT_REG[pcs_group].Base + 299; ++i)
+        SET_INPUT(i, 0);
 
     // /* 清 HOLD 12000~12298 (偏移 pcs*300) */
     // for (int i = 12000; i < 12299; ++i)
     //     SET_HOLD(i + pcs * 300, 0);
 
     /* 清 HOLD 27000~27298 (偏移 group*300) */
-    for (int i = 27000; i < 27299; ++i)
-        SET_HOLD(i + pcs_group * 300, 0);
+    for (int i = PCS_TAIDA_CTRL_REG[pcs_group].Base; i < PCS_TAIDA_CTRL_REG[pcs_group].Base + 299; ++i)
+        SET_HOLD(i, 0);
 }
 
 static void slave_pcs_clear_points_on_fault(int pcs)
 {
-    int input_base = SysConf_GetInfo()->singlePcsMaster ? 5000 : 2600;
-    int hold_base = SysConf_GetInfo()->singlePcsMaster ? 15000 : 12000;
+    int input_base = SysConf_GetInfo()->singlePcsMaster ? PCS_5MW_INPUT_BASE1 : PCS_TAIDA_MODULE_INPUT_REG[0].Base;
+    int hold_base = SysConf_GetInfo()->singlePcsMaster ? PCS_TAIDA_5MW_HOLD_REG[0].Base : PCS_TAIDA_HOLD_REG[0].Base;
     /* 清 INPUT 2600~2898 (偏移 pcs*300) */
     for (int i = input_base; i < input_base + 299; ++i)
         SET_INPUT(i + pcs * 300, 0);
 
     // /* 清 INPUT 17000~17298 (偏移 group*300) */
-    // for (int i = 17000; i < 17299; ++i)
+    // for (int i = PCS_TAIDA_GROUP_INPUT_REG[pcs_group].Base; i < PCS_TAIDA_GROUP_INPUT_REG[pcs_group].Base + 299; ++i)
     //     SET_INPUT(i + pcs_group * 300, 0);
 
     /* 清 HOLD 12000~12298 (偏移 pcs*300) */
@@ -160,7 +160,7 @@ static void slave_pcs_clear_points_on_fault(int pcs)
         SET_HOLD(i + pcs * 300, 0);
 
     // /* 清 HOLD 27000~27298 (偏移 group*300) */
-    // for (int i = 27000; i < 27299; ++i)
+    // for (int i = PCS_TAIDA_CTRL_REG[pcs_group].Base; i < PCS_TAIDA_CTRL_REG[pcs_group].Base + 299; ++i)
     //     SET_HOLD(i + pcs_group * 300, 0);
 }
 
@@ -858,7 +858,7 @@ const static StateSYSform state_list[] = {
 
 
 
-INT8U Debug_State_Sys(INT8U sys_num, INT8U sta)
+static INT8U Debug_State_Sys(INT8U sys_num, INT8U sta)
 {
     (void)sys_num;
     INT8U debug_sta = 0;
@@ -1065,7 +1065,7 @@ volatile static INT8U warningflag[2]={0};
 
 static INT8U s_prev_warn[2] = {0};              // 上一次告警状态（用于边沿）
 
-#define WARN_DEBOUNCE_TICKS_100ms   (10u)   /* 10ms tick -> 5s */
+//#define WARN_DEBOUNCE_TICKS_100ms   (10u)   /* 10ms tick -> 5s */
 static inline INT8U bms_is_online(INT16U mask, INT8U bitpos)
 {
     if (bitpos >= 16) return 0;                // 简单保护；若只有 8 台也可以 >=8
@@ -1136,20 +1136,20 @@ static void Event_Warning_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_
 
 
     if (!is_warn_no_stop) {
-        if ( GET_INPUT(17066 + sys_num * 300) != 0 ||                   /* 系统故障1 */
+        if ( GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord1) != 0 ||                   /* 系统故障1 */
 
-            (((GET_INPUT(17067 + sys_num * 300)) >> 0)  & 1u) ||        /* CtrlPowerLost */
-            (((GET_INPUT(17067 + sys_num * 300)) >> 1)  & 1u) ||        /* CommPowerLost */
-            (((GET_INPUT(17067 + sys_num * 300)) >> 2)  & 1u) ||        /* IOPowerLost */
-            (((GET_INPUT(17067 + sys_num * 300)) >> 3)  & 1u) ||        /* SDSPFPGAEmifError */
-            (((GET_INPUT(17067 + sys_num * 300)) >> 6)  & 1u) ||        /* CtrlHeartLost */
-            (((GET_INPUT(17067 + sys_num * 300)) >> 7)  & 1u) ||        /* J1DSPHeartLost */
-            (((GET_INPUT(17067 + sys_num * 300)) >> 8)  & 1u) ||        /* J2DSPHeartLost */
-            (((GET_INPUT(17067 + sys_num * 300)) >> 10) & 1u) ||        /* MasterSlave1CommLost */
-            (((GET_INPUT(17067 + sys_num * 300)) >> 12) & 1u) ||        /* ExtInputFault2 */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 0)  & 1u) ||        /* CtrlPowerLost */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 1)  & 1u) ||        /* CommPowerLost */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 2)  & 1u) ||        /* IOPowerLost */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 3)  & 1u) ||        /* SDSPFPGAEmifError */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 6)  & 1u) ||        /* CtrlHeartLost */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 7)  & 1u) ||        /* J1DSPHeartLost */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 8)  & 1u) ||        /* J2DSPHeartLost */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 10) & 1u) ||        /* MasterSlave1CommLost */
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 12) & 1u) ||        /* ExtInputFault2 */
 
-             GET_INPUT(17068 + sys_num * 300) != 0 ||                   /* 系统故障3 */
-             GET_INPUT(17069 + sys_num * 300) != 0 )                    /* 系统故障4 */
+             GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord3) != 0 ||                   /* 系统故障3 */
+             GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord4) != 0 )                    /* 系统故障4 */
         {
             is_warn_no_stop = 1;
 
@@ -1158,8 +1158,8 @@ static void Event_Warning_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_
     /* 3) 系统故障字 */
     if (!is_warn_raw) {
         if (
-            (((GET_INPUT(17067 + sys_num * 300)) >> 4)  & 1u) ||       
-            (((GET_INPUT(17067 + sys_num * 300)) >> 5)  & 1u) )                   
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 4)  & 1u) ||       
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 5)  & 1u) )                   
         {
             is_warn_raw = 1;
 
@@ -1243,8 +1243,8 @@ static void Event_Start_Warn_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
     {
         INT8U sub_in_sys = (INT8U)(sub - sub_begin);
         if (!SUB_ENABLED_SYS(sys_num, sub_in_sys)) continue;
-        bms_sys_preWarn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 0)) != 0;//BMS系统预警
-        bms_sys_Warn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 1)) != 0;   //BMS系统告警
+        bms_sys_preWarn[sub] = (GET_INPUT(BMS_BAU_INPUT_REG[sub].ExternalFaultStatusSum) & (0x01 << 0)) != 0;//BMS系统预警
+        bms_sys_Warn[sub] = (GET_INPUT(BMS_BAU_INPUT_REG[sub].ExternalFaultStatusSum) & (0x01 << 1)) != 0;   //BMS系统告警
         if ((bms_sys_preWarn[sub] != 0) || (bms_sys_Warn[sub] != 0)) 
         {
             is_Warning = IsWarn;
@@ -1259,20 +1259,20 @@ static void Event_Start_Warn_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
             break;
         }
     }
-        if (((GET_INPUT(17060 + sys_num * 300)) >> 6) & 1u)//PCS告警
+        if (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1)) >> 6) & 1u)//PCS告警
         {
          is_Warning = IsWarn;
          LOG_INFO("system%d告警!",sys_num);
 
         }
 
-    if (GET_INPUT(27601)==1)//测控告警总
+    if (GET_INPUT(MVEMS_MV_INPUT_REG.AlarmSummaryTotal)==1)//测控告警总
         {
             is_Warning = IsWarn;
             LOG_INFO("测控告警总!");
         }
 
-       if (((GET_INPUT(27109 )) >> 4) & 1u)//UPS故障
+       if (((GET_INPUT(MVEMS_MV_INPUT_REG.UPSStatus)) >> 4) & 1u)//UPS故障
         {
             is_Warning = IsWarn;
            LOG_INFO("UPS故障总!");
@@ -1325,15 +1325,15 @@ static void Event_Start_Warn_Recovery(INT16U *eid, INT8U sys_num, SYS_State_ENUM
 
         INT8U sub_in_sys = (INT8U)(sub - sub_begin);
         if (!SUB_ENABLED_SYS(sys_num, sub_in_sys)) continue;
-        bms_sys_preWarn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 0)) != 0;//BMS系统预警
-        bms_sys_Warn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 1)) != 0;   //BMS系统告警
+        bms_sys_preWarn[sub] = (GET_INPUT(BMS_BAU_INPUT_REG[sub].ExternalFaultStatusSum) & (0x01 << 0)) != 0;//BMS系统预警
+        bms_sys_Warn[sub] = (GET_INPUT(BMS_BAU_INPUT_REG[sub].ExternalFaultStatusSum) & (0x01 << 1)) != 0;   //BMS系统告警
        
         if ( bms_sys_preWarn[sub] || bms_sys_Warn[sub]) {
             all_safe = 0;
             break;
         }
     }
-    if (((((GET_INPUT(17060 + sys_num * 300)) >> 6) & 1u)==1)||(GET_INPUT(27601)==1)||((((GET_INPUT(27109 )) >> 4) & 1u)==1)) 
+    if (((((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1)) >> 6) & 1u)==1)||(GET_INPUT(MVEMS_MV_INPUT_REG.AlarmSummaryTotal)==1)||((((GET_INPUT(MVEMS_MV_INPUT_REG.UPSStatus)) >> 4) & 1u)==1)) 
     {
         all_safe = false;
     } 
@@ -1377,8 +1377,8 @@ static void Event_Start_Fault_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM r
     (void)real_state;
 
     INT8U  is_Fault = IsNoFault;
-    INT16U PCS_sys_state       = GET_INPUT(17000 + 300 * sys_num + 60);
-    INT16U slave_PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 62);
+    INT16U PCS_sys_state       = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
+    INT16U slave_PCS_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3);
 
     /* 从机故障：((slave_PCS_sys_state >> 1) & 1) == 1 */
     INT8U slave_fault = (INT8U)(((slave_PCS_sys_state >> 1) & 0x1u) == 1u);
@@ -1426,9 +1426,9 @@ static void Event_Clear_Fault_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM r
 {
     (void)real_state;
 
-    INT16U PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 60);
+    INT16U PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
     INT8U  master_fault  = (INT8U)(((PCS_sys_state >> 4) & 0x1u) == 1u);
-    INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 62);
+    INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3);
     INT8U  slave_fault = (INT8U)(((slave_PCS_sys_state >> 1) & 0x1u) == 1u);
    // INT8U fault_now = (INT8U)(master_fault || slave_fault);
 
@@ -1504,7 +1504,7 @@ static void Event_CMD_Start_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM rea
         INT8U flag_timer_started = 0;
         for (INT16U sysnum = 0; sysnum < sys_cfg->sysNum; sysnum++)
         {
-            pcs_sys_state = GET_INPUT(17000 + 300 * sysnum + 60);
+            pcs_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sysnum].SystemStateWord1);
            if ((((((pcs_sys_state >> 1 )&1u)== 1)&&(((pcs_sys_state >> 2 )&1u)== 1)&&(((pcs_sys_state >> 3 )&1u)== 1))))
             {
                 all_close = 0;
@@ -1635,7 +1635,7 @@ static void Event_SYS_STANDBY_ZERO_POWER_Check(INT16U *eid, INT8U sys_num, SYS_S
  * @param sys_num 系统编号，用于标识当前检查的是哪个系统
  * @param real_state 系统实际状态参数（当前未使用）
  * 
- * @note 函数会检查输入状态GET_INPUT(17063 + sys_num * 300)是否等于8
+ * @note 函数会检查输入状态GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemOperationStatus)是否等于8
  *       （PCS System Operation Status），如果是则触发SYS_EVENT_CMD_START事件
  * 
  * @warning 函数会忽略real_state和Debug_State_Sys参数
@@ -1649,7 +1649,7 @@ static void Event_SYS_STANDBY_STATUS_Check(INT16U *eid, INT8U sys_num, SYS_State
 
  
       
-       if( (GET_INPUT(17063 + sys_num * 300) == 8 )|| (GET_INPUT(17062 + sys_num * 300) == 4 ))//PCS System Operation Status
+       if( (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemOperationStatus) == 8 )|| (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3) == 4 ))//PCS System Operation Status
         {
         last_time[sys_num] = Timer_GetTick();
  
@@ -1734,10 +1734,10 @@ static void Event_CMD_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real
 static void Event_CMD_Stop_Check_PCS_Status(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
 {
     (void)real_state;
-    INT16U PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 60);
+    INT16U PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
     INT8U  master_fault  = (INT8U)(((PCS_sys_state >> 4) & 0x1u) == 1u);
     INT8U  master_no_run  = (INT8U)(((PCS_sys_state >> 3) & 0x1u) == 1u);
-    INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 62);
+    INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3);
     INT8U  slave_fault = (INT8U)(((slave_PCS_sys_state >> 1) & 0x1u) == 1u);
     INT8U  slave_no_run = (INT8U)(((slave_PCS_sys_state >> 0) & 0x1u) == 1u);
     INT8U  single_mode  = (INT8U)(SysConf_GetInfo()->singlePcsMaster ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
@@ -1755,10 +1755,10 @@ static void Event_CMD_Stop_Check_PCS_Status(INT16U *eid, INT8U sys_num, SYS_Stat
 static void Event_CMD_Stop_Check_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
 {
     (void)real_state;
-    INT16U PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 60);
+    INT16U PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
     INT8U  master_fault  = (INT8U)(((PCS_sys_state >> 4) & 0x1u) == 1u);
     INT8U  master_no_run  = (INT8U)(((PCS_sys_state >> 3) & 0x1u) == 1u);
-    INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 62);
+    INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3);
     INT8U  slave_fault = (INT8U)(((slave_PCS_sys_state >> 1) & 0x1u) == 1u);
     INT8U  slave_no_run = (INT8U)(((slave_PCS_sys_state >> 0) & 0x1u) == 1u);
     INT8U  single_mode  = (INT8U)(SysConf_GetInfo()->singlePcsMaster ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
@@ -1777,9 +1777,9 @@ static void Event_CMD_Stop_Check_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
 static void Event_CMD_Run_Check_PCS_Status(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
 {
     (void)real_state;
-    INT16U PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 60);
+    INT16U PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
     INT8U  master_run  = (INT8U)(((PCS_sys_state >> 3) & 0x1u) == 1u);
-    INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 62);
+    INT16U slave_PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3);
     INT8U  slave_run = (INT8U)(((slave_PCS_sys_state >> 2) & 0x1u) == 1u);
   
     if ((master_run==1) || ((slave_run==1))
@@ -1982,8 +1982,8 @@ static void Event_Stop_PCS_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real
     int pcs_num=0;
     int pcs_addr=0;
     u32_conv sys_active_power;
-    sys_active_power.DS32 = GET_INPUT(125);  
-   INT32S Atvice_power = ((INT16S)GET_INPUT(17000 + sys_num * 300 + 40) )*10;
+    sys_active_power.DS32 = GET_INPUT(MVEMS_SYS_INPUT_REG.ActivePower);  
+   INT32S Atvice_power = ((INT16S)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].GridTotalActivePower) )*10;
     if (( Atvice_power <  ZERO_POWER_LIMIT &&
           Atvice_power > -ZERO_POWER_LIMIT) ||
         (Debug_State_Sys(sys_num, SYS_EVENT_STOP_PCS) == 1)) 
@@ -2035,8 +2035,8 @@ static void Event_Stop_SUB_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real
     (void)real_state;
 
     sysPara *sys_cfg = SysConf_GetInfo();
-    INT8U PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 60); /* 主机PCS当前状态 */
-    INT8U PCS_slave_state = GET_INPUT(17000 + 300 * sys_num + 62); /* 从机PCS当前状态 */
+    INT8U PCS_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1); /* 主机PCS当前状态 */
+    INT8U PCS_slave_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3); /* 从机PCS当前状态 */
     INT8U single_mode = (INT8U)(SysConf_GetInfo()->singlePcsMaster ? 1 : 0); /* 单PCS主机模式：忽略从机条件 */
 
    //LOG_INFO("warningflag[%d]:%d",sys_num,warningflag[sys_num]);
@@ -2074,7 +2074,7 @@ static void Event_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_sta
     INT8U all_safe = 1;
     INT8U sub_begin = (INT8U)(sys_num * BMS_PER_SYS);       
     INT8U sub_end   = (INT8U)(sub_begin + BMS_PER_SYS);
-    INT8U PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 60);
+    INT8U PCS_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
   
     if ((((((PCS_sys_state >> 1 )&1u)== 1)&&(((PCS_sys_state >> 2 )&1u)!= 1)&&(((PCS_sys_state >> 3 )&1u)!= 1))|| (((PCS_sys_state >> 4 )&1u)== 1))&&(warningflag[sys_num] == IsWarn)) 
     {
@@ -2085,7 +2085,7 @@ static void Event_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_sta
  }
 
 
-#define WARN_DEBOUNCE_TICKS_100ms   (10)   /* 10ms tick -> 5s */
+//#define WARN_DEBOUNCE_TICKS_100ms   (10)   /* 10ms tick -> 5s */
 
 /**
  * @brief 处理系统告警恢复事件
@@ -2128,8 +2128,8 @@ static void Event_Warning_Recovery(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
         {
           continue;
         }
-        bms_sys_preWarn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 0)) != 0;//BMS系统预警
-        bms_sys_Warn[sub] = (GET_INPUT(38039 + sub * 200) & (0x01 << 1)) != 0;   //BMS系统告警
+        bms_sys_preWarn[sub] = (GET_INPUT(BMS_BAU_INPUT_REG[sub].ExternalFaultStatusSum) & (0x01 << 0)) != 0;//BMS系统预警
+        bms_sys_Warn[sub] = (GET_INPUT(BMS_BAU_INPUT_REG[sub].ExternalFaultStatusSum) & (0x01 << 1)) != 0;   //BMS系统告警
         if (bms_sys_preWarn[sub] || bms_sys_Warn[sub]) {
             all_safe_raw = 0;
             break;
@@ -2140,8 +2140,8 @@ static void Event_Warning_Recovery(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
     if (all_safe_raw) 
     {
         if ( 
-            (((GET_INPUT(17067 + sys_num * 300)) >> 4)  & 1u) ||
-            (((GET_INPUT(17067 + sys_num * 300)) >> 5)  & 1u)
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 4)  & 1u) ||
+            (((GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord2)) >> 5)  & 1u)
 )
         {
             all_safe_raw = 0;
@@ -2207,8 +2207,8 @@ static void Event_Start_SUB_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM rea
     (void)real_state;
 
     sysPara *sys_cfg = SysConf_GetInfo();
-    INT16U PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 60);
-    INT16U slave_PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 62);
+    INT16U PCS_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
+    INT16U slave_PCS_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3);
     INT16U slave_standby = (INT8U)(((slave_PCS_sys_state >> 0) & 0x1u) == 1u);
  
     if ((((PCS_sys_state >> 1 )&1u)== 1) || (slave_standby == 1)) {
@@ -2234,10 +2234,10 @@ static void Event_Start_PCS_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM rea
 
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U is_no_run = 0;
-    INT16U PCS_sys_state = (INT16U)GET_INPUT(17000 + 300 * sys_num + 60);
+    INT16U PCS_sys_state = (INT16U)GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
     INT8U  BusDischarge   = (INT8U)(((PCS_sys_state >> 12) & 0x1u) == 0);//台达PCS开机时候该点位必须为0，否则不启动
     /* 读取一次在线位图，避免循环里重复 GET_INPUT */
-    INT16U bms_online_mask = (INT16U)GET_INPUT(220);
+    INT16U bms_online_mask = (INT16U)GET_INPUT(MVEMS_SYS_INPUT_REG.StatusWord3);
 
         if(BusType==D_BUS)
         {
@@ -2299,9 +2299,9 @@ static void Event_SYS_PQ_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_s
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U is_no_run = 0;
 
-    INT8U PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 60);
+    INT8U PCS_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
 
-    INT16U slave_PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 62);
+    INT16U slave_PCS_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord3);
     INT8U slave_run = (INT8U)(((slave_PCS_sys_state >> 2) & 0x1u) == 1u);
     if ((((is_no_run == 0) || (Debug_State_Sys(sys_num, SYS_EVENT_START_PQ) == 1)) &&
         (((PCS_sys_state >> 1) & 1u) == 1) &&
@@ -2338,7 +2338,7 @@ static void Event_SYS_PQ_Mode_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM r
 
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U is_no_run = 0;
-    INT8U PCS_sys_mode = GET_HOLD(27000 + 300 * sys_num + 16);
+    INT8U PCS_sys_mode = GET_HOLD(PCS_TAIDA_CTRL_REG[sys_num].PQMode);
 
     if(BusType==S_BUS)
     {
@@ -2396,7 +2396,7 @@ static void Event_Wait_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
 
     sysPara *sys_cfg = SysConf_GetInfo();
     INT8U is_no_stopped = 0;
-    INT8U PCS_sys_state = GET_INPUT(17000 + 300 * sys_num + 60);
+    INT8U PCS_sys_state = GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemStateWord1);
 
 
     for (INT8U sub = 0; (sub < sys_cfg->subNum) && (sub < MAX_SUB_NUM); sub++) 
@@ -2411,9 +2411,15 @@ static void Event_Wait_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
         }
     }
 
-    if (((is_no_stopped == 0) &&
-        ((((PCS_sys_state >> 1 )&1u)== 1)&&(((PCS_sys_state >> 2 )&1u)!= 1)&&(((PCS_sys_state >> 3 )&1u)!= 1))|| (((PCS_sys_state >> 1 )&1u)== 0)||(((PCS_sys_state >> 4 )&1u)== 1))||
-        (Debug_State_Sys(sys_num, SYS_EVENT_WAIT_STOPED) == 1)) 
+    /* 正常运行中收到停机指令: 停机位置1且故障、急停位为0 */
+    INT8U pcs_stopping = (INT8U)((((PCS_sys_state >> 1) & 1u) == 1) &&
+                                 (((PCS_sys_state >> 2) & 1u) != 1) &&
+                                 (((PCS_sys_state >> 3) & 1u) != 1));
+    INT8U pcs_not_running = (INT8U)(((PCS_sys_state >> 1) & 1u) == 0);
+    INT8U pcs_fault   = (INT8U)(((PCS_sys_state >> 4) & 1u) == 1);
+
+    if (((is_no_stopped == 0) && (pcs_stopping || pcs_not_running || pcs_fault)) ||
+        (Debug_State_Sys(sys_num, SYS_EVENT_WAIT_STOPED) == 1))
     {
         last_time[sys_num] = Timer_GetTick();
          event_in[sys_num]=0;
@@ -2704,7 +2710,6 @@ static void Event_SYS_Run_Check(INT16U *event_id, INT8U sys_num, SYS_State_ENUM 
     }
 
 }
-/*
 /* ===================== 全局状态聚合 + 锁存 ===================== */
 
 
@@ -2885,6 +2890,7 @@ static INT16U calc_sys_status_out(INT8U sys_num, INT16U now_state)
         return SYSZEROPOWER;
   
     }
+    return FAULT; 
 }
 
 
@@ -2947,9 +2953,9 @@ static INT8U sys_alarm_sources_cleared(INT8U sys_num)
     if (warningflag[sys_num] == IsWarn) return 0;
 
     /* 系统故障字清零（Event_Warning_Check/Recovery 的寄存器  */
-    if (GET_INPUT(17066 + sys_num * 300) != 0) return 0;
-    if (GET_INPUT(17068 + sys_num * 300) != 0) return 0;
-    if (GET_INPUT(17069 + sys_num * 300) != 0) return 0;
+    if (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord1) != 0) return 0;
+    if (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord3) != 0) return 0;
+    if (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[sys_num].SystemFaultWord4) != 0) return 0;
     return 1;
 }
 
@@ -3025,48 +3031,48 @@ static void update_global_SYSTEM_STATUS(void)
     /* 第一次启动系统的时候，只要不是故障，谁快就按照谁的状态定义总状态，当两组都启动之后，那么seen就会变成3，走下面的逻辑 */
     if (seen == (1u << 0)) 
     { 
-        SET_INPUT(106, g_sys_status_cache[0]); 
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed, g_sys_status_cache[0]); 
         if(g_sys_status_cache[0]==13||g_sys_status_cache[0]==14||g_sys_status_cache[0]==23||g_sys_status_cache[0]==24||
         g_sys_status_cache[0]==25||g_sys_status_cache[0]==27)
         {
-        SET_INPUT(108, SYSStopping);//停止中
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, SYSStopping);//停止中
         }
         else if(g_sys_status_cache[0]==0||g_sys_status_cache[0]==20)
         {
-        SET_INPUT(108, SYSClearFAULT);//配置中
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, SYSClearFAULT);//配置中
         }
         else if(g_sys_status_cache[0]==2||g_sys_status_cache[0]==15||g_sys_status_cache[0]==16||g_sys_status_cache[0]==21
         ||g_sys_status_cache[0]==22)
         {
-        SET_INPUT(108, SYSStarting);//启动中
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, SYSStarting);//启动中
         }
         else 
         {
-        SET_INPUT(108, g_sys_status_cache[0]);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, g_sys_status_cache[0]);
         }
         return;
     }
     if (seen == (1u << 1)) 
     { 
-        SET_INPUT(106, g_sys_status_cache[1]); 
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed, g_sys_status_cache[1]); 
        // LOG_INFO("g_sys_status_cache[1]=%d",g_sys_status_cache[1]);
         if(g_sys_status_cache[1]==13||g_sys_status_cache[1]==14||g_sys_status_cache[1]==23||g_sys_status_cache[1]==24||
         g_sys_status_cache[1]==25||g_sys_status_cache[1]==27)
         {
-        SET_INPUT(108, SYSStopping);//停止中
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, SYSStopping);//停止中
         }
         else if(g_sys_status_cache[1]==0||g_sys_status_cache[1]==20)
         {
-        SET_INPUT(108, SYSClearFAULT);//配置中
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, SYSClearFAULT);//配置中
         }
         else if(g_sys_status_cache[1]==2||g_sys_status_cache[1]==15||g_sys_status_cache[1]==16||g_sys_status_cache[1]==21
         ||g_sys_status_cache[1]==22)
         {
-        SET_INPUT(108, SYSStarting);//启动中
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, SYSStarting);//启动中
         }
         else 
         {
-        SET_INPUT(108, g_sys_status_cache[1]);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, g_sys_status_cache[1]);
         }
         return; 
     }
@@ -3081,30 +3087,30 @@ static void update_global_SYSTEM_STATUS(void)
     //          s1,
     //          sys_state_rank(s1));
 
-    // SET_INPUT(106,
+    // SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed,
     //     (sys_state_rank(s1) > sys_state_rank(s0)) ? s1 : s0);
 
 
-    // LOG_INFO("[GLOBAL106] final106=%d", GET_INPUT(106));
+    // LOG_INFO("[GLOBAL106] final106=%d", GET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed));
     /* 规则 1：任一 sys 是 ALARM，全局 ALARM */
     if (s0 == ALARM || s1 == ALARM) 
     {
-        SET_INPUT(106, ALARM);
-        SET_INPUT(108, ALARM);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed, ALARM);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, ALARM);
         return;
     }
     /* 规则 4：否则任一 sys 是 FAULT FAULT */
-    if (s0 == FAULT || s1 == FAULT||GET_INPUT(107)) 
+    if (s0 == FAULT || s1 == FAULT||GET_INPUT(MVEMS_SYS_INPUT_REG.SystemFaultSummary)) 
     {
-        SET_INPUT(106, FAULT);
-        SET_INPUT(108, FAULT);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed, FAULT);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, FAULT);
         return;
     }
     /* 规则 2：否则任一 sys 是 WARN，全局 WARN */
     if (s0 == WARN || s1 == WARN) 
     {
-        SET_INPUT(106, WARN);
-        SET_INPUT(108, WARN);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed, WARN);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, WARN);
         return;
     }
 
@@ -3112,13 +3118,13 @@ static void update_global_SYSTEM_STATUS(void)
     if (s0 == WARNRUN || s1 == WARNRUN) 
     {
 
-        SET_INPUT(106, WARN);
-        SET_INPUT(108, WARN);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed, WARN);
+        SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, WARN);
         return;
     }
 
     /* 规则 5：否则按 优先级 选一个代表整体的运行态 */
-    SET_INPUT(106, (sys_state_rank(s1) > sys_state_rank(s0)) ? s1 : s0);
+    SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusDetailed, (sys_state_rank(s1) > sys_state_rank(s0)) ? s1 : s0);
     if(g_sys_status_cache[0]==13||g_sys_status_cache[0]==14||g_sys_status_cache[0]==23||g_sys_status_cache[0]==24||
     g_sys_status_cache[0]==25||g_sys_status_cache[0]==27)
     {
@@ -3154,7 +3160,7 @@ static void update_global_SYSTEM_STATUS(void)
 
          s1 = SYSStarting;   
     }
-    SET_INPUT(108, (sys_state_rank_simple(s1) > sys_state_rank_simple(s0)) ? s1 : s0);
+    SET_INPUT(MVEMS_SYS_INPUT_REG.SystemStatusSummary, (sys_state_rank_simple(s1) > sys_state_rank_simple(s0)) ? s1 : s0);
 
 }
 
@@ -3226,7 +3232,7 @@ void SYS_State_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
     if (black_end==1) 
     {
         black_end = 0;
-        for(uint8_t sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+        for(uint8_t sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
         {
         Clear_In_Sys(sys_num);
         Clear_Out_Sys(sys_num);

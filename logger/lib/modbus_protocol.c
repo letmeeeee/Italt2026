@@ -15,6 +15,9 @@
  * ------------------------------------------------------------
  * HISTORY : 2022/09/23 新规
  */
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
 #define _POSIX_C_SOURCE 200809L
 #include "main.h"
 #include "modbus_protocol.h"
@@ -169,7 +172,7 @@ void Modbus_TCP_Write_Single(int socket_fd, INT8U device_id, INT8U cmd_type, INT
     unsigned char SendBuffer[16] = {0};
     char LogStr[100] = {0};
     int j=0;
-    char str_char[2] = "";
+    char str_char[3] = {0};
 
     //事务元识别符，2byte
     SendBuffer[0] = addr.D8[1];
@@ -224,7 +227,7 @@ void Modbus_TCP_Write_Heart(int socket_fd, INT8U device_id, INT8U cmd_type, INT1
     unsigned char SendBuffer[16] = {0};
     char LogStr[100] = {0};
     int j=0;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     //事务元识别符，2byte
     SendBuffer[0] = addr.D8[1];
     SendBuffer[1] = addr.D8[0];
@@ -277,7 +280,7 @@ void Modbus_TCP_Write_Multiple(int socket_fd, INT8U device_id, INT16U start_addr
     unsigned char SendBuffer[256] = {0};
     char LogStr[100] = {0};
     int j=0;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     //事务元识别符，2byte
     SendBuffer[0] = addr.D8[1];
     SendBuffer[1] = addr.D8[0];

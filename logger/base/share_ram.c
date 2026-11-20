@@ -29,7 +29,7 @@
  #define BBMS_SHARE_RAM_PATH "/my_shared_memory_bms"
  // 全局共享内存指针
  static RegistersModel *Ram_Logger = NULL;
- static RegistersModel *Ram_Bms = NULL;
+ static RankModel *Ram_Bms = NULL;
 
 
  // 互斥锁用于多线程同步

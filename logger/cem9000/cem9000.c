@@ -5,7 +5,7 @@ extern  bool Cem9000_Write_Flag;
 extern int  Cem9000_Control_Value;
 extern int Cem9000_Addr;
 
-static void Cem_DataProcess(unsigned char *ptr, int num)
+static void Cem_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[Rec_BUFF_LEN] = {0};
@@ -28,7 +28,7 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
     // 簇数据 读取寄存器返回
     if (pbuf[7] == 0x04 )
     {
-        Set_MEASU_Comm(0,IsNoFault);
+        Set_MEASU_Comm(0,IsNoFault,0);
         // 返回的数据起始地址
         temp.D8[1] = pbuf[0];
         temp.D8[0] = pbuf[1];
@@ -58,7 +58,16 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
                 // LOG_INFO("temp.D16+i:%d,RegVal.D16:%d",temp.D16+i,RegVal.D16);
                 } 
             }
-            else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+            else if((sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_13_8MW) || (sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_6_25MW))
+            {
+                for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)
+                {
+                    RegVal.D8[1] = pbuf[dataddr++];
+                    RegVal.D8[0] = pbuf[dataddr++];
+                    CEM9000_SWEDEN_INPUT(temp.D16+i, RegVal.D16);
+                }
+            }
+            else if ((sys_cfg->measure_protocol[0] == MEASURE_UK_10MW)||(sys_cfg->measure_protocol[0] == MEASURE_UK_5_5MW))
             {
                 for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)
                 {
@@ -88,7 +97,7 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
     }
         else if (pbuf[7] == 0x03 )
     {
-        Set_MEASU_Comm(0,IsNoFault);
+        Set_MEASU_Comm(0,IsNoFault,0);
         // 返回的数据起始地址
         temp.D8[1] = pbuf[0];
         temp.D8[0] = pbuf[1];
@@ -132,7 +141,19 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
                     } 
                     
                 }
-                else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+                else if((sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_13_8MW) || (sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_6_25MW))
+                {
+                    for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)
+                    {
+                        RegVal.D8[1] = pbuf[dataddr++];
+                        RegVal.D8[0] = pbuf[dataddr++];
+                        index = Cem9000_Sweden_INPUT_INDEX(temp.D16+i);
+                        if (index >= 0) {
+                            SET_INPUT(index, RegVal.D16);
+                        }
+                    }
+                }
+                else if ((sys_cfg->measure_protocol[0] == MEASURE_UK_10MW)||(sys_cfg->measure_protocol[0] == MEASURE_UK_5_5MW))
                 {
                     for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < PCS_BUFF_LEN); i++)
                     {
@@ -166,7 +187,7 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
     else if (pbuf[7] == 0x01)
     {   
 
-        Set_MEASU_Comm(0,IsNoFault);        
+        Set_MEASU_Comm(0,IsNoFault,0);        
         temp.D8[1] = pbuf[0];
         temp.D8[0] = pbuf[1];
         startaddr = temp.D16; // 寄存器首地址
@@ -202,8 +223,7 @@ static void Cem_DataProcess(unsigned char *ptr, int num)
 void Cem9000_Task(const char *arg)
 {
     //初始化
-    int measure_num = *((int *)arg);  // 获取值
-
+    const int measure_num = *(const int *)arg;
     sysPara *sys_cfg = SysConf_GetInfo();
     int socket_fd = 0;
     int loop = 0;
@@ -258,7 +278,12 @@ void Cem9000_Task(const char *arg)
                         tmp_size4 = 94;
                         tmp_size2 = cem9000_finland_size2;
                     }
-                    else if (sys_cfg->measure_protocol[0] == MEASURE_UK)
+                    else if((sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_13_8MW) || (sys_cfg->measure_protocol[0] ==MEASURE_SWEDEN_6_25MW))
+                    {
+                        tmp_size4 = cem9000size4;
+                        tmp_size2 = cem9000size2;
+                    }
+                    else if ((sys_cfg->measure_protocol[0] == MEASURE_UK_10MW) || (sys_cfg->measure_protocol[0] == MEASURE_UK_5_5MW))
                     {
                         tmp_size4 = cem9000_uk_size4;
                         tmp_size2 = cem9000_uk_size2;
@@ -335,14 +360,14 @@ void Cem9000_Task(const char *arg)
                  else 
                 {
                     timeout_cnt=0;
-                    Set_MEASU_Comm(0,IsNoFault);                                // PCS通讯正常
+                    Set_MEASU_Comm(0,IsNoFault,0);                                // PCS通讯正常
                 }
                 usleep(50 * 1000);
                 }
                 else
                 {
 
-               Set_MEASU_Comm(0,IsNoFault); //进入对点模式
+               Set_MEASU_Comm(0,IsNoFault,0); //进入对点模式
                 usleep(50 * 1000);
 
                 }

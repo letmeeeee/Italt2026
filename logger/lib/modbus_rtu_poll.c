@@ -359,7 +359,7 @@ void Modbus_RTU_POLL(INT8U *send_buf,poll_data_str *p1,INT8U *rx_buf,int fd)
                     if(rx_buf[x]==p1->slave_id)                                         //判断设备ID
                     {
                         crc_value=crc16(rx_buf+x,receive_lenth-x-2);
-                        if(crc_value==(rx_buf[receive_lenth-2]<<0)|(rx_buf[receive_lenth-1]<<8))    //判断CRC的值
+                        if(crc_value==((rx_buf[receive_lenth-2]<<0)|(rx_buf[receive_lenth-1]<<8)))    //判断CRC的值
                         {
                             switch((rx_buf[x+1]))
                             {   

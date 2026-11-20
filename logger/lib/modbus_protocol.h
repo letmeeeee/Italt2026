@@ -286,6 +286,9 @@ INT8U CRC_Check(const INT8U *data);
 //命令下发后延迟时间，单位ms
 #define CMD_DELAY_0                (0)            //0ms延时
 #define CMD_DELAY_5                (5 * 1000)            //10ms延时
+#define CMD_DELAY_10               (10 * 1000) //命令下发后延迟读取
+#define CMD_DELAY_15              (15 * 1000) //命令下发后延迟读取
+
 #define CMD_DELAY_20               (20* 1000)            //10ms延时
 #define CMD_DELAY_50              (50* 1000)            //10ms延时
 #define CMD_DELAY_100              (100 * 1000)   //200ms延时

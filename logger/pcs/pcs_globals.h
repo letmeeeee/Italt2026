@@ -3,13 +3,12 @@
 
 #include <stdbool.h>
 
-#define PCS_MAX_NUM 10
 
-extern bool PCS_Write_Flag[PCS_MAX_NUM];
-extern int PCSWrite_Lenth[PCS_MAX_NUM];
-extern int PCSaddr[PCS_MAX_NUM];
-extern int PCSvalue[PCS_MAX_NUM];
-extern int PCSactivepower[PCS_MAX_NUM];
-extern int PCSPF[PCS_MAX_NUM];
+extern bool PCS_Write_Flag[10];
+extern int PCSWrite_Lenth[10];
+extern int PCSaddr[10];
+extern int PCSvalue[10];
+extern int PCSactivepower[10];
+extern int PCSPF[10];
 
 #endif

@@ -26,6 +26,6 @@ void Serial_Devie_Set_Mode(void);
  * @brief 串口设备任务处理
  * @param[in] item 串口序号
  */
-void Serial_Device_Task(INT8U port_num);
+void *Serial_Device_Task(void *arg);
 
 #endif // SERIAL_DEVICE_TASK_H

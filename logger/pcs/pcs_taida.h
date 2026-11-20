@@ -31,8 +31,8 @@ void PCS_Taida_Task(const char *arg);
 #define PCS_Master_Taida_addr8      (30237-30001) 
 #define PCS_Master_Taida_size8      (30249-30237+1)    //Slave System Fault Word1~Slave Controller Warning Word1 
 
-#define PCS_Master_Taida_addr9     (30045-30001) 
-#define PCS_Master_Taida_size9      (30051-30045+1)    //PCS Time Year~PCS Time mSec 
+#define PCS_Master_Taida_time_addr    (30045-30001) 
+#define PCS_Master_Taida_time_size    (30051-30045+1)    //PCS Time Year~PCS Time mSec 
 
 #define Each_PCS_Taida_addr1     (30185-30001)  
 #define Each_PCS_Taida_size1     (30210-30185+1)   //Module1 Battery Voltage ~PCS Rated Capacity

@@ -171,6 +171,9 @@ void  BMS_G2pro_Task(const char *_num);
 #define G2PROBank_block_addr17    (0x0621)  //BAU干接点状态
 #define G2PROBank_block_size17    (2)
 
+#define G3Bank_block_addr17       (0x0637)  //G3 BAU干接点状态
+#define G3Bank_block_size17       (1)
+
 // #define G2PROBank_block_addr16    (0x720)  
 // #define G2PROBank_block_size16    (0x72F-0x720+1)
 
@@ -226,9 +229,8 @@ void  BMS_G2pro_Task(const char *_num);
  //读写定义
  #define Rack_XIE_CMD_REPEAT      (30)    //命令尝试次数
  #define Rack_XIE_BUFF_LEN        (300)   //BMS收发缓存长度
- #define CMD_DELAY_50               (50 * 1000) //命令下发后延迟读取
-  #define CMD_DELAY_15              (15 * 1000) //命令下发后延迟读取
-  #define CMD_DELAY_10               (10 * 1000) //命令下发后延迟读取
+
+ 
 //  extern INT8U volatile Bms_Contactor_Lock[MAX_BMS_NUM] = {0};
 
 // //ini中获取的片数据的大小

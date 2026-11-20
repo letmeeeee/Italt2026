@@ -351,7 +351,7 @@ static void server_handle_data_body(int fd)
                         
                     }
                      //英国项目
-                    else if(sys_cfg->measure_protocol[0] == MEASURE_UK)
+                    else if((sys_cfg->measure_protocol[0] ==MEASURE_UK_10MW)||(sys_cfg->measure_protocol[0] ==MEASURE_UK_5_5MW))
                     {
                         if(Temp.D16==33201&&RegVal.D16==1)
                         {
@@ -394,7 +394,7 @@ static void server_handle_data_body(int fd)
                         }
 
                     }
-                for (INT8U sys_num=0; (sys_num < sys_cfg->sysNum); sys_num++)
+                for (INT8U sys_num=0; ((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM)); sys_num++)
                 {
                     if (Temp.D16 == (27000 + 300 * sys_num + 103)) {
                         if (RegVal.D16==1) Set_In_Sys(sys_num, SYS_EVENT_CMD_START);
@@ -407,13 +407,13 @@ static void server_handle_data_body(int fd)
                 SUB_State_ENUM state = Get_State_Sys(0);
 
                 if (sys_cfg->pcs_brand[0] == PCS_PE) {
-                    if (state == SYSRun) {
+                    if ((int)state == SYSRun) {
                         if      (Temp.D16 == 27000) pcsnum = 0;
                         else if (Temp.D16 == 27300) pcsnum = 1;
                     }
                 }
                 else if (sys_cfg->pcs_brand[0] == PCS_TRINA) {
-                    if (state == SYSRun) {
+                    if ((int)state == SYSRun) {
                         if (Temp.D16 >= 27000 && Temp.D16 <= 28235) pcsnum = 0;
                     }
                 }
@@ -571,6 +571,9 @@ static void server_handle_XXTEAdata_body(int fd)
             if (6 + len != (INT16U)numbytes)
             {
                 LOG_INFO("enc frame len mismatch: MBAP len=%u, total=%d", len, numbytes);
+                if (fd > 0) close(fd);
+                free(pTimeCnt);
+                free(pConnectID);
                 return;
             }
             INT8U uid = (INT8U)buffer[6];
@@ -582,6 +585,9 @@ static void server_handle_XXTEAdata_body(int fd)
             {
                 // 4B 对齐且 >= 8
                 LOG_INFO("enc payload invalid len=%zu", cipher_len);
+                 if (fd > 0) close(fd);
+                free(pTimeCnt);
+                free(pConnectID);
                 return;
             }
 
@@ -590,6 +596,9 @@ static void server_handle_XXTEAdata_body(int fd)
     INT8U pdu[512];
     if (!xxtea_decrypt_bytes(pdu, cipher, cipher_len, xxkey)) {
         LOG_INFO("xxtea decrypt failed");
+        if (fd > 0) close(fd);
+        free(pTimeCnt);
+        free(pConnectID);
         return;
     }
 
@@ -833,7 +842,7 @@ static void server_handle_XXTEAdata_body(int fd)
                 //     else if (Temp.D16 == 33200 && RegVal.D16 == 0xEE) { Cem9000_Write_Flag = true; Cem9000_Addr = 2001; Cem9000_Control_Value = 0xFF00; }
                 //     else if (Temp.D16 == 33201) { Cem9000_Write_Flag = true; Cem9000_Addr = 2002; Cem9000_Control_Value = 0xFF00; }
 
-                //     for (INT8U sys_num = 0; (sys_num < sys_cfg->sysNum); sys_num++)
+                //     for (INT8U sys_num = 0; ((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM)); sys_num++)
                 //     {
                 //         if (Temp.D16 == (27000 + 300 * sys_num + 103))
                 //         {
@@ -922,7 +931,7 @@ static void server_handle_XXTEAdata_body(int fd)
     connect_ID_min = UINT_MAX;
     free(pTimeCnt);
     free(pConnectID);
-    return NULL;
+    return;
 }
 
 

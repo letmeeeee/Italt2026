@@ -159,9 +159,25 @@ extern "C" {
 //测控协议类型
 #define MEASURE_ITALY_10MW      (1)     //意大利项目10MW
 #define MEASURE_ITALY_5_5MW     (2)     //意大利项目10MW
-#define MEASURE_FINLAND_KORK    (3)     //EU-芬兰Korkeamaa-110MW/240.72MWh
-#define MEASURE_FINLAND_KAN     (4)    //EU-芬兰Kannisto-125MW/270.81MWh
-#define MEASURE_UK              (5)     //英国10MW项目
+
+#define MEASURE_FINLAND_KAN     (3)     //EU-芬兰Kannisto-125MW/270.81Mwh
+#define MEASURE_FINLAND_KORK    (4)     //EU-芬兰Korkeamaa-110MW/240.72MWh
+#define MEASURE_UK_10MW         (5)     //英国10Mw项目
+#define MEASURE_UK_5_5MW        (6)     //英国5.5Mw项目
+#define MEASURE_SWEDEN_13_8MW   (7)     //瑞典4PCS项目
+#define MEASURE_SWEDEN_6_25MW   (8)     //瑞典2PCs项目
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // 按字节对齐

@@ -43,17 +43,18 @@ Do_System("setinterface /dev/ttyMI7 1", 1);
 usleep(20);
 }
 
-void Serial_Device_Task(INT8U port_num)
+void *Serial_Device_Task(void *arg)
 {
 // 初始化
 //  const int port_num = (*(int*)item);
+const int port_num = *(const int *)arg;
 sysPara *sys_cfg = SysConf_GetInfo();
 int ttyPort = 0;
 ThreadConfirm(__func__);
 if (port_num >= MAX_SERIAL_NUM)
 {
 LOG_INFO("串口端口设定超限, port_num:%d", port_num);
-return;
+return NULL;
 }
 // 串口初始化
 volatile int baudrate = sys_cfg->serial_baud[port_num];
@@ -65,7 +66,7 @@ if (ttyPort < 0)
 {
 LOG_INFO("不能打开串口 port %d, %d, %d, %d, %c, errno:%d", port_num, baudrate, databit, stopbit, parity, errno);
 Serial_CloseComPort(ttyPort);
-return;
+return NULL;
 }
 else
 {
@@ -103,7 +104,10 @@ if (dev_group->dev_type == MV_UPS)
 LOG_INFO("创建串口线程");
 start_routine = (void *)MV_UPS_Task;
 }
-
+if (start_routine == NULL) {
+    LOG_INFO("未识别的串口设备类型 %d, 跳过", dev_group->dev_type);
+    continue;                       // 不创建线程
+}
 
 LOG_INFO("创建中的是%d",dev_group->dev_fd );
 // 创建任务线程
@@ -131,4 +135,5 @@ while (1)
 // 线程重启功能
 sleep(10); // 延时
 }
+return NULL;
 }

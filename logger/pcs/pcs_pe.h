@@ -58,14 +58,14 @@ void PCS_PE_Task(const char *arg);
 #define PCS_PEsize16     (1) 
 
 
-#define PCS_PEaddr14     (6637) 
-#define PCS_PEsize14      (1) 
+// #define PCS_PEaddr14     (6637) 
+// #define PCS_PEsize14      (1) 
 
-#define PCS_PEaddr15      (1104) 
-#define PCS_PEsize15     (1)  
+// #define PCS_PEaddr15      (1104) 
+// #define PCS_PEsize15     (1)  
 
-#define PCS_PEaddr16     (281) 
-#define PCS_PEsize16     (1) 
+// #define PCS_PEaddr16     (281) 
+// #define PCS_PEsize16     (1) 
 
 
 #define PCS_PEaddr17     (281) 

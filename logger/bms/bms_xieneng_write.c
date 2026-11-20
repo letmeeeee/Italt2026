@@ -7,11 +7,11 @@ extern int Bank_Addr_Base;
 extern int Bank_addr;
 int socket_Bank[10]={0};
 static bool firstreadenable;//只在开机的时候读取一次，后续如果有设置，可以直接从GET_HOID中获取
-void* Bank_XIE_Write_Task(const char *arg);
-void  BMS_XieNeng_write_Task(const char *_num)
+void* Bank_XIE_Write_Task(void *arg);
+void*  BMS_XieNeng_write_Task(void *arg)
 {
     //初始化
-    const char bms_num = *((int*)_num);
+    const int bms_num = *(const int *)arg;
   
     sysPara* sys_cfg = SysConf_GetInfo();
     int recv_bytes = 0;
@@ -77,7 +77,7 @@ if(BMS_Write_Flag==true)
   
 
 }
-static void Bank_XIE_Write_DataProcess(unsigned char *ptr, int num)
+static void Bank_XIE_Write_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[Rack_XIE_BUFF_LEN] = {0};
@@ -157,12 +157,12 @@ static void Bank_XIE_Write_DataProcess(unsigned char *ptr, int num)
         DebugModbusBuf("BMS Invalid data!\n", pbuf, 30);
     }
 }
-void* Bank_XIE_Write_Task(const char *arg) {
+void* Bank_XIE_Write_Task(void *arg) {
     
 
     sysPara *sys_cfg = SysConf_GetInfo();
 
-    int bms_num = *((int *)arg);  // 获取值
+    const int bms_num = *(const int *)arg;  // 获取值
 
 
     LOG_INFO("Bank write task started for BMS-%d", bms_num);
@@ -171,7 +171,7 @@ void* Bank_XIE_Write_Task(const char *arg) {
     INT8U is_jump = 0;
     int read_recv_res = 0;
     int i, j;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     INT8U Task_Is_Over = 0;
     INT8U status;
  
@@ -265,5 +265,5 @@ void* Bank_XIE_Write_Task(const char *arg) {
         }
     }
     close(socket_Bank[bms_num]);
-    return;
+    return NULL;
 }

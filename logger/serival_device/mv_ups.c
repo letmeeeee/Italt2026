@@ -88,7 +88,7 @@ void MV_UPS_DataProcess(poll_data_str *p1)
 
 if(p1->cmd_type==0x03)
 {
- Set_UPS_Comm(0, IsNoFault); 
+ Set_UPS_Comm(0, IsNoFault,0); 
 
 
 for (int i = 0; i < p1->register_num; i++)

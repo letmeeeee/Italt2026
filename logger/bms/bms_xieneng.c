@@ -1,4 +1,7 @@
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
 #define _POSIX_C_SOURCE 200809L
 #include "main.h"
 #include "bms_xieneng.h"
@@ -15,7 +18,7 @@ pthread_mutex_t socket_mutex = PTHREAD_MUTEX_INITIALIZER; //互斥锁
 //ini中获取的片数据的大小
 int Ini_Rack_Blank_Size[MAX_BMS_NUM][14] = {0};
 
-void* Bank_XIE_Read_Task(const char *arg);
+void* Bank_XIE_Read_Task(void *arg);
 
 void* Rank0_5_XIE_Read_Task(const char *arg);
 
@@ -26,7 +29,7 @@ void* Bank_XIE_HB_Task(const char *arg);
  * @param[in] ptr-接收到的缓冲区指针
  * @param[in] num-BMS序号，0代表第一台
  */
-static void Bank_XIE_DataProcess(unsigned char *ptr, int num)
+static void Bank_XIE_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[Rack_XIE_BUFF_LEN] = {0};
@@ -170,7 +173,7 @@ static void Bank_XIE_DataProcess(unsigned char *ptr, int num)
  * @param[in] ptr-接收到的缓冲区指针
  * @param[in] num-BMS序号，0代表第一台
  */
-static void XIE_DataProcess(unsigned char *ptr, int num)
+static void XIE_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[Rack_XIE_BUFF_LEN] = {0};
@@ -209,7 +212,7 @@ static void XIE_DataProcess(unsigned char *ptr, int num)
         {
             is_ok = false;
         }
-        else if ((temp.D16 >= 8193) && (temp.D16 < 8239)||(temp.D16)==12812)
+        else if (((temp.D16 >= 8193) && (temp.D16 < 8239))||(temp.D16)==12812)
         {
      
             for (i = 0; (i < (pbuf[8]/2)) && ((i*2) < Rack_XIE_BUFF_LEN); i++)           
@@ -316,12 +319,12 @@ void  BMS_XieNeng_Task(const char *_num)
 }
 
 //读取BMS的BANK信息
-void* Bank_XIE_Read_Task(const char *arg) {
+void* Bank_XIE_Read_Task(void *arg) {
     
 
     sysPara *sys_cfg = SysConf_GetInfo();
 
-    int bms_num = *((int *)arg);  // 获取值
+    const int bms_num = *(const int *)arg; // 获取值
 
     INT8U hb;
     LOG_INFO("Bank task started for BMS-%d", bms_num);
@@ -330,7 +333,7 @@ void* Bank_XIE_Read_Task(const char *arg) {
     INT8U is_jump = 0;
     int read_recv_res = 0;
     int i, j;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     INT8U timeout_cnt=0;
 
     Bms_Contactor_Lock[bms_num] = OFF;
@@ -533,7 +536,7 @@ void* Bank_XIE_Read_Task(const char *arg) {
         }
     }
     close(socket_Bank);
-    return;
+    return NULL;
 }
 void* Rank0_5_XIE_Read_Task(const char *arg) {
     sysPara *sys_cfg = SysConf_GetInfo();
@@ -548,7 +551,7 @@ void* Rank0_5_XIE_Read_Task(const char *arg) {
     int read_recv_res = 0;
     int i, j;
     int socket_Rack0_5 = 0;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     Bms_Contactor_Lock[bms_num] = OFF;
     INT8U Task_Is_Over = 0;
     INT8U status;
@@ -755,7 +758,7 @@ void* Rank0_5_XIE_Read_Task(const char *arg) {
         }
     }
     close(socket_Rack0_5);
-    return;
+    return NULL;
 }
 //读取BMS的6~10簇信息
 void* Rank6_10_XIE_Read_Task(const char *arg) {
@@ -771,7 +774,7 @@ void* Rank6_10_XIE_Read_Task(const char *arg) {
     int read_recv_res = 0;
     int i,j;
     int socket_Rack6_10 = 0;
-    char str_char[2] = "";
+    char str_char[3] = {0};
     Bms_Contactor_Lock[bms_num] = OFF;
     INT8U Task_Is_Over = 0;
     INT8U status;
@@ -1004,7 +1007,7 @@ void* Rank6_10_XIE_Read_Task(const char *arg) {
         }
     }
 close(socket_Rack6_10);
-return;
+return NULL;
 }
 }
 /*BMS心跳包发送*/

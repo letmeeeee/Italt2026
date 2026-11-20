@@ -10,23 +10,22 @@
 /*
  * 更新两组PCS，共四台PCS、八个支路。
  *
- * 源地址：
- *   sourceBase = 2600 + 300 * (n - 1)
+ * 源地址（点表 PCS_TRINA_MODULE_INPUT_REG[n-1]，即 2600 + 300*(n-1)）：
  *   第一组：n = 1、2
  *   第二组：n = 3、4
  *
- * 目标地址：
- *   targetBase = 17000 + 300 * group
+ * 目标地址（点表 PCS_TRINA_GROUP_INPUT_REG[group]，即 17000 + 300*group）：
  *   group = 0：第一组
  *   group = 1：第二组
  *
- * 每组目标地址偏移：
- *   +200～203：四个支路故障，0=无，1=有
- *   +204～207：四个支路告警，0=无，1=有
- *   +208～211：四个支路状态
- *   +212～215：四个支路频率
- *   +216～227：四个支路三相电压，每支路依次为R、S、T
- *   +228～231：四个支路功率
+ * 每组目标成员（均为 4 个直流通道的连续区间，Start + 支路索引）：
+ *   DCChannelFault          +200～203：四个支路故障，0=无，1=有
+ *   DCChannelAlarm          +204～207：四个支路告警，0=无，1=有
+ *   DCChannelStatus         +208～211：四个支路状态
+ *   DCChannelIslandFreq     +212～215：四个支路频率
+ *   DCChannelGridVolt       +216～227：四个支路三相电压，每支路依次为R、S、T
+ *   DCChannelActivePower    +228～231：四个支路功率
+ *   DCChannelBlackStartRef  +236～239：四个支路黑启动状态反馈
  *
  * 每组支路顺序：
  *   第一台PCS支路1、第一台PCS支路2、
@@ -52,17 +51,14 @@ void UpdateTrinaPCStoEMS(void)
     uint16_t pcs;
     uint16_t branch;
     uint16_t blackstart_state;
+    uint16_t droop_pq;
     for (group = 0U; group < PCS_GROUP_COUNT; group++)
     {
-        uint16_t targetBase;
-
-        /* 第一组17000，第二组17300 */
-        targetBase = 17000U + 300U * group;
+        /* 目标组：PCS_TRINA_GROUP_INPUT_REG[group]，即 17000 / 17300 */
 
         for (pcs = 0U; pcs < PCS_PER_GROUP; pcs++)
         {
-            uint16_t n;
-            uint16_t sourceBase;
+            uint16_t srcIdx;
 
             uint16_t faultReg;
             uint16_t alarmReg;
@@ -75,28 +71,27 @@ void UpdateTrinaPCStoEMS(void)
             uint16_t branchPower[2];
 
             /*
-             * 第一组：n=1、2
-             * 第二组：n=3、4
+             * 第一组：n=1、2（点表 #1、#2）
+             * 第二组：n=3、4（点表 #3、#4）
              */
-            n = group * PCS_PER_GROUP + pcs + 1U;
-
-            sourceBase = 2600U + 300U * (n - 1U);
+            srcIdx = group * PCS_PER_GROUP + pcs;
 
             /* 读取当前PCS的故障、告警及运行状态 */
-            faultReg = GET_INPUT(sourceBase + 26U);
-            alarmReg = GET_INPUT(sourceBase + 27U);
-            runReg   = GET_INPUT(sourceBase + 100U);
+            faultReg = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].MsCtrlDspFaultTable4);
+            alarmReg = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].MsCtrlDspWarningTable1);
+            runReg   = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].SystemRunStatus);
             /*黑启动状态反馈*/
-            blackstart_state= GET_INPUT(sourceBase + 39U);
+            blackstart_state = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].BlackStartState);
+            droop_pq = GET_HOLD(PCS_TRINA_HOLD_REG[srcIdx].Droop_PQ);
             /* 读取当前PCS的电网频率、三相电压 */
-            gridFreq = GET_INPUT(sourceBase + 106U);
-            rVoltage = GET_INPUT(sourceBase + 103U);
-            sVoltage = GET_INPUT(sourceBase + 104U);
-            tVoltage = GET_INPUT(sourceBase + 105U);
+            gridFreq = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].GridFrequencyPCC);
+            rVoltage = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].GridVoltageRSPCC);
+            sVoltage = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].GridVoltageSTPCC);
+            tVoltage = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].GridVoltageTRPCC);
 
-            /* 分别读取两个支路的功率 */
-            branchPower[0] = GET_INPUT(sourceBase + 141U);
-            branchPower[1] = GET_INPUT(sourceBase + 148U);
+            /* 分别读取两个支路的功率（点表：电池功率 J1 / J2） */
+            branchPower[0] = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].BatteryPowerJ1);
+            branchPower[1] = GET_INPUT(PCS_TRINA_MODULE_INPUT_REG[srcIdx].BatteryPowerJ2);
 
             for (branch = 0U; branch < 2U; branch++)
             {
@@ -157,13 +152,15 @@ void UpdateTrinaPCStoEMS(void)
                 index = pcs * 2U + branch;
 
                 /* 映射故障、告警、支路状态 */
-                SET_INPUT(targetBase + 200U + index,fault);
-                SET_INPUT(targetBase + 204U + index,alarm);
-                SET_INPUT(targetBase + 208U + index,state);
-                SET_INPUT(targetBase + 236U + index,blackstart_state);
+                SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[group].DCChannelFault.Start + index, fault);
+                SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[group].DCChannelAlarm.Start + index, alarm);
+                SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[group].DCChannelStatus.Start + index, state);
+                SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[group].DCChannelBlackStartRef.Start + index,
+                          blackstart_state);
                 /* 映射频率：同一台PCS两个支路使用相同值 */
-                SET_INPUT(targetBase + 212U + index,gridFreq);
-
+                SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[group].DCChannelIslandFreq.Start + index, gridFreq);
+                /*映射下垂转PQ模式：同一台PCS两个支路使用相同值*/
+                SET_HOLD(PCS_TRINA_GROUP_HOLD_REG[group].Droop_pq.Start + index, droop_pq);
                 /*
                  * 映射三相电压，每个支路占3个寄存器：
                  * index=0：+216、217、218
@@ -171,39 +168,52 @@ void UpdateTrinaPCStoEMS(void)
                  * index=2：+222、223、224
                  * index=3：+225、226、227
                  */
-                voltageAddr = targetBase + 216U + index * 3U;
+                voltageAddr = PCS_TRINA_GROUP_INPUT_REG[group].DCChannelGridVolt.Start
+                              + index * 3U;
 
                 SET_INPUT(voltageAddr,rVoltage);
                 SET_INPUT(voltageAddr + 1U,sVoltage);
                 SET_INPUT(voltageAddr + 2U,tVoltage);
 
                 /* 映射当前支路功率 */
-                SET_INPUT(targetBase + 228U + index,branchPower[branch]);
+                SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[group].DCChannelActivePower.Start + index,
+                          branchPower[branch]);
             }
         }
     }
 }
 INT16U TrinaPCSLCtoEMSaddr(INT16U recvAddr)
 {
-    switch (recvAddr)
+    /*
+     * 直流通道开/关命令（点表 PCS_TRINA_CTRL_REG[n].DCChannelXOnOffCmd，
+     * 即 27000 + 300*n + 200~203）映射到对应 PCS 的开机指令
+     * （点表 PCS_TRINA_HOLD_REG[m].PowerOnCommand，即 12000 + 700*m + 1）。
+     * 每台 PCS 的前两个通道归一台 PCS，后两个通道归下一台 PCS。
+     * 注：case 标签不能用 const 数组取值，故改用 if 判断。
+     */
+    if ((recvAddr == PCS_TRINA_CTRL_REG[0].DCChannel1OnOffCmd) ||
+        (recvAddr == PCS_TRINA_CTRL_REG[0].DCChannel2OnOffCmd))
     {
-        case 27000 + 200:
-        case 27000 + 201:
-            return 12000 + 1;
-
-        case 27000 + 202:
-        case 27000 + 203:
-            return 12000 + 700 + 1;
-
-        case 27000 + 200 + 300:
-        case 27000 + 201 + 300:
-            return 12000 + 700 + 700 + 1;
-
-        case 27000 + 202 + 300:
-        case 27000 + 203 + 300:
-            return 12000 + 700 + 700 + 700 + 1;
-
-        default:
-            return recvAddr;
+        return PCS_TRINA_HOLD_REG[0].PowerOnCommand;
     }
+
+    if ((recvAddr == PCS_TRINA_CTRL_REG[0].DCChannel3OnOffCmd) ||
+        (recvAddr == PCS_TRINA_CTRL_REG[0].DCChannel4OnOffCmd))
+    {
+        return PCS_TRINA_HOLD_REG[1].PowerOnCommand;
+    }
+
+    if ((recvAddr == PCS_TRINA_CTRL_REG[1].DCChannel1OnOffCmd) ||
+        (recvAddr == PCS_TRINA_CTRL_REG[1].DCChannel2OnOffCmd))
+    {
+        return PCS_TRINA_HOLD_REG[2].PowerOnCommand;
+    }
+
+    if ((recvAddr == PCS_TRINA_CTRL_REG[1].DCChannel3OnOffCmd) ||
+        (recvAddr == PCS_TRINA_CTRL_REG[1].DCChannel4OnOffCmd))
+    {
+        return PCS_TRINA_HOLD_REG[3].PowerOnCommand;
+    }
+
+    return recvAddr;
 }

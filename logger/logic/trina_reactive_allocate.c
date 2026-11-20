@@ -4,8 +4,12 @@
 
 #include "main.h"
 
-
-
+/* ============================================================================================
+ * 点表地址约定（天合自研 PCS V1.00，具体数值见 base/address_map.c）：
+ *   保持寄存器       PCS_TRINA_HOLD_REG[n]        12000 + 700 * n
+ *   组输入(直流通道) PCS_TRINA_GROUP_INPUT_REG[g] 17000 + 300 * g
+ * 本文件只涉及天合 PCS，不涉及台达点表。
+ * ==========================================================================================*/
 
 
 static float Trina_MV_U16ToSignedFloat(uint16_t raw)
@@ -21,10 +25,14 @@ static void Trina_MV_CalcPCSActivePower(Trina_MV_Power_Distribution *r)
 {
     if (!r) return;
     memset(r, 0, sizeof(*r));
-    r->pcs1_p_set = (int16_t)Trina_MV_U16ToSignedFloat(GET_HOLD(12004));
-    r->pcs2_p_set = (int16_t)Trina_MV_U16ToSignedFloat(GET_HOLD(12704));
-    r->pcs3_p_set = (int16_t)Trina_MV_U16ToSignedFloat(GET_HOLD(13404));
-    r->pcs4_p_set = (int16_t)Trina_MV_U16ToSignedFloat(GET_HOLD(14104));
+    r->pcs1_p_set = (int16_t)Trina_MV_U16ToSignedFloat(
+        GET_HOLD(PCS_TRINA_HOLD_REG[0].ActivePowerSetpoint));
+    r->pcs2_p_set = (int16_t)Trina_MV_U16ToSignedFloat(
+        GET_HOLD(PCS_TRINA_HOLD_REG[1].ActivePowerSetpoint));
+    r->pcs3_p_set = (int16_t)Trina_MV_U16ToSignedFloat(
+        GET_HOLD(PCS_TRINA_HOLD_REG[2].ActivePowerSetpoint));
+    r->pcs4_p_set = (int16_t)Trina_MV_U16ToSignedFloat(
+        GET_HOLD(PCS_TRINA_HOLD_REG[3].ActivePowerSetpoint));
 }
 
 
@@ -116,8 +124,21 @@ static void Trina_MV_Q_ReadPCSInfo(
         Trina_PCS_Q_Info *master2, Trina_PCS_Q_Info *slave2)
 {
     Trina_PCS_Q_Info *info[4] = {master1, slave1, master2, slave2};
-    const uint16_t states[4] = {17208u, 17210u, 17508u, 17510u};
-    const uint16_t faults[4] = {17200u, 17202u, 17500u, 17502u};
+    /* 直流通道1~4：状态/故障各自连续 4 个寄存器，两台 PCS 分别占 2 个。
+     * 组1 -> PCS1(17200~17203 / 17208~17211)，组2 -> PCS3(17500~17503 / 17508~17511)。
+     */
+    const uint16_t states[4] = {
+        PCS_TRINA_GROUP_INPUT_REG[0].DCChannelStatus.Start,
+        (uint16_t)(PCS_TRINA_GROUP_INPUT_REG[0].DCChannelStatus.Start + 2u),
+        PCS_TRINA_GROUP_INPUT_REG[1].DCChannelStatus.Start,
+        (uint16_t)(PCS_TRINA_GROUP_INPUT_REG[1].DCChannelStatus.Start + 2u)
+    };
+    const uint16_t faults[4] = {
+        PCS_TRINA_GROUP_INPUT_REG[0].DCChannelFault.Start,
+        (uint16_t)(PCS_TRINA_GROUP_INPUT_REG[0].DCChannelFault.Start + 2u),
+        PCS_TRINA_GROUP_INPUT_REG[1].DCChannelFault.Start,
+        (uint16_t)(PCS_TRINA_GROUP_INPUT_REG[1].DCChannelFault.Start + 2u)
+    };
     uint16_t power[4] = {master1_p_raw, slave1_p_raw,
                          master2_p_raw, slave2_p_raw};
     uint16_t i;
@@ -162,9 +183,9 @@ static void Trina_AllocateGroupQ(int32_t target, uint16_t cap1,
 static uint16_t Trina_QKvarToPermille(uint16_t q_raw)
 {
     int32_t q = (q_raw <= 32767u) ? (int32_t)q_raw : (int32_t)q_raw - 65536L;
-    int32_t pm = q * 100L / 3556L;
-    if (pm > 100L) pm = 100L;
-    else if (pm < -100L) pm = -100L;
+    int32_t pm = q * 1000L / 3556L;
+    if (pm > 1200L) pm = 1200L;
+    else if (pm < -1200L) pm = -1200L;
     return (uint16_t)pm;
 }
 
@@ -205,8 +226,10 @@ void Trina_MV_ReactivePowerControl(uint16_t total_q_cmd,
     result->group1_q_max = group1;
     result->group2_q_max = group2;
     result->balance_q_max = balance;
-    SET_INPUT(17031, balance);
-    SET_INPUT(17331, balance);
+    /* 组平衡无功能力回写到组输入段 +31（点表未定义该点，沿用原偏移）。 */
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[0].Base + 31, balance);
+    SET_INPUT(PCS_TRINA_GROUP_INPUT_REG[1].Base + 31, balance);
+    /* 117 为 EMS 系统级寄存器，不属于 PCS 点表，保持原地址。 */
     SET_INPUT(117, (uint16_t)(2u * balance));
     /* 任意组无能力时两组均为零。 */
     if (!balance) return;

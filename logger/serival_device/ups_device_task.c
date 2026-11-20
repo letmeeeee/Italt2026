@@ -96,7 +96,7 @@ void MHC_UPS_DataProcess(const INT8U* pbuf, const INT8U ups_index)
                  &float_arry[0], &float_arry[1], &float_arry[2], &int_data, &float_arry[3], &float_arry[4], &float_arry[5], ups_state);
     if (ret != EOF) {
         //通讯正常
-        Set_UPS_Comm(ups_index, IsNoFault);
+        Set_UPS_Comm(ups_index, IsNoFault,0);
         //UPS参数
         SystemTotalData[53602 + ups_index * 10].D16 = float_arry[0] * 10;  //输入电压: MMM.M
         SystemTotalData[53608 + ups_index * 10].D16 = float_arry[1] * 10;  //上次转电池放电时电压: NNN.N

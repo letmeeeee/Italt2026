@@ -5,7 +5,7 @@
 #include "state_task.h"
 #include "blackstart_sys.h"
 #include <stdarg.h>
-
+#include "taida_lc_ems.h"
 
 static void slave_pcs_clear_points_on_fault(int pcs);
 static void pcs_clear_points_on_fault(int pcs_group);
@@ -20,7 +20,7 @@ static uint64_t clear_req_ts[MAX_SYS_NUM]  = {0};
 static INT32U last_time[MAX_SYS_NUM]; 
 
 
-#define MAX_PCS 4
+//#define MAX_PCS 4
 
 
 static INT8U  s_prev_comm_fault[MAX_PCS] = {0};  /* 0:正常, 1:故障 */
@@ -185,10 +185,15 @@ const static StateSYSform trina_state_list[] = {
 };
 #define LIST_SIZE (sizeof(state_list) / sizeof(StateSYSform))
 
-#define LIST_SIZE (sizeof(trina_state_list) / sizeof(StateSYSform))
+#define TRINA_LIST_SIZE (sizeof(trina_state_list) / sizeof(StateSYSform))
 
 
-
+static  INT8U Debug_State_Sys(INT8U sys_num, INT8U sta)
+{
+    (void)sys_num;
+    INT8U debug_sta = 0;
+    return (debug_sta == sta) ? 1 : 0;
+}
 /**
  * @brief 初始化事件检查函数
  * @details 检查并处理系统初始化相关事件，包括事件队列初始化和初始化超时检测
@@ -727,8 +732,13 @@ static void Event_Wait_Trina_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State
         }
     }
 
-    if ((is_no_stopped == 0) &&
-        (((PCS1_state_stop)||((PCS1_state_fault)||(PCS1_state_emergency_stop)||(PCS1_state==0)))&& ((PCS2_state_stop))||(PCS2_state_fault)||(PCS2_state_emergency_stop)||(PCS1_state==0))||
+    /* PCS1 停机条件：停机、故障、急停或状态字为 0 */
+    INT8U pcs1_stopped = (INT8U)(PCS1_state_stop || PCS1_state_fault || PCS1_state_emergency_stop || (PCS1_state == 0));
+    /* PCS2 停机条件：故障/急停/状态字为 0 单独有效；停机位需同时满足 PCS1 条件 */
+    INT8U pcs2_stopped = (INT8U)((pcs1_stopped && PCS2_state_stop) || PCS2_state_fault ||
+                                 PCS2_state_emergency_stop || (PCS2_state == 0));
+
+    if (((is_no_stopped == 0) && pcs2_stopped) ||
         (Debug_State_Sys(sys_num, SYS_EVENT_WAIT_STOPED) == 1))
     {
         last_time[sys_num] = Timer_GetTick();
@@ -740,7 +750,7 @@ static void Event_Wait_Trina_Stopped_Check(INT16U *eid, INT8U sys_num, SYS_State
     }
 }
 
-#define WARN_DEBOUNCE_TICKS_100ms   (10)   /* 10ms tick -> 5s */
+//#define WARN_DEBOUNCE_TICKS_100ms   (10)   /* 10ms tick -> 5s */
 
 
 
@@ -964,8 +974,7 @@ static void check_pcs_limit(void)
  *          函数内部使用了SysConf_GetInfo()获取系统配置，需确保配置已加载
  * 
  * @return 无返回值
-
-/*
+**/
 /* ===================== 全局状态聚合 + 锁存 ===================== */
 
 
@@ -1145,6 +1154,7 @@ static INT16U calc_sys_status_out(INT8U sys_num, INT16U now_state)
         return SYSZEROPOWER;
   
     }
+    return FAULT; 
 }
 
 
@@ -1406,7 +1416,6 @@ static void update_global_SYSTEM_STATUS(void)
     SET_INPUT(108, (sys_state_rank_simple(s1) > sys_state_rank_simple(s0)) ? s1 : s0);
 
 }
-
 /* ===================== SYS_State_Run：仅展示与锁存相关改动 ===================== */
 /**
  * @brief 运行系统状态机，处理状态转换和事件响应
@@ -1475,7 +1484,7 @@ void SYS_State_BlackStart_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
     if (black_start==1) 
     {
         black_start = 0;
-        for(uint8_t sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+        for(uint8_t sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
         {
         Clear_In_Sys(sys_num);
         Clear_Out_Sys(sys_num);
@@ -1575,7 +1584,7 @@ void SYS_State_Trina_BlackStart_Run(volatile SYS_State_ENUM *state, INT8U sys_nu
     if (black_start==1) 
     {
         black_start = 0;
-        for(uint8_t sys_num=0;(sys_num < sys_cfg->sysNum);sys_num++)
+        for(uint8_t sys_num=0;((sys_num < sys_cfg->sysNum) && (sys_num < MAX_SYS_NUM));sys_num++)
         {
         Clear_In_Sys(sys_num);
         Clear_Out_Sys(sys_num);
@@ -1590,7 +1599,7 @@ void SYS_State_Trina_BlackStart_Run(volatile SYS_State_ENUM *state, INT8U sys_nu
     /* 3) 正常推进：先做通信边沿检测 */
     check_pcs_limit();
    // Update_Input_Bit_Status(sys_num);//更新LC对EMS的映射状态点位
-    for (INT8U i = 0; i < LIST_SIZE; i++) {
+    for (INT8U i = 0; i < TRINA_LIST_SIZE; i++) {
         if (trina_state_list[i].now_state == state[sys_num]) 
         {
 

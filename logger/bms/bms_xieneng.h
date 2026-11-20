@@ -150,7 +150,7 @@
  //读写定义
  #define Rack_XIE_CMD_REPEAT      (30)    //命令尝试次数
  #define Rack_XIE_BUFF_LEN        (300)   //BMS收发缓存长度
- #define CMD_DELAY_50               (50 * 1000) //命令下发后延迟读取
+
 //  extern INT8U volatile Bms_Contactor_Lock[MAX_BMS_NUM] = {0};
 
 // //ini中获取的片数据的大小

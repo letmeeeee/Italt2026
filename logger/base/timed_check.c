@@ -170,15 +170,16 @@ return TIMED_CHECK_OUT_BOUNDS;
 return measu_comm_fault[num];
 }
 
-void Set_MEASU_Comm(INT8U num, INT8U status)
+void Set_MEASU_Comm(INT8U num, INT8U status, INT8U isreset)
 {
-if ((num < 0) || (num >= MAX_MEASU_NUM)) {
-return;
-}
-measu_comm_fault[num] = status;
-if (status == IsNoFault) {
-Reset_Timer(MEASU_TIMER_BASE + num);
-}
+    (void)isreset;
+    if ((num < 0) || (num >= MAX_MEASU_NUM)) {
+    return;
+    }
+    measu_comm_fault[num] = status;
+    if (status == IsNoFault) {
+    Reset_Timer(MEASU_TIMER_BASE + num);
+    }
 }
 
 INT8U Get_GAS_Comm(INT8U num)
@@ -209,8 +210,9 @@ return TIMED_CHECK_OUT_BOUNDS;
 return ups_comm_fault[num];
 }
 
-void Set_UPS_Comm(INT8U num, INT8U status)
+void Set_UPS_Comm(INT8U num, INT8U status, INT8U isreset)
 {
+    (void)isreset;
 if ((num < 0) || (num >= MAX_UPS_NUM)) {
 return;
 }

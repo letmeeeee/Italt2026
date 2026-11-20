@@ -55,13 +55,16 @@ void PCS_Trina_Task(const char *arg);
 
 
 #define PCS_Trina_03addr7      (3350)  
-#define PCS_Trina_03size7      (3410-3350+1)    //(3409-3350+1) 
+#define PCS_Trina_03size7      (3410-3350+1)    //(3410-3350+1) 
 
 #define PCS_Trina_03addr8      (3800)  
 #define PCS_Trina_03size8     (3821-3800+1)    //
 
 #define PCS_Trina_03addr9      (3900)  
 #define PCS_Trina_03size9     (3971-3900+1)    //交流电感瞬时数值过流～ BUS2绝缘阻抗故障时间
+
+#define PCS_Trina_03addr10     (3750)
+#define PCS_Trina_03size10    (1)    //下垂模式下PQ模式切换
 
 #define Power_on_addr      (3001)
 #define control_mode_addr      (3003)

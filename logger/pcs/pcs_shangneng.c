@@ -1,7 +1,7 @@
 #include "pcs_shangneng.h"
 #include "main.h"
 #include "modbus_protocol.h"
-static void SN_DataProcess(unsigned char *ptr, int num)
+static void SN_DataProcess(const unsigned char *ptr, int num)
 {
     // 接收的数据
     unsigned char pbuf[PCS_BUFF_LEN] = {0};

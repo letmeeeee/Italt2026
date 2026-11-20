@@ -310,7 +310,14 @@ int ini_update(const char *section, const char *field, const char *value, const 
             if (!strstr(bufferOp, "\n"))
                 strcat(bufferOp, "\n");
 
-            snprintf(lineBuffer, sizeof(lineBuffer), "%s = %s", bufferField, bufferOp);
+            int written = snprintf(lineBuffer, sizeof(lineBuffer), "%s = %s",
+                       bufferField, bufferOp);
+
+            if (written < 0 || (size_t)written >= sizeof(lineBuffer))
+            {
+                fclose(fp);
+                return -1;
+            }
         }
 
         strncat(fileBuffer, lineBuffer,  sizeof(fileBuffer) - 1);

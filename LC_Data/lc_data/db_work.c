@@ -16,6 +16,7 @@
 #include "db_work.h"
 #include "other_work.h"
 #include "db_work_ex.h"
+#include "timed_work.h"
 #include <linux/netlink.h> 
 // 4: Remote&Local control mode
 // const TableAddressStruct emuTableHoldAddr0 []
@@ -254,7 +255,7 @@ const reg_type_st pcsModelInputIsNotU16Regs[] =
 		{2672, TpyeLcUnInt_H},
 		{2673, TpyeLcUnInt_L},
 		{2674, TpyeLcUnInt_H},
-
+		{2675, TpyeLcUnInt_L},
 		{2676, TpyeLcUnInt_H},
 		{2677, TpyeLcUnInt_L},
 		{2678, TpyeLcUnInt_H},
@@ -474,9 +475,9 @@ const reg_type_st pcsGroupInputIsNotU16Regs[] =
 		// {17037, TpyeLcUnShort},
 		// {17038, TpyeLcUnShort},
 		// {17039, TpyeLcUnShort},
-		// {17040, TpyeLcUnShort},
-		// {17041, TpyeLcUnShort},
-		// {17042, TpyeLcUnShort},
+		{17040, TpyeLcShort},
+		{17041, TpyeLcShort},
+	    {17042, TpyeLcShort},
 		// {17043, TpyeLcUnShort},
 		// {17044, TpyeLcUnShort},
 		// {17045, TpyeLcUnShort},
@@ -490,7 +491,7 @@ const reg_type_st pcsGroupInputIsNotU16Regs[] =
 		// {17053, TpyeLcUnShort},
 		{17054, TpyeLcShort},
 		{17055, TpyeLcShort},
-		// {17056, TpyeLcUnShort},
+		{17056, TpyeLcShort},
 		// {17057, TpyeLcUnShort},
 		// {17058, TpyeLcUnShort},
 		// {17059, TpyeLcUnShort},
@@ -513,7 +514,7 @@ const reg_type_st pcsGroupInputIsNotU16Regs[] =
 		// {17076, TpyeLcUnShort},
 		// {17077, TpyeLcUnShort},
 		// {17078, TpyeLcUnShort},
-		// {17079, TpyeLcUnShort},
+		{17079, TpyeLcShort},
 		// {17080, TpyeLcUnShort},
 		// {17081, TpyeLcUnShort},
 		// {17082, TpyeLcUnShort},
@@ -535,21 +536,21 @@ const TableAddressStruct pcsGroupTableInputAddr[] =
 		// {17200, 17235},
 };
 
-const TableAddressStruct cell_tempTableInputAddr[] =
-	{
-		{640, 1151},
-};
+// const TableAddressStruct cell_tempTableInputAddr[] =
+// 	{
+// 		{640, 1151},
+// };
 
-const TableAddressStruct cell_volTableInputAddr[] =
-	{
-		{128, 639},
-};
+// const TableAddressStruct cell_volTableInputAddr[] =
+// 	{
+// 		{128, 639},
+// };
 
-const TableAddressStruct cell_poleTableInputAddr[] =
-	{
-		{0, 63},
-		{64, 127},
-};
+// const TableAddressStruct cell_poleTableInputAddr[] =
+// 	{
+// 		{0, 63},
+// 		{64, 127},
+// };
 
 
 
@@ -565,6 +566,10 @@ const reg_type_st bmsInputIsNotU16Regs[] =
 		{38024, TpyeXieShort},
 		{38028, TpyeXieShort},
 		{38029, TpyeXieShort},
+		{38030, TpyeXieInt_H},
+		{38031, TpyeXieInt_L},
+		{38032, TpyeXieInt_H},
+		{38033, TpyeXieInt_L},
 };
 
 const TableAddressStruct bmsTableHoldAddr[] =
@@ -580,53 +585,53 @@ const TableAddressStruct bmsTableInputAddr[] =
 		{38071, 38074},
 };
 
-const TableAddressStruct rackTableInputAddr[] =
-	{
-		// {31000, 31153},
-};
+// const TableAddressStruct rackTableInputAddr[] =
+// 	{
+// 		// {31000, 31153},
+// };
 
-// 点表中非16位无符号整型的点位作特殊处理
-const reg_type_st rackInputIsNotU16Regs[] =
-	{
-		{31010, TpyeXieShort},
-		{31013, TpyeXieShort},
-		{31031, TpyeXieShort},
-		{31032, TpyeXieShort},
-		{31033, TpyeXieShort},
-		{31034, TpyeXieShort},
-		{31035, TpyeXieShort},
-		{31036, TpyeXieShort},
-		{31037, TpyeXieShort},
+// // 点表中非16位无符号整型的点位作特殊处理
+// const reg_type_st rackInputIsNotU16Regs[] =
+// 	{
+// 		{31010, TpyeXieShort},
+// 		{31013, TpyeXieShort},
+// 		{31031, TpyeXieShort},
+// 		{31032, TpyeXieShort},
+// 		{31033, TpyeXieShort},
+// 		{31034, TpyeXieShort},
+// 		{31035, TpyeXieShort},
+// 		{31036, TpyeXieShort},
+// 		{31037, TpyeXieShort},
 
-		{31042, TpyeXieShort},
-		{31043, TpyeXieShort},
-		{31044, TpyeXieShort},
-		{31045, TpyeXieShort},	
-		{31046, TpyeXieShort},
-		{31047, TpyeXieShort},	
+// 		{31042, TpyeXieShort},
+// 		{31043, TpyeXieShort},
+// 		{31044, TpyeXieShort},
+// 		{31045, TpyeXieShort},	
+// 		{31046, TpyeXieShort},
+// 		{31047, TpyeXieShort},	
 
-		{31065, TpyeXieShort},
-		{31067, TpyeXieShort},	
+// 		{31065, TpyeXieShort},
+// 		{31067, TpyeXieShort},	
 
-		{31071, TpyeXieShort},
-		{31072, TpyeXieShort},	
-		{31073, TpyeXieShort},
-		{31074, TpyeXieShort},	
-		{31075, TpyeXieShort},
-		{31081, TpyeXieShort},
-		{31083, TpyeXieShort},
-		{31085, TpyeXieShort},
-		{31087, TpyeXieShort},
-		{31088, TpyeXieShort},
-		{31089, TpyeXieShort},
+// 		{31071, TpyeXieShort},
+// 		{31072, TpyeXieShort},	
+// 		{31073, TpyeXieShort},
+// 		{31074, TpyeXieShort},	
+// 		{31075, TpyeXieShort},
+// 		{31081, TpyeXieShort},
+// 		{31083, TpyeXieShort},
+// 		{31085, TpyeXieShort},
+// 		{31087, TpyeXieShort},
+// 		{31088, TpyeXieShort},
+// 		{31089, TpyeXieShort},
 
-		{31107, TpyeXieShort},
-		{31109, TpyeXieShort},
-		{31111, TpyeXieShort},
-		{31113, TpyeXieShort},
+// 		{31107, TpyeXieShort},
+// 		{31109, TpyeXieShort},
+// 		{31111, TpyeXieShort},
+// 		{31113, TpyeXieShort},
 
 
-};
+// };
 
 // 点表中非16位无符号整型的点位作特殊处理
 const reg_type_st meterInputIsNotU16Regs[] =
@@ -952,7 +957,7 @@ const reg_type_st auxInputIsNotU16Regs[] =
 		{27787, TpyeLcFloat_L},
 		{27788, TpyeLcFloat_H},
 		{27789, TpyeLcFloat_L},
-		{27780, TpyeLcFloat_H},
+		{27790, TpyeLcFloat_H},
 		{27791, TpyeLcFloat_L},
 		{27792, TpyeLcFloat_H},
 		{27793, TpyeLcFloat_L},
@@ -1000,33 +1005,30 @@ const TableAddressStruct auxTableInputAddr[] =
 const TableAddressStruct faultTableInputAddr[] =
 	{
 		{107, 107},//emu 1
-	    {2817, 2846}, //主1PCS
-		{3100, 3146}, //从1PCS
-		{3417, 3446}, //主2PCS
-		{3700, 3746},//从2PCS
+	    {2817, 2846}, //主1PCS 单机故障
+		{3100, 3146}, //从1PCS 单机故障
+		{3417, 3446}, //主2PCS 单机故障
+		{3700, 3746},//从2PCS 单机故障
 
-		{17066, 17072},//pcsGroup 1
-		// {17200, 17207},//pcsGroup 1
-		{17366, 17372},//pcsGroup 2
-		// {17500, 17507},//pcsGroup 2
+		{17066, 17072},//pcsGroup 1 组故障
+		{17366, 17372},//pcsGroup 2 组故障
 		{25969, 25969},//MV 综保保护总信号
 		{27115, 27115},//MV UPS  故障类型
 		{27600, 27604},//事故总,告警总,实时事故总,实时告警总,设备故障总
 
 
-		{38039, 38039},//BMS 1
-		{38039+1*200, 38039+1*200},//BMS 2
-		{38039+2*200, 38039+2*200},//BMS 3
-		{38039+3*200, 38039+3*200},//BMS 4
-		{38039+4*200, 38039+4*200},//BMS 5
-		{38039+5*200, 38039+5*200},//BMS 6
-		{38039+6*200, 38039+6*200},//BMS 7
-		{38039+7*200, 38039+7*200},//BMS 8
+		{38039, 38039},//BMS 1 对外故障汇总
+		{38039+1*200, 38039+1*200},//BMS 2 对外故障汇总
+		{38039+2*200, 38039+2*200},//BMS 3 对外故障汇总
+		{38039+3*200, 38039+3*200},//BMS 4 对外故障汇总
+		{38039+4*200, 38039+4*200},//BMS 5 对外故障汇总
+		{38039+5*200, 38039+5*200},//BMS 6 对外故障汇总
+		{38039+6*200, 38039+6*200},//BMS 7 对外故障汇总
+		{38039+7*200, 38039+7*200},//BMS 8 对外故障汇总
 };
 
 
-/* UK MV-EMS V0.24 tables. The existing Italy V0.16 tables above remain unchanged.
- * Shared system, PCS, BMS and meter tables retain their existing definitions. */
+/* UK MV-EMS V0.24 register ranges for the MV history table. */
 static const TableAddressStruct ukAuxTableInputAddr[] =
 {
     {25030, 25057},//变压器
@@ -1309,9 +1311,134 @@ static const reg_type_st finlandAuxInputIsNotU16Regs[] =
     {27837, TpyeLcFloat_L},
 };
 // 数据库指令字符串
-char sqlstr[15000] = {0};
+char sqlstr[32768] = {0};
 uint8_t power_flag=0;
 #ifdef USE_DB
+
+#include "history_columns.h"
+#include "uk_history_columns.h"
+#include "finland_history_columns.h"
+#include "sweden_history_columns.h"
+#include "italy_history_columns.h"
+
+#define HISTORY_COLUMNS(entries) (entries), (sizeof(entries) / sizeof((entries)[0]))
+#define HISTORY_COLUMN_SQL_SIZE 100
+
+static int is_uk_history_project(int project_type)
+{
+	return project_type == MEASURE_UK_10MW || project_type == MEASURE_UK_5_5MW;
+}
+
+static int is_finland_history_project(int project_type)
+{
+	return project_type == MEASURE_FINLAND_KAN || project_type == MEASURE_FINLAND_KORK;
+}
+
+static int is_sweden_history_project(int project_type)
+{
+	return project_type == MEASURE_SWEDEN_13_8MW || project_type == MEASURE_SWEDEN_6_25MW;
+}
+
+static int is_italy_history_project(int project_type)
+{
+	return project_type == MEASURE_ITALY_10MW || project_type == MEASURE_ITALY_5_5MW;
+}
+
+static const char *history_column_name(const HistoryColumn *columns, size_t count,
+								  unsigned short address)
+{
+	for (size_t i = 0; i < count; i++)
+	{
+		if (columns[i].address == address)
+			return columns[i].name;
+	}
+	return NULL;
+}
+
+static const char *pcs_model_history_name(unsigned short address, int single_pcs_master)
+{
+	if (single_pcs_master == 1)
+	{
+		const char *name = history_column_name(HISTORY_COLUMNS(singlePcsReservedColumns), address);
+		if (name != NULL)
+			return name;
+	}
+	return history_column_name(HISTORY_COLUMNS(pcsModelColumns), address);
+}
+
+static const char *uk_mv_history_name(unsigned short address, int project_type)
+{
+	if (project_type == MEASURE_UK_5_5MW)
+	{
+		const char *name = history_column_name(HISTORY_COLUMNS(ukMv5_5MwReservedColumns), address);
+		if (name != NULL)
+			return name;
+	}
+	return history_column_name(HISTORY_COLUMNS(ukMvColumns), address);
+}
+
+static const char *meter_history_name(unsigned short address, int project_type)
+{
+	if (is_finland_history_project(project_type))
+		return history_column_name(HISTORY_COLUMNS(finlandMeterColumns), address);
+	if (is_italy_history_project(project_type))
+	{
+		const char *name = history_column_name(HISTORY_COLUMNS(italyMeterColumns), address);
+		if (name != NULL)
+			return name;
+		return history_column_name(HISTORY_COLUMNS(commonMeterColumns), address);
+	}
+	if (is_uk_history_project(project_type) || is_sweden_history_project(project_type))
+		return history_column_name(HISTORY_COLUMNS(commonMeterColumns), address);
+	return NULL;
+}
+
+static const char *mv_history_name(unsigned short address, int project_type)
+{
+	if (is_finland_history_project(project_type))
+	{
+		if (project_type == MEASURE_FINLAND_KORK)
+		{
+			const char *name = history_column_name(HISTORY_COLUMNS(korkeamaaMvColumns), address);
+			if (name != NULL)
+				return name;
+		}
+		return history_column_name(HISTORY_COLUMNS(finlandMvColumns), address);
+	}
+	if (is_sweden_history_project(project_type))
+	{
+		if (project_type == MEASURE_SWEDEN_6_25MW)
+		{
+			const char *name = history_column_name(HISTORY_COLUMNS(sweden2PcsMvColumns), address);
+			if (name != NULL)
+				return name;
+		}
+		return history_column_name(HISTORY_COLUMNS(swedenMvColumns), address);
+	}
+	if (is_italy_history_project(project_type))
+	{
+		if (project_type == MEASURE_ITALY_5_5MW)
+		{
+			const char *name = history_column_name(HISTORY_COLUMNS(italy5_5MwMvColumns), address);
+			if (name != NULL)
+				return name;
+		}
+		return history_column_name(HISTORY_COLUMNS(italyMvColumns), address);
+	}
+	if (is_uk_history_project(project_type))
+		return uk_mv_history_name(address, project_type);
+	return NULL;
+}
+
+static void history_column_sql(char definition[HISTORY_COLUMN_SQL_SIZE],
+							   const char *column_name, const char *legacy_prefix,
+							   unsigned int legacy_address, const char *sql_type)
+{
+	if (column_name != NULL)
+		snprintf(definition, HISTORY_COLUMN_SQL_SIZE, ",`%s` %s", column_name, sql_type);
+	else
+		snprintf(definition, HISTORY_COLUMN_SQL_SIZE, ",%s%u %s", legacy_prefix, legacy_address, sql_type);
+}
 
 /**
  * @brief 数据库创建指令
@@ -1320,12 +1447,8 @@ uint8_t power_flag=0;
  */
 static void bms_CreateSqlstr(void)
 {
-	int num;
-	char sqlstrtemp[100] = {0};
+	char sqlstrtemp[HISTORY_COLUMN_SQL_SIZE] = {0};
 	int zone, type;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	// unsigned char bmsNumIni = sys_cfg->bmsNum;
-	// for(int num = 0; num < bmsNumIni; num++)
 	// {
 	zone = sizeof(bmsTableInputAddr) / sizeof(TableAddressStruct);
 	for (int z = 0; z < zone; z++)
@@ -1342,21 +1465,22 @@ static void bms_CreateSqlstr(void)
 				}
 			}
 			bzero_all(sqlstrtemp);
+			const char *column_name = history_column_name(HISTORY_COLUMNS(bmsColumns), add);
 			switch (type)
 			{
 			case TpyeXieShort:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "SMALLINT");
 				break;
 			case TpyeXieFloat_H:break;
 			case TpyeXieFloat_L:
-				sprintf(sqlstrtemp, ",Input%d FLOAT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "FLOAT");
 				break;
 			case TpyeXieInt_H:break;
 			case TpyeXieInt_L:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT SIGNED\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "INT");
 				break;
 			default:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "SMALLINT UNSIGNED");
 				break;
 			}
 			strcat(sqlstr, sqlstrtemp);
@@ -1416,14 +1540,14 @@ static void bms_InsertSqlstr(int num)
 			case TpyeXieUnInt_L:
 				fRegVal.D16[0] = GET_INPUT(add + offset);
 				fRegVal.D16[1] = GET_INPUT(add - 1 + offset);
-				sprintf(sqlstrtemp, ",%f\0", fRegVal.D32);
+				sprintf(sqlstrtemp, ",%d\0", fRegVal.D32);
 				break;
 			case TpyeXieInt_H:
 				break;
 			case TpyeXieInt_L:
 				fRegVal.D16[0] = GET_INPUT(add + offset);
 				fRegVal.D16[1] = GET_INPUT(add - 1 + offset);
-				sprintf(sqlstrtemp, ",%f\0", fRegVal.DS32);
+				sprintf(sqlstrtemp, ",%d\0", fRegVal.DS32);
 				break;				
 			case TpyeXieFloat_H:
 				break;
@@ -1468,7 +1592,6 @@ static int Insert_bms_Table(MYSQL *pmysql)
 	int rows;
 	int cols;
 	uint16_t Index;
-	static int faildnum = 0;
 	int res1 = 0;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	// 数据库更新操作
@@ -1481,13 +1604,6 @@ static int Insert_bms_Table(MYSQL *pmysql)
 	{
 		printf("sqlstr = %s\n", sqlstr);
 		printf("Bank mysql_query creat failure!\n");
-		if (faildnum++ > 10)
-		{
-			faildnum = 0;
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "drop table if exists bms%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-			mysql_query(pmysql, sqlstr);
-		}
 		return 1;
 	}
 
@@ -1500,15 +1616,36 @@ static int Insert_bms_Table(MYSQL *pmysql)
 	int bmsNumIni = sys_cfg->bmsNum;
 	for (int num = 0; num < bmsNumIni; num++)//修改了这个，bmsNumIni
 	{
-		/* 单主机模式仅记录 BMS1、2、5、6 */
-		if (((sys_cfg->singlePcsMaster) == 1) &&
-		    (num != 0 && num != 1 && num != 4 && num != 5))
+		int numtemp = num;
+		if ((sys_cfg->singlePcsMaster) == 1)
 		{
-		    continue;
+			/* 双bus时，单主机模式仅记录 BMS1、2、5、6 */
+			if (bmsNumIni==8)
+			{
+				if(num == 2 || num == 3 || num == 6 || num == 7)
+				{
+					continue;
+				}
+				else if(num == 4 || num == 5)
+				{
+					numtemp = num - 2;
+				}
+			}
+			else if(bmsNumIni==4)/* 单bus时，单主机模式仅记录 BMS1、3 */
+			{
+				if(num == 1 || num == 3)
+				{
+					continue;
+				}
+				else if(num == 2)
+				{
+					numtemp = 1;
+				}
+			}
 		}
 		bzero_all(sqlstr);
 		sprintf(sqlstr, "insert into bms%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
-				tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, num);
+				tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, numtemp);
 		bms_InsertSqlstr(num);
 		strcat(sqlstr, ");\0");
 		if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
@@ -1546,449 +1683,449 @@ static int Insert_bms_Table(MYSQL *pmysql)
  * @param[in] 无
  * @return 无
  */
-static void rack_CreateSqlstr(void)
-{
-	int  num;
-	char sqlstrtemp[100] = {0};
-	int zone, type;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	zone = sizeof(rackTableInputAddr) / sizeof(TableAddressStruct);
-	for (int z = 0; z < zone; z++)
-	{
+// static void rack_CreateSqlstr(void)
+// {
+// 	int  num;
+// 	char sqlstrtemp[100] = {0};
+// 	int zone, type;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	zone = sizeof(rackTableInputAddr) / sizeof(TableAddressStruct);
+// 	for (int z = 0; z < zone; z++)
+// 	{
 
-		for (unsigned short add = rackTableInputAddr[z].start; add <= rackTableInputAddr[z].end; add++)
-		{
-			type = TpyeXieUnShort;
-			for (uint16_t i = 0; i < sizeof(rackInputIsNotU16Regs) / sizeof(reg_type_st); i++)
-			{
-				if (rackInputIsNotU16Regs[i].RegAdd == add)
-				{
-					type = rackInputIsNotU16Regs[i].Type;
-					break;
-				}
-			}
+// 		for (unsigned short add = rackTableInputAddr[z].start; add <= rackTableInputAddr[z].end; add++)
+// 		{
+// 			type = TpyeXieUnShort;
+// 			for (uint16_t i = 0; i < sizeof(rackInputIsNotU16Regs) / sizeof(reg_type_st); i++)
+// 			{
+// 				if (rackInputIsNotU16Regs[i].RegAdd == add)
+// 				{
+// 					type = rackInputIsNotU16Regs[i].Type;
+// 					break;
+// 				}
+// 			}
 
-			bzero_all(sqlstrtemp);
-			switch (type)
-			{
-			case TpyeXieShort:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
-				break;
-			default:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
-				break;
-			}
-			strcat(sqlstr, sqlstrtemp);
-		}
-	}
-}
-/**
- * @brief 数据库插入指令
- * @param[in] 无
- * @return 无
- */
-static void rack_InsertSqlstr(uint8_t bms_num, uint8_t Rack_id)
-{
-	char sqlstrtemp[100] = {0};
-	int zone, type;
-	u16_conv RegVal;
-	u32_conv fRegVal;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	zone = sizeof(rackTableInputAddr) / sizeof(TableAddressStruct);
-	uint16_t offset = 3000 * (bms_num)+Rack_id*200;//修改了这个
-	if( power_flag==1)
-	{
-		return;
-	}
-	for (int z = 0; z < zone; z++)
-	{
-		for (unsigned short add = rackTableInputAddr[z].start; add <= rackTableInputAddr[z].end; add++)
-		{
-			type = TpyeXieUnShort;
-			for (unsigned short i = 0; i < sizeof(rackInputIsNotU16Regs) / sizeof(reg_type_st); i++)
-			{
-				if (rackInputIsNotU16Regs[i].RegAdd == add)
-				{
-					type = rackInputIsNotU16Regs[i].Type;
-					break;
-				}
-			}
-			bzero_all(sqlstrtemp);
-			switch (type)
-			{
-			case TpyeXieShort:
-				RegVal.D16 = GET_INPUT(add + offset);
-				sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
-				break;
-			case TpyeXieUnInt_H:
+// 			bzero_all(sqlstrtemp);
+// 			switch (type)
+// 			{
+// 			case TpyeXieShort:
+// 				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+// 				break;
+// 			default:
+// 				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
+// 				break;
+// 			}
+// 			strcat(sqlstr, sqlstrtemp);
+// 		}
+// 	}
+// }
+// /**
+//  * @brief 数据库插入指令
+//  * @param[in] 无
+//  * @return 无
+//  */
+// static void rack_InsertSqlstr(uint8_t bms_num, uint8_t Rack_id)
+// {
+// 	char sqlstrtemp[100] = {0};
+// 	int zone, type;
+// 	u16_conv RegVal;
+// 	u32_conv fRegVal;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	zone = sizeof(rackTableInputAddr) / sizeof(TableAddressStruct);
+// 	uint16_t offset = 3000 * (bms_num)+Rack_id*200;//修改了这个
+// 	if( power_flag==1)
+// 	{
+// 		return;
+// 	}
+// 	for (int z = 0; z < zone; z++)
+// 	{
+// 		for (unsigned short add = rackTableInputAddr[z].start; add <= rackTableInputAddr[z].end; add++)
+// 		{
+// 			type = TpyeXieUnShort;
+// 			for (unsigned short i = 0; i < sizeof(rackInputIsNotU16Regs) / sizeof(reg_type_st); i++)
+// 			{
+// 				if (rackInputIsNotU16Regs[i].RegAdd == add)
+// 				{
+// 					type = rackInputIsNotU16Regs[i].Type;
+// 					break;
+// 				}
+// 			}
+// 			bzero_all(sqlstrtemp);
+// 			switch (type)
+// 			{
+// 			case TpyeXieShort:
+// 				RegVal.D16 = GET_INPUT(add + offset);
+// 				sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
+// 				break;
+// 			case TpyeXieUnInt_H:
 
-				break;
-			case TpyeXieUnInt_L:
-				fRegVal.D16[0] = GET_INPUT(add + offset);
-				fRegVal.D16[1] = GET_INPUT(add - 1 + offset);
-				sprintf(sqlstrtemp, ",%f\0", fRegVal.D32);
-				break;
-			case TpyeXieFloat_H:
+// 				break;
+// 			case TpyeXieUnInt_L:
+// 				fRegVal.D16[0] = GET_INPUT(add + offset);
+// 				fRegVal.D16[1] = GET_INPUT(add - 1 + offset);
+// 				sprintf(sqlstrtemp, ",%f\0", fRegVal.D32);
+// 				break;
+// 			case TpyeXieFloat_H:
 
-				break;
-			case TpyeXieFloat_L:
-				fRegVal.D16[0] = GET_INPUT(add + offset);
-				fRegVal.D16[1] = GET_INPUT(add - 1 + offset);
-				sprintf(sqlstrtemp, ",%f\0", fRegVal.F32);
-				break;
-			default:
-				RegVal.D16 = GET_INPUT(add + offset);
-				sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
-				break;
-			}
-			strcat(sqlstr, sqlstrtemp);
-		}
-	}
-}
+// 				break;
+// 			case TpyeXieFloat_L:
+// 				fRegVal.D16[0] = GET_INPUT(add + offset);
+// 				fRegVal.D16[1] = GET_INPUT(add - 1 + offset);
+// 				sprintf(sqlstrtemp, ",%f\0", fRegVal.F32);
+// 				break;
+// 			default:
+// 				RegVal.D16 = GET_INPUT(add + offset);
+// 				sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
+// 				break;
+// 			}
+// 			strcat(sqlstr, sqlstrtemp);
+// 		}
+// 	}
+// }
 
-/**
- * @brief rack_Table(插入数据库)
- * @param[in] 无
- * @return 返回结果 0 为 正常
- */
-static int Insert_rack_Table(MYSQL *pmysql)
-{
-	MYSQL_RES *my_res;
-	MYSQL_ROW my_row;
-	MYSQL_FIELD *my_field;
-	char sqlstrtemp[100] = {0};
-	int res, i;
-	uint8_t bms_num;
-	uint16_t Index;
-	static int faildnum = 0;
-	int res1 = 0;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	// 数据库更新操作
-	bzero_all(sqlstr);
-	sprintf(sqlstr, "create table if not exists rack%04d%02d%02d (\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-	strcat(sqlstr, "id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,Time TEXT,Num SMALLINT UNSIGNED,Rack SMALLINT UNSIGNED\0");
-	rack_CreateSqlstr();
-	strcat(sqlstr, ");\0");
-	if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
-	{
-		printf("sqlstr = %s\n", sqlstr);
-		printf("rack mysql_query creat failure!\n");
-		if (faildnum++ > 10)
-		{
-			faildnum = 0;
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "drop table if exists rack%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-			mysql_query(pmysql, sqlstr);
-		}
-		return 1;
-	}
-	bzero_all(sqlstr);
-	strcat(sqlstr, "START TRANSACTION;\0");
-	if (mysql_query(pmysql, sqlstr))
-	{
-		printf("START TRANSACTION failed!\n");
-	}
-	for (bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)//(bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)
-	{
-		int NumIni = sys_cfg->bms_cluster[bms_num];
-		for (int Rack_id = 0; Rack_id < NumIni; Rack_id++)
-		{
+// /**
+//  * @brief rack_Table(插入数据库)
+//  * @param[in] 无
+//  * @return 返回结果 0 为 正常
+//  */
+// static int Insert_rack_Table(MYSQL *pmysql)
+// {
+// 	MYSQL_RES *my_res;
+// 	MYSQL_ROW my_row;
+// 	MYSQL_FIELD *my_field;
+// 	char sqlstrtemp[100] = {0};
+// 	int res, i;
+// 	uint8_t bms_num;
+// 	uint16_t Index;
+// 	static int faildnum = 0;
+// 	int res1 = 0;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	// 数据库更新操作
+// 	bzero_all(sqlstr);
+// 	sprintf(sqlstr, "create table if not exists rack%04d%02d%02d (\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
+// 	strcat(sqlstr, "id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,Time TEXT,Num SMALLINT UNSIGNED,Rack SMALLINT UNSIGNED\0");
+// 	rack_CreateSqlstr();
+// 	strcat(sqlstr, ");\0");
+// 	if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
+// 	{
+// 		printf("sqlstr = %s\n", sqlstr);
+// 		printf("rack mysql_query creat failure!\n");
+// 		if (faildnum++ > 10)
+// 		{
+// 			faildnum = 0;
+// 			bzero_all(sqlstr);
+// 			sprintf(sqlstr, "drop table if exists rack%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
+// 			mysql_query(pmysql, sqlstr);
+// 		}
+// 		return 1;
+// 	}
+// 	bzero_all(sqlstr);
+// 	strcat(sqlstr, "START TRANSACTION;\0");
+// 	if (mysql_query(pmysql, sqlstr))
+// 	{
+// 		printf("START TRANSACTION failed!\n");
+// 	}
+// 	for (bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)//(bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)
+// 	{
+// 		int NumIni = sys_cfg->bms_cluster[bms_num];
+// 		for (int Rack_id = 0; Rack_id < NumIni; Rack_id++)
+// 		{
 
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "insert into rack%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d,%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
-					tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, bms_num, Rack_id);
-			rack_InsertSqlstr(bms_num, Rack_id);
-			strcat(sqlstr, ");\0");
-			if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
-			{
-				printf("sqlstr = %s\n", sqlstr);
-				printf("mysql_query failure!\n");
-				res1 = 2;
-			}
-			else
-			{
-#ifdef ISDEBUG_
-				printf("sqlstr = %s\n", sqlstr);
-				LOG_INFO("LC_DATA:Insert_rack_Table = %s\n", sqlstr);
-#endif
-				// printf("mysql_query!\n");
-			}
-		}
-	}
-	bzero_all(sqlstr);
-	strcat(sqlstr, "COMMIT;");
-	if (mysql_query(pmysql, sqlstr))
-	{
-		printf("COMMIT failed!\n");
-	}
-	// usleep(100 * 1000);
-	return res1;
-}
+// 			bzero_all(sqlstr);
+// 			sprintf(sqlstr, "insert into rack%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d,%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
+// 					tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, bms_num, Rack_id);
+// 			rack_InsertSqlstr(bms_num, Rack_id);
+// 			strcat(sqlstr, ");\0");
+// 			if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
+// 			{
+// 				printf("sqlstr = %s\n", sqlstr);
+// 				printf("mysql_query failure!\n");
+// 				res1 = 2;
+// 			}
+// 			else
+// 			{
+// #ifdef ISDEBUG_
+// 				printf("sqlstr = %s\n", sqlstr);
+// 				LOG_INFO("LC_DATA:Insert_rack_Table = %s\n", sqlstr);
+// #endif
+// 				// printf("mysql_query!\n");
+// 			}
+// 		}
+// 	}
+// 	bzero_all(sqlstr);
+// 	strcat(sqlstr, "COMMIT;");
+// 	if (mysql_query(pmysql, sqlstr))
+// 	{
+// 		printf("COMMIT failed!\n");
+// 	}
+// 	// usleep(100 * 1000);
+// 	return res1;
+// }
 
-/**
- * @brief 数据库创建指令
- * @param[in] 无
- * @return 无
- */
-static void cell_temp_CreateSqlstr(void)
-{
-	int  z;
-	char sqlstrtemp[100] = {0};
-	int zone, type;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	unsigned int len_ini = sys_cfg->bms_temp_num[0];
-	zone = sizeof(cell_tempTableInputAddr) / sizeof(TableAddressStruct);
-	for (int z = 0; z < zone; z++)
-	{
-		for (unsigned short add = cell_tempTableInputAddr[z].start; (add <= cell_tempTableInputAddr[z].end) && (add < cell_tempTableInputAddr[z].start + len_ini); add++)
-		{
-			bzero_all(sqlstrtemp);
-			sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
-			strcat(sqlstr, sqlstrtemp);
-		}
-	}
-}
-/**
- * @brief 数据库插入指令
- * @param[in] 无
- * @return 无
- */
-static void cell_temp_InsertSqlstr(uint8_t bms_num, uint8_t Rack_id)
-{
-	int z;
-	char sqlstrtemp[100] = {0};
-	int zone, type;
-	u16_conv RegVal;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	unsigned int len_ini = sys_cfg->bms_temp_num[bms_num];
-	zone = sizeof(cell_tempTableInputAddr) / sizeof(TableAddressStruct);
-	if( power_flag==1)
-	{
-		return;
-	}
-	for (int z = 0; z < zone; z++)
-	{
-		for (unsigned short add = cell_tempTableInputAddr[z].start; (add <= cell_tempTableInputAddr[z].end) && (add < cell_tempTableInputAddr[z].start + len_ini); add++)
-		{
-			bzero_all(sqlstrtemp);
-			RegVal.D16 = GET_R_INPUT(1, Rack_id * R_INPUT_SIZE + add);//修改了这里
-			sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
-			strcat(sqlstr, sqlstrtemp);
-		}
-	}
-}
+// /**
+//  * @brief 数据库创建指令
+//  * @param[in] 无
+//  * @return 无
+//  */
+// static void cell_temp_CreateSqlstr(void)
+// {
+// 	int  z;
+// 	char sqlstrtemp[100] = {0};
+// 	int zone, type;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	unsigned int len_ini = sys_cfg->bms_temp_num[0];
+// 	zone = sizeof(cell_tempTableInputAddr) / sizeof(TableAddressStruct);
+// 	for (int z = 0; z < zone; z++)
+// 	{
+// 		for (unsigned short add = cell_tempTableInputAddr[z].start; (add <= cell_tempTableInputAddr[z].end) && (add < cell_tempTableInputAddr[z].start + len_ini); add++)
+// 		{
+// 			bzero_all(sqlstrtemp);
+// 			sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+// 			strcat(sqlstr, sqlstrtemp);
+// 		}
+// 	}
+// }
+// /**
+//  * @brief 数据库插入指令
+//  * @param[in] 无
+//  * @return 无
+//  */
+// static void cell_temp_InsertSqlstr(uint8_t bms_num, uint8_t Rack_id)
+// {
+// 	int z;
+// 	char sqlstrtemp[100] = {0};
+// 	int zone, type;
+// 	u16_conv RegVal;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	unsigned int len_ini = sys_cfg->bms_temp_num[bms_num];
+// 	zone = sizeof(cell_tempTableInputAddr) / sizeof(TableAddressStruct);
+// 	if( power_flag==1)
+// 	{
+// 		return;
+// 	}
+// 	for (int z = 0; z < zone; z++)
+// 	{
+// 		for (unsigned short add = cell_tempTableInputAddr[z].start; (add <= cell_tempTableInputAddr[z].end) && (add < cell_tempTableInputAddr[z].start + len_ini); add++)
+// 		{
+// 			bzero_all(sqlstrtemp);
+// 			RegVal.D16 = GET_R_INPUT(1, Rack_id * R_INPUT_SIZE + add);//修改了这里
+// 			sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
+// 			strcat(sqlstr, sqlstrtemp);
+// 		}
+// 	}
+// }
 
-/**
- * @brief cell_temp_Table(插入数据库)
- * @param[in] 无
- * @return 返回结果 0 为 正常
- */
-static int Insert_cell_temp_Table(MYSQL *pmysql)
-{
-	MYSQL_RES *my_res;
-	MYSQL_ROW my_row;
-	MYSQL_FIELD *my_field;
-	char sqlstrtemp[100] = {0};
-	int res, i;
-	uint8_t bms_num;
-	uint16_t Index;
-	static int faildnum = 0;
-	int res1 = 0;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	// 数据库更新操作
-	bzero_all(sqlstr);
-	sprintf(sqlstr, "create table if not exists cell_temp%04d%02d%02d (\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-	strcat(sqlstr, "id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,Time TEXT,Num SMALLINT UNSIGNED,Rack SMALLINT UNSIGNED\0");
-	cell_temp_CreateSqlstr();
-	strcat(sqlstr, ");\0");
-	if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
-	{
-		printf("sqlstr = %s\n", sqlstr);
-		printf("cell_temp mysql_query creat failure!\n");
-		if (faildnum++ > 10)
-		{
-			faildnum = 0;
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "drop table if exists cell_temp%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-			mysql_query(pmysql, sqlstr);
-		}
-		return 1;
-	}
-	bzero_all(sqlstr);
-	strcat(sqlstr, "START TRANSACTION;\0");
-	if (mysql_query(pmysql, sqlstr))
-	{
-		printf("START TRANSACTION failed!\n");
-	}
-	for (bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)
-	{
-		int NumIni = sys_cfg->bms_cluster[bms_num];
-		for (int Rack_id = 0; Rack_id < NumIni; Rack_id++)
-		{
+// /**
+//  * @brief cell_temp_Table(插入数据库)
+//  * @param[in] 无
+//  * @return 返回结果 0 为 正常
+//  */
+// static int Insert_cell_temp_Table(MYSQL *pmysql)
+// {
+// 	MYSQL_RES *my_res;
+// 	MYSQL_ROW my_row;
+// 	MYSQL_FIELD *my_field;
+// 	char sqlstrtemp[100] = {0};
+// 	int res, i;
+// 	uint8_t bms_num;
+// 	uint16_t Index;
+// 	static int faildnum = 0;
+// 	int res1 = 0;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	// 数据库更新操作
+// 	bzero_all(sqlstr);
+// 	sprintf(sqlstr, "create table if not exists cell_temp%04d%02d%02d (\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
+// 	strcat(sqlstr, "id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,Time TEXT,Num SMALLINT UNSIGNED,Rack SMALLINT UNSIGNED\0");
+// 	cell_temp_CreateSqlstr();
+// 	strcat(sqlstr, ");\0");
+// 	if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
+// 	{
+// 		printf("sqlstr = %s\n", sqlstr);
+// 		printf("cell_temp mysql_query creat failure!\n");
+// 		if (faildnum++ > 10)
+// 		{
+// 			faildnum = 0;
+// 			bzero_all(sqlstr);
+// 			sprintf(sqlstr, "drop table if exists cell_temp%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
+// 			mysql_query(pmysql, sqlstr);
+// 		}
+// 		return 1;
+// 	}
+// 	bzero_all(sqlstr);
+// 	strcat(sqlstr, "START TRANSACTION;\0");
+// 	if (mysql_query(pmysql, sqlstr))
+// 	{
+// 		printf("START TRANSACTION failed!\n");
+// 	}
+// 	for (bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)
+// 	{
+// 		int NumIni = sys_cfg->bms_cluster[bms_num];
+// 		for (int Rack_id = 0; Rack_id < NumIni; Rack_id++)
+// 		{
 
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "insert into cell_temp%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d,%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
-					tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, bms_num, Rack_id);
-			cell_temp_InsertSqlstr(bms_num, Rack_id);
-			strcat(sqlstr, ");\0");
-			if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
-			{
-				printf("sqlstr = %s\n", sqlstr);
-				printf("mysql_query failure!\n");
-				res1 = 2;
-			}
-			else
-			{
+// 			bzero_all(sqlstr);
+// 			sprintf(sqlstr, "insert into cell_temp%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d,%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
+// 					tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, bms_num, Rack_id);
+// 			cell_temp_InsertSqlstr(bms_num, Rack_id);
+// 			strcat(sqlstr, ");\0");
+// 			if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
+// 			{
+// 				printf("sqlstr = %s\n", sqlstr);
+// 				printf("mysql_query failure!\n");
+// 				res1 = 2;
+// 			}
+// 			else
+// 			{
 
-#ifdef ISDEBUG_
-				printf("sqlstr = %s\n", sqlstr);
-				LOG_INFO("LC_DATA:Insert_cell_temp_Table = %s\n", sqlstr);
-#endif
-				// printf("mysql_query!\n");
-			}
-		}
-	}
-	bzero_all(sqlstr);
-	strcat(sqlstr, "COMMIT;");
-	if (mysql_query(pmysql, sqlstr))
-	{
-		printf("COMMIT failed!\n");
-	}
-	// usleep(100 * 1000);
-	return res1;
-}
+// #ifdef ISDEBUG_
+// 				printf("sqlstr = %s\n", sqlstr);
+// 				LOG_INFO("LC_DATA:Insert_cell_temp_Table = %s\n", sqlstr);
+// #endif
+// 				// printf("mysql_query!\n");
+// 			}
+// 		}
+// 	}
+// 	bzero_all(sqlstr);
+// 	strcat(sqlstr, "COMMIT;");
+// 	if (mysql_query(pmysql, sqlstr))
+// 	{
+// 		printf("COMMIT failed!\n");
+// 	}
+// 	// usleep(100 * 1000);
+// 	return res1;
+// }
 
-/**
- * @brief 数据库创建指令
- * @param[in] 无
- * @return 无
- */
-static void cell_pole_CreateSqlstr(void)
-{
-	int z;
-	char sqlstrtemp[100] = {0};
-	int zone, type;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	unsigned int len_ini = sys_cfg->bms_pole_num[0];
-	zone = sizeof(cell_poleTableInputAddr) / sizeof(TableAddressStruct);
-	for (int z = 0; z < zone; z++)
-	{
-		for (unsigned short add = cell_poleTableInputAddr[z].start; (add <= cell_poleTableInputAddr[z].end) && (add < cell_poleTableInputAddr[z].start + len_ini); add++)
-		{
-			bzero_all(sqlstrtemp);
-			sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
-			strcat(sqlstr, sqlstrtemp);
-		}
-	}
-}
-/**
- * @brief 数据库插入指令
- * @param[in] 无
- * @return 无
- */
-static void cell_pole_InsertSqlstr(uint8_t bms_num, uint8_t Rack_id)
-{
-	char sqlstrtemp[100] = {0};
-	int zone, type;
-	u16_conv RegVal;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	unsigned int len_ini = sys_cfg->bms_pole_num[bms_num];
-	zone = sizeof(cell_poleTableInputAddr) / sizeof(TableAddressStruct);
-	if( power_flag==1)
-	{
-		return;
-	}
-	for (int z = 0; z < zone; z++)
-	{
-		for (unsigned short add = cell_poleTableInputAddr[z].start; (add <= cell_poleTableInputAddr[z].end) && (add < cell_poleTableInputAddr[z].start + len_ini); add++)
-		{
-			bzero_all(sqlstrtemp);
-			RegVal.D16 = GET_R_INPUT(1, Rack_id * R_INPUT_SIZE + add);//修改了这个
+// /**
+//  * @brief 数据库创建指令
+//  * @param[in] 无
+//  * @return 无
+//  */
+// static void cell_pole_CreateSqlstr(void)
+// {
+// 	int z;
+// 	char sqlstrtemp[100] = {0};
+// 	int zone, type;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	unsigned int len_ini = sys_cfg->bms_pole_num[0];
+// 	zone = sizeof(cell_poleTableInputAddr) / sizeof(TableAddressStruct);
+// 	for (int z = 0; z < zone; z++)
+// 	{
+// 		for (unsigned short add = cell_poleTableInputAddr[z].start; (add <= cell_poleTableInputAddr[z].end) && (add < cell_poleTableInputAddr[z].start + len_ini); add++)
+// 		{
+// 			bzero_all(sqlstrtemp);
+// 			sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+// 			strcat(sqlstr, sqlstrtemp);
+// 		}
+// 	}
+// }
+// /**
+//  * @brief 数据库插入指令
+//  * @param[in] 无
+//  * @return 无
+//  */
+// static void cell_pole_InsertSqlstr(uint8_t bms_num, uint8_t Rack_id)
+// {
+// 	char sqlstrtemp[100] = {0};
+// 	int zone, type;
+// 	u16_conv RegVal;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	unsigned int len_ini = sys_cfg->bms_pole_num[bms_num];
+// 	zone = sizeof(cell_poleTableInputAddr) / sizeof(TableAddressStruct);
+// 	if( power_flag==1)
+// 	{
+// 		return;
+// 	}
+// 	for (int z = 0; z < zone; z++)
+// 	{
+// 		for (unsigned short add = cell_poleTableInputAddr[z].start; (add <= cell_poleTableInputAddr[z].end) && (add < cell_poleTableInputAddr[z].start + len_ini); add++)
+// 		{
+// 			bzero_all(sqlstrtemp);
+// 			RegVal.D16 = GET_R_INPUT(1, Rack_id * R_INPUT_SIZE + add);//修改了这个
 		
-			sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
-			strcat(sqlstr, sqlstrtemp);
-		}
-	}
-}
+// 			sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
+// 			strcat(sqlstr, sqlstrtemp);
+// 		}
+// 	}
+// }
 
-/**
- * @brief cell_pole_Table(插入数据库)
- * @param[in] 无
- * @return 返回结果 0 为 正常
- */
-static int Insert_cell_pole_Table(MYSQL *pmysql)
-{
-	MYSQL_RES *my_res;
-	MYSQL_ROW my_row;
-	MYSQL_FIELD *my_field;
-	char sqlstrtemp[100] = {0};
-	int res, i;
-	uint8_t bms_num;
-	uint16_t Index;
-	static int faildnum = 0;
-	int res1 = 0;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	// 数据库更新操作
-	bzero_all(sqlstr);
-	sprintf(sqlstr, "create table if not exists cell_pole%04d%02d%02d (\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-	strcat(sqlstr, "id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,Time TEXT,Num SMALLINT UNSIGNED,Rack SMALLINT UNSIGNED\0");
-	cell_pole_CreateSqlstr();
-	strcat(sqlstr, ");\0");
-	if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
-	{
-		printf("sqlstr = %s\n", sqlstr);
-		printf("cell_pole mysql_query creat failure!\n");
-		if (faildnum++ > 10)
-		{
-			faildnum = 0;
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "drop table if exists cell_pole%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-			mysql_query(pmysql, sqlstr);
-		}
-		return 1;
-	}
-	bzero_all(sqlstr);
-	strcat(sqlstr, "START TRANSACTION;\0");
-	if (mysql_query(pmysql, sqlstr))
-	{
-		printf("START TRANSACTION failed!\n");
-	}
-	for (bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)
-	{
-		int NumIni = sys_cfg->bms_cluster[bms_num];
-		for (int Rack_id = 0; Rack_id < NumIni; Rack_id++)
-		{
+// /**
+//  * @brief cell_pole_Table(插入数据库)
+//  * @param[in] 无
+//  * @return 返回结果 0 为 正常
+//  */
+// static int Insert_cell_pole_Table(MYSQL *pmysql)
+// {
+// 	MYSQL_RES *my_res;
+// 	MYSQL_ROW my_row;
+// 	MYSQL_FIELD *my_field;
+// 	char sqlstrtemp[100] = {0};
+// 	int res, i;
+// 	uint8_t bms_num;
+// 	uint16_t Index;
+// 	static int faildnum = 0;
+// 	int res1 = 0;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	// 数据库更新操作
+// 	bzero_all(sqlstr);
+// 	sprintf(sqlstr, "create table if not exists cell_pole%04d%02d%02d (\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
+// 	strcat(sqlstr, "id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,Time TEXT,Num SMALLINT UNSIGNED,Rack SMALLINT UNSIGNED\0");
+// 	cell_pole_CreateSqlstr();
+// 	strcat(sqlstr, ");\0");
+// 	if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
+// 	{
+// 		printf("sqlstr = %s\n", sqlstr);
+// 		printf("cell_pole mysql_query creat failure!\n");
+// 		if (faildnum++ > 10)
+// 		{
+// 			faildnum = 0;
+// 			bzero_all(sqlstr);
+// 			sprintf(sqlstr, "drop table if exists cell_pole%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
+// 			mysql_query(pmysql, sqlstr);
+// 		}
+// 		return 1;
+// 	}
+// 	bzero_all(sqlstr);
+// 	strcat(sqlstr, "START TRANSACTION;\0");
+// 	if (mysql_query(pmysql, sqlstr))
+// 	{
+// 		printf("START TRANSACTION failed!\n");
+// 	}
+// 	for (bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)
+// 	{
+// 		int NumIni = sys_cfg->bms_cluster[bms_num];
+// 		for (int Rack_id = 0; Rack_id < NumIni; Rack_id++)
+// 		{
 
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "insert into cell_pole%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d,%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
-					tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, bms_num, Rack_id);
-			cell_pole_InsertSqlstr(bms_num, Rack_id);
-			strcat(sqlstr, ");\0");
-			if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
-			{
-				printf("sqlstr = %s\n", sqlstr);
-				printf("mysql_query failure!\n");
-				res1 = 2;
-			}
-			else
-			{
-#ifdef ISDEBUG_
-				printf("sqlstr = %s\n", sqlstr);
-				LOG_INFO("LC_DATA:Insert_cell_pole_Table = %s\n", sqlstr);
-#endif
-				// printf("mysql_query!\n");
-			}
-		}
-	}
-	bzero_all(sqlstr);
-	strcat(sqlstr, "COMMIT;");
-	if (mysql_query(pmysql, sqlstr))
-	{
-		printf("COMMIT failed!\n");
-	}
-	// usleep(100 * 1000);
-	return res1;
-}
+// 			bzero_all(sqlstr);
+// 			sprintf(sqlstr, "insert into cell_pole%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d,%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
+// 					tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, bms_num, Rack_id);
+// 			cell_pole_InsertSqlstr(bms_num, Rack_id);
+// 			strcat(sqlstr, ");\0");
+// 			if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
+// 			{
+// 				printf("sqlstr = %s\n", sqlstr);
+// 				printf("mysql_query failure!\n");
+// 				res1 = 2;
+// 			}
+// 			else
+// 			{
+// #ifdef ISDEBUG_
+// 				printf("sqlstr = %s\n", sqlstr);
+// 				LOG_INFO("LC_DATA:Insert_cell_pole_Table = %s\n", sqlstr);
+// #endif
+// 				// printf("mysql_query!\n");
+// 			}
+// 		}
+// 	}
+// 	bzero_all(sqlstr);
+// 	strcat(sqlstr, "COMMIT;");
+// 	if (mysql_query(pmysql, sqlstr))
+// 	{
+// 		printf("COMMIT failed!\n");
+// 	}
+// 	// usleep(100 * 1000);
+// 	return res1;
+// }
 
 /**
  * @brief 数据库创建指令
@@ -1998,7 +2135,7 @@ static int Insert_cell_pole_Table(MYSQL *pmysql)
 static void pcsModel_CreateSqlstr(void)
 {
 	int z;
-	char sqlstrtemp[100] = {0};
+	char sqlstrtemp[HISTORY_COLUMN_SQL_SIZE] = {0};
 	int zone, type;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	// unsigned char pcsModelNumIni = sys_cfg->pcsModelNum;
@@ -2030,25 +2167,26 @@ static void pcsModel_CreateSqlstr(void)
 			}
 			bzero_all(sqlstrtemp);
 			addtmp=offset+add;
+			const char *column_name = pcs_model_history_name(add, sys_cfg->singlePcsMaster);
 			switch (type)
 			{
 			case TpyeLcShort:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", addtmp);
+				history_column_sql(sqlstrtemp, column_name, "Input", addtmp, "SMALLINT");
 				break;
 			case TpyeLcUnInt_H:break;
 			case TpyeLcUnInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT UNSIGNED\0", addtmp);
+				history_column_sql(sqlstrtemp, column_name, "Input", addtmp, "INT UNSIGNED");
 				break;
 			case TpyeLcInt_H:break;
 			case TpyeLcInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT\0", addtmp);
+				history_column_sql(sqlstrtemp, column_name, "Input", addtmp, "INT");
 				break;	
 			case TpyeLcFloat_H:break;
 			case TpyeLcFloat_L:
-				sprintf(sqlstrtemp, ",Input%d FLOAT\0", addtmp);
+				history_column_sql(sqlstrtemp, column_name, "Input", addtmp, "FLOAT");
 				break;
 			default:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", addtmp);
+				history_column_sql(sqlstrtemp, column_name, "Input", addtmp, "SMALLINT UNSIGNED");
 				break;
 			}
 			strcat(sqlstr, sqlstrtemp);
@@ -2067,7 +2205,39 @@ static void pcsModel_CreateSqlstr(void)
 	{
 		for (unsigned short add = pcsModelTableHoldAddr[z].start; add <= pcsModelTableHoldAddr[z].end; add++)
 		{
-			sprintf(sqlstrtemp, ",Hold%d SMALLINT UNSIGNED\0", (offset+add));
+			type = TpyeLcUnShort;
+			for (unsigned short i = 0; i < sizeof(pcsModelHoldIsNotU16Regs) / sizeof(reg_type_st); i++)
+			{
+				if (pcsModelHoldIsNotU16Regs[i].RegAdd == add)
+				{
+					type = pcsModelHoldIsNotU16Regs[i].Type;
+					break;
+				}
+			}
+			bzero_all(sqlstrtemp);
+			addtmp=offset+add;
+			const char *column_name = history_column_name(HISTORY_COLUMNS(pcsModelColumns), add);
+			switch (type)
+			{
+			case TpyeLcShort:
+				history_column_sql(sqlstrtemp, column_name, "Hold", addtmp, "SMALLINT");
+				break;
+			case TpyeLcUnInt_H:break;
+			case TpyeLcUnInt_L:
+				history_column_sql(sqlstrtemp, column_name, "Hold", addtmp, "INT UNSIGNED");
+				break;
+			case TpyeLcInt_H:break;
+			case TpyeLcInt_L:
+				history_column_sql(sqlstrtemp, column_name, "Hold", addtmp, "INT");
+				break;	
+			case TpyeLcFloat_H:break;
+			case TpyeLcFloat_L:
+				history_column_sql(sqlstrtemp, column_name, "Hold", addtmp, "FLOAT");
+				break;
+			default:
+				history_column_sql(sqlstrtemp, column_name, "Hold", addtmp, "SMALLINT UNSIGNED");
+				break;
+			}
 			strcat(sqlstr, sqlstrtemp);
 		}
 	}
@@ -2078,132 +2248,132 @@ static void pcsModel_CreateSqlstr(void)
  * @param[in] 无
  * @return 无
  */
-static void cell_vol_CreateSqlstr(void)
-{
-	int z;
-	char sqlstrtemp[100] = {0};
-	int zone, type;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	zone = sizeof(cell_volTableInputAddr) / sizeof(TableAddressStruct);
-	unsigned int len_ini = sys_cfg->bms_vol_num[0];
-	for (unsigned int z = 0; z < zone; z++)
-	{
-		for (unsigned short add = cell_volTableInputAddr[z].start; (add <= cell_volTableInputAddr[z].end) && (add < cell_volTableInputAddr[z].start + len_ini); add++)
-		{
-			bzero_all(sqlstrtemp);
-			sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
-			strcat(sqlstr, sqlstrtemp);
-		}
-	}
-}
-/**
- * @brief 数据库插入指令
- * @param[in] 无
- * @return 无
- */
-static void cell_vol_InsertSqlstr(uint8_t bms_num, uint8_t Rack_id)
-{
+// static void cell_vol_CreateSqlstr(void)
+// {
+// 	int z;
+// 	char sqlstrtemp[100] = {0};
+// 	int zone, type;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	zone = sizeof(cell_volTableInputAddr) / sizeof(TableAddressStruct);
+// 	unsigned int len_ini = sys_cfg->bms_vol_num[0];
+// 	for (unsigned int z = 0; z < zone; z++)
+// 	{
+// 		for (unsigned short add = cell_volTableInputAddr[z].start; (add <= cell_volTableInputAddr[z].end) && (add < cell_volTableInputAddr[z].start + len_ini); add++)
+// 		{
+// 			bzero_all(sqlstrtemp);
+// 			sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
+// 			strcat(sqlstr, sqlstrtemp);
+// 		}
+// 	}
+// }
+// /**
+//  * @brief 数据库插入指令
+//  * @param[in] 无
+//  * @return 无
+//  */
+// static void cell_vol_InsertSqlstr(uint8_t bms_num, uint8_t Rack_id)
+// {
 
-	char sqlstrtemp[100] = {0};
-	int zone, type;
-	u16_conv RegVal;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	zone = sizeof(cell_volTableInputAddr) / sizeof(TableAddressStruct);
-	unsigned int len_ini = sys_cfg->bms_vol_num[bms_num];
-	if( power_flag==1)
-	{
-		return;
-	}
-	for (unsigned int z = 0; z < zone; z++)
-	{
-		for (unsigned short add = cell_volTableInputAddr[z].start; (add <= cell_volTableInputAddr[z].end) && (add < cell_volTableInputAddr[z].start + len_ini); add++)
-		{
-			bzero_all(sqlstrtemp);
-			RegVal.D16 = GET_R_INPUT(1, Rack_id * R_INPUT_SIZE + add);//修改了这里
-			sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
-			strcat(sqlstr, sqlstrtemp);
-		}
-	}
-}
+// 	char sqlstrtemp[100] = {0};
+// 	int zone, type;
+// 	u16_conv RegVal;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	zone = sizeof(cell_volTableInputAddr) / sizeof(TableAddressStruct);
+// 	unsigned int len_ini = sys_cfg->bms_vol_num[bms_num];
+// 	if( power_flag==1)
+// 	{
+// 		return;
+// 	}
+// 	for (unsigned int z = 0; z < zone; z++)
+// 	{
+// 		for (unsigned short add = cell_volTableInputAddr[z].start; (add <= cell_volTableInputAddr[z].end) && (add < cell_volTableInputAddr[z].start + len_ini); add++)
+// 		{
+// 			bzero_all(sqlstrtemp);
+// 			RegVal.D16 = GET_R_INPUT(1, Rack_id * R_INPUT_SIZE + add);//修改了这里
+// 			sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
+// 			strcat(sqlstr, sqlstrtemp);
+// 		}
+// 	}
+// }
 
-/**
- * @brief cell_vol_Table(插入数据库)
- * @param[in] 无
- * @return 返回结果 0 为 正常
- */
-static int Insert_cell_vol_Table(MYSQL *pmysql)
-{
-	MYSQL_RES *my_res;
-	MYSQL_ROW my_row;
-	MYSQL_FIELD *my_field;
-	char sqlstrtemp[100] = {0};
-	int res, i;
-	uint8_t bms_num;
-	uint16_t Index;
-	static int faildnum = 0;
-	int res1 = 0;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	// 数据库更新操作
-	bzero_all(sqlstr);
-	sprintf(sqlstr, "create table if not exists cell_vol%04d%02d%02d (\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-	strcat(sqlstr, "id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,Time TEXT,Num SMALLINT UNSIGNED UNSIGNED,Rack SMALLINT UNSIGNED UNSIGNED\0");
-	cell_vol_CreateSqlstr();
-	strcat(sqlstr, ");\0");
-	if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
-	{
-		printf("sqlstr = %s\n", sqlstr);
-		printf("cell_vol mysql_query creat failure!\n");
-		if (faildnum++ > 10)
-		{
-			faildnum = 0;
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "drop table if exists cell_vol%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-			mysql_query(pmysql, sqlstr);
-		}
-		return 1;
-	}
-	bzero_all(sqlstr);
-	strcat(sqlstr, "START TRANSACTION;\0");
-	if (mysql_query(pmysql, sqlstr))
-	{
-		printf("START TRANSACTION failed!\n");
-	}
-	for (bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)
-	{
-		int NumIni = sys_cfg->bms_cluster[bms_num];
-		for (int Rack_id = 0; Rack_id < NumIni; Rack_id++)
-		{
+// /**
+//  * @brief cell_vol_Table(插入数据库)
+//  * @param[in] 无
+//  * @return 返回结果 0 为 正常
+//  */
+// static int Insert_cell_vol_Table(MYSQL *pmysql)
+// {
+// 	MYSQL_RES *my_res;
+// 	MYSQL_ROW my_row;
+// 	MYSQL_FIELD *my_field;
+// 	char sqlstrtemp[100] = {0};
+// 	int res, i;
+// 	uint8_t bms_num;
+// 	uint16_t Index;
+// 	static int faildnum = 0;
+// 	int res1 = 0;
+// 	sysPara *sys_cfg = SysConf_GetInfo();
+// 	// 数据库更新操作
+// 	bzero_all(sqlstr);
+// 	sprintf(sqlstr, "create table if not exists cell_vol%04d%02d%02d (\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
+// 	strcat(sqlstr, "id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,Time TEXT,Num SMALLINT UNSIGNED UNSIGNED,Rack SMALLINT UNSIGNED UNSIGNED\0");
+// 	cell_vol_CreateSqlstr();
+// 	strcat(sqlstr, ");\0");
+// 	if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
+// 	{
+// 		printf("sqlstr = %s\n", sqlstr);
+// 		printf("cell_vol mysql_query creat failure!\n");
+// 		if (faildnum++ > 10)
+// 		{
+// 			faildnum = 0;
+// 			bzero_all(sqlstr);
+// 			sprintf(sqlstr, "drop table if exists cell_vol%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
+// 			mysql_query(pmysql, sqlstr);
+// 		}
+// 		return 1;
+// 	}
+// 	bzero_all(sqlstr);
+// 	strcat(sqlstr, "START TRANSACTION;\0");
+// 	if (mysql_query(pmysql, sqlstr))
+// 	{
+// 		printf("START TRANSACTION failed!\n");
+// 	}
+// 	for (bms_num = 0; (bms_num < sys_cfg->bmsNum) && (bms_num < MAX_BMS_NUM); bms_num++)
+// 	{
+// 		int NumIni = sys_cfg->bms_cluster[bms_num];
+// 		for (int Rack_id = 0; Rack_id < NumIni; Rack_id++)
+// 		{
 
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "insert into cell_vol%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d,%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
-					tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, bms_num, Rack_id);
-			cell_vol_InsertSqlstr(bms_num, Rack_id);
-			strcat(sqlstr, ");\0");
-			if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
-			{
-				printf("sqlstr = %s\n", sqlstr);
-				printf("mysql_query failure!\n");
-				res1 = 2;
-			}
-			else
-			{
-#ifdef ISDEBUG_
-				printf("sqlstr = %s\n", sqlstr);
-				LOG_INFO("LC_DATA:Insert_cell_vol_Table = %s\n", sqlstr);
-#endif
-				// printf("mysql_query!\n");
-			}
-		}
-	}
-	bzero_all(sqlstr);
-	strcat(sqlstr, "COMMIT;");
-	if (mysql_query(pmysql, sqlstr))
-	{
-		printf("COMMIT failed!\n");
-	}
-	// usleep(100 * 1000);
-	return res1;
-}
+// 			bzero_all(sqlstr);
+// 			sprintf(sqlstr, "insert into cell_vol%04d%02d%02d values(null,'%04d-%02d-%02dT%02d:%02d:%02d',%d,%d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday,
+// 					tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, tm_m.tm_hour, tm_m.tm_min, tm_m.tm_sec, bms_num, Rack_id);
+// 			cell_vol_InsertSqlstr(bms_num, Rack_id);
+// 			strcat(sqlstr, ");\0");
+// 			if (mysql_query(pmysql, sqlstr) != 0) // 插入一条信息
+// 			{
+// 				printf("sqlstr = %s\n", sqlstr);
+// 				printf("mysql_query failure!\n");
+// 				res1 = 2;
+// 			}
+// 			else
+// 			{
+// #ifdef ISDEBUG_
+// 				printf("sqlstr = %s\n", sqlstr);
+// 				LOG_INFO("LC_DATA:Insert_cell_vol_Table = %s\n", sqlstr);
+// #endif
+// 				// printf("mysql_query!\n");
+// 			}
+// 		}
+// 	}
+// 	bzero_all(sqlstr);
+// 	strcat(sqlstr, "COMMIT;");
+// 	if (mysql_query(pmysql, sqlstr))
+// 	{
+// 		printf("COMMIT failed!\n");
+// 	}
+// 	// usleep(100 * 1000);
+// 	return res1;
+// }
 
 /**
  * @brief 数据库插入指令
@@ -2298,8 +2468,52 @@ static void pcsModel_InsertSqlstr(int num)
 	{
 		for (unsigned short add = pcsModelTableHoldAddr[z].start; add <= pcsModelTableHoldAddr[z].end; add++)
 		{
-			RegVal.D16 = GET_HOLD(add + offset);
-			sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
+			type = TpyeLcUnShort;
+			for (unsigned short i = 0; i < sizeof(pcsModelHoldIsNotU16Regs) / sizeof(reg_type_st); i++)
+			{
+				if (pcsModelHoldIsNotU16Regs[i].RegAdd == add)
+				{
+					type = pcsModelHoldIsNotU16Regs[i].Type;
+					break;
+				}
+			}
+			bzero_all(sqlstrtemp);
+			switch (type)
+			{
+			case TpyeLcShort:
+				RegVal.D16 = GET_HOLD(add + offset);
+				sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
+				break;
+			case TpyeLcUnInt_H:
+
+				break;
+			case TpyeLcUnInt_L:
+				fRegVal.D16[0] = GET_HOLD(add + offset);
+				fRegVal.D16[1] = GET_HOLD(add - 1 + offset);
+				sprintf(sqlstrtemp, ",%d\0", fRegVal.D32);
+				break;
+
+			case TpyeLcInt_H:
+
+				break;
+			case TpyeLcInt_L:
+				fRegVal.D16[0] = GET_HOLD(add + offset);
+				fRegVal.D16[1] = GET_HOLD(add - 1 + offset);
+				sprintf(sqlstrtemp, ",%d\0", fRegVal.DS32);
+				break;
+			case TpyeLcFloat_H:
+
+				break;
+			case TpyeLcFloat_L:
+				fRegVal.D16[0] = GET_HOLD(add + offset);
+				fRegVal.D16[1] = GET_HOLD(add - 1 + offset);
+				sprintf(sqlstrtemp, ",%f\0", fRegVal.F32);
+				break;
+			default:
+				RegVal.D16 = GET_HOLD(add + offset);
+				sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
+				break;
+			}
 			strcat(sqlstr, sqlstrtemp);
 		}
 	}
@@ -2320,7 +2534,6 @@ static int Insert_pcsModel_Table(MYSQL *pmysql)
 	int rows;
 	int cols;
 	uint16_t Index;
-	static int faildnum = 0;
 	int res1 = 0;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	// 数据库更新操作
@@ -2333,13 +2546,6 @@ static int Insert_pcsModel_Table(MYSQL *pmysql)
 	{
 		printf("sqlstr = %s\n", sqlstr);
 		printf("pcsmodel mysql_query creat failure!\n");
-		if (faildnum++ > 10)
-		{
-			faildnum = 0;
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "drop table if exists pcsmodel%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-			mysql_query(pmysql, sqlstr);
-		}
 		return 1;
 	}
 
@@ -2389,10 +2595,8 @@ static int Insert_pcsModel_Table(MYSQL *pmysql)
  */
 static void pcsGroup_CreateSqlstr(void)
 {
-	char sqlstrtemp[100] = {0};
+	char sqlstrtemp[HISTORY_COLUMN_SQL_SIZE] = {0};
 	int zone, type;
-	sysPara *sys_cfg = SysConf_GetInfo();
-	// unsigned char pcsGroupNumIni = sys_cfg->sysNum;
 	
 
 	zone = sizeof(pcsGroupTableInputAddr) / sizeof(TableAddressStruct);
@@ -2400,7 +2604,6 @@ static void pcsGroup_CreateSqlstr(void)
 	{
 		for (unsigned short add = pcsGroupTableInputAddr[z].start; add <= pcsGroupTableInputAddr[z].end; add++)
 		{
-
 			type = TpyeLcUnShort;
 			for (unsigned short i = 0; i < sizeof(pcsGroupInputIsNotU16Regs) / sizeof(reg_type_st); i++)
 			{
@@ -2411,25 +2614,26 @@ static void pcsGroup_CreateSqlstr(void)
 				}
 			}
 			bzero_all(sqlstrtemp);
+			const char *column_name = history_column_name(HISTORY_COLUMNS(pcsGroupColumns), add);
 			switch (type)
 			{
 			case TpyeLcShort:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "SMALLINT");
 				break;
 			case TpyeLcUnInt_H:break;
 			case TpyeLcUnInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT UNSIGNED\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "INT UNSIGNED");
 				break;
 			case TpyeLcInt_H:break;
 			case TpyeLcInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "INT");
 				break;
 			case TpyeLcFloat_H:break;
 			case TpyeLcFloat_L:
-				sprintf(sqlstrtemp, ",Input%d FLOAT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "FLOAT");
 				break;
 			default:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "SMALLINT UNSIGNED");
 				break;
 			}
 			strcat(sqlstr, sqlstrtemp);
@@ -2440,7 +2644,38 @@ static void pcsGroup_CreateSqlstr(void)
 	{
 		for (unsigned short add = pcsGroupTableHoldAddr[z].start; add <= pcsGroupTableHoldAddr[z].end; add++)
 		{
-			sprintf(sqlstrtemp, ",Hold%d SMALLINT UNSIGNED\0", add);
+			type = TpyeLcUnShort;
+			for (unsigned short i = 0; i < sizeof(pcsGroupHoldIsNotU16Regs) / sizeof(reg_type_st); i++)
+			{
+				if (pcsGroupHoldIsNotU16Regs[i].RegAdd == add)
+				{
+					type = pcsGroupHoldIsNotU16Regs[i].Type;
+					break;
+				}
+			}
+			bzero_all(sqlstrtemp);
+			const char *column_name = history_column_name(HISTORY_COLUMNS(pcsGroupColumns), add);
+			switch (type)
+			{
+			case TpyeLcShort:
+				history_column_sql(sqlstrtemp, column_name, "Hold", add, "SMALLINT");
+				break;
+			case TpyeLcUnInt_H:break;
+			case TpyeLcUnInt_L:
+				history_column_sql(sqlstrtemp, column_name, "Hold", add, "INT UNSIGNED");
+				break;
+			case TpyeLcInt_H:break;
+			case TpyeLcInt_L:
+				history_column_sql(sqlstrtemp, column_name, "Hold", add, "INT");
+				break;
+			case TpyeLcFloat_H:break;
+			case TpyeLcFloat_L:
+				history_column_sql(sqlstrtemp, column_name, "Hold", add, "FLOAT");
+				break;
+			default:
+				history_column_sql(sqlstrtemp, column_name, "Hold", add, "SMALLINT UNSIGNED");
+				break;
+			}
 			strcat(sqlstr, sqlstrtemp);
 		}
 	}
@@ -2519,8 +2754,51 @@ static void pcsGroup_InsertSqlstr(int num)
 	{
 		for (unsigned short add = pcsGroupTableHoldAddr[z].start; add <= pcsGroupTableHoldAddr[z].end; add++)
 		{
-			RegVal.D16 = GET_HOLD(add + offset);
-			sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
+			type = TpyeLcUnShort;
+			for (unsigned short i = 0; i < sizeof(pcsGroupHoldIsNotU16Regs) / sizeof(reg_type_st); i++)
+			{
+				if (pcsGroupHoldIsNotU16Regs[i].RegAdd == add)
+				{
+					type = pcsGroupHoldIsNotU16Regs[i].Type;
+					break;
+				}
+			}
+			bzero_all(sqlstrtemp);
+			switch (type)
+			{
+			case TpyeLcShort:
+				RegVal.D16 = GET_HOLD(add + offset);
+				sprintf(sqlstrtemp, ",%d\0", RegVal.DS16);
+				break;
+			case TpyeLcUnInt_H:
+
+				break;
+			case TpyeLcUnInt_L:
+				fRegVal.D16[0] = GET_HOLD(add + offset);
+				fRegVal.D16[1] = GET_HOLD(add - 1 + offset);
+				sprintf(sqlstrtemp, ",%d\0", fRegVal.D32);
+				break;
+			case TpyeLcInt_H:
+
+				break;
+			case TpyeLcInt_L:
+				fRegVal.D16[0] = GET_HOLD(add + offset);
+				fRegVal.D16[1] = GET_HOLD(add - 1 + offset);
+				sprintf(sqlstrtemp, ",%d\0", fRegVal.DS32);
+				break;
+			case TpyeLcFloat_H:
+
+				break;
+			case TpyeLcFloat_L:
+				fRegVal.D16[0] = GET_HOLD(add + offset);
+				fRegVal.D16[1] = GET_HOLD(add - 1 + offset);
+				sprintf(sqlstrtemp, ",%f\0", fRegVal.F32);
+				break;
+			default:
+				RegVal.D16 = GET_HOLD(add + offset);
+				sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
+				break;
+			}
 			strcat(sqlstr, sqlstrtemp);
 		}
 	}
@@ -2541,7 +2819,6 @@ static int Insert_pcsGroup_Table(MYSQL *pmysql)
 	int rows;
 	int cols;
 	uint16_t Index;
-	static int faildnum = 0;
 	int res1 = 0;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	// 数据库更新操作
@@ -2554,13 +2831,6 @@ static int Insert_pcsGroup_Table(MYSQL *pmysql)
 	{
 		printf("sqlstr = %s\n", sqlstr);
 		printf("pcsgroup mysql_query creat failure!\n");
-		if (faildnum++ > 10)
-		{
-			faildnum = 0;
-			bzero_all(sqlstr);
-			sprintf(sqlstr, "drop table if exists pcsgroup%04d%02d%02d\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday);
-			mysql_query(pmysql, sqlstr);
-		}
 		return 1;
 	}
 	// bzero_all(sqlstr);
@@ -2610,13 +2880,13 @@ static int Insert_pcsGroup_Table(MYSQL *pmysql)
 static void meter_CreateSqlstr(void)
 {
 	int z;
-	char sqlstrtemp[100] = {0};
+	char sqlstrtemp[HISTORY_COLUMN_SQL_SIZE] = {0};
 	int zone, type;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	unsigned char meterNumIni = 1;
 
 	const TableAddressStruct *input_addr = NULL;
-	if ((sys_cfg->projectType == MEASURE_FINLAND_KORK) || (sys_cfg->projectType == MEASURE_FINLAND_KAN))
+	if (is_finland_history_project(sys_cfg->projectType))
 	{
 		input_addr = finlandMeterTableInputAddr;
 		zone = sizeof(finlandMeterTableInputAddr) / sizeof(TableAddressStruct);
@@ -2641,25 +2911,26 @@ static void meter_CreateSqlstr(void)
 				}
 			}
 			bzero_all(sqlstrtemp);
+			const char *column_name = meter_history_name(add, sys_cfg->projectType);
 			switch (type)
 			{
 			case TpyeLcShort:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "SMALLINT");
 				break;
 			case TpyeLcUnInt_H:break;
 			case TpyeLcUnInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT UNSIGNED\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "INT UNSIGNED");
 				break;
 			case TpyeLcInt_H:break;
 			case TpyeLcInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "INT");
 				break;
 			case TpyeLcFloat_H:break;
 			case TpyeLcFloat_L:
-				sprintf(sqlstrtemp, ",Input%d FLOAT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "FLOAT");
 				break;
 			default:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "SMALLINT UNSIGNED");
 				break;
 			}
 			strcat(sqlstr, sqlstrtemp);
@@ -2776,7 +3047,10 @@ static int Insert_meter_Table(MYSQL *pmysql)
 	{
 		printf("sqlstr = %s\n", sqlstr);
 		printf("meter mysql_query creat failure!\n");
-		if (faildnum++ > 10)
+		if (!is_uk_history_project(sys_cfg->projectType) &&
+			!is_finland_history_project(sys_cfg->projectType) &&
+			!is_sweden_history_project(sys_cfg->projectType) &&
+			!is_italy_history_project(sys_cfg->projectType) && faildnum++ > 10)
 		{
 			faildnum = 0;
 			bzero_all(sqlstr);
@@ -3057,7 +3331,7 @@ static int Insert_sydy_Table(MYSQL *pmysql)
  */
 static void mv_CreateSqlstr(void)
 {
-	char sqlstrtemp[100] = {0};
+	char sqlstrtemp[HISTORY_COLUMN_SQL_SIZE] = {0};
 	int zone, type;
 	sysPara *sys_cfg = SysConf_GetInfo();
 	
@@ -3066,14 +3340,14 @@ static void mv_CreateSqlstr(void)
 	const reg_type_st *input_type = NULL;
 	int type_count;
 
-	if ((sys_cfg->projectType == MEASURE_FINLAND_KORK) || (sys_cfg->projectType == MEASURE_FINLAND_KAN))
+	if (is_finland_history_project(sys_cfg->projectType))
 	{
 		input_addr = finlandAuxTableInputAddr;
 		input_type = finlandAuxInputIsNotU16Regs;
 		type_count = sizeof(finlandAuxInputIsNotU16Regs) / sizeof(reg_type_st);
 		zone = sizeof(finlandAuxTableInputAddr) / sizeof(TableAddressStruct);
 	}
-	else if (sys_cfg->projectType == MEASURE_UK)
+	else if ((sys_cfg->projectType == MEASURE_UK_10MW)||(sys_cfg->projectType == MEASURE_UK_5_5MW))
 	{
 		input_addr = ukAuxTableInputAddr;
 		input_type = ukAuxInputIsNotU16Regs;
@@ -3103,25 +3377,26 @@ static void mv_CreateSqlstr(void)
 				}
 			}
 			bzero_all(sqlstrtemp);
+			const char *column_name = mv_history_name(add, sys_cfg->projectType);
 			switch (type)
 			{
 			case TpyeLcShort:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "SMALLINT");
 				break;
 			case TpyeLcUnInt_H:break;
 			case TpyeLcUnInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT UNSIGNED\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "INT UNSIGNED");
 				break;
 			case TpyeLcInt_H:break;
 			case TpyeLcInt_L:
-				sprintf(sqlstrtemp, ",Input%d INT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "INT");
 				break;
 			case TpyeLcFloat_H:break;
 			case TpyeLcFloat_L:
-				sprintf(sqlstrtemp, ",Input%d FLOAT\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "FLOAT");
 				break;
 			default:
-				sprintf(sqlstrtemp, ",Input%d SMALLINT UNSIGNED\0", add);
+				history_column_sql(sqlstrtemp, column_name, "Input", add, "SMALLINT UNSIGNED");
 				break;
 			}
 			strcat(sqlstr, sqlstrtemp);
@@ -3153,7 +3428,7 @@ static void mv_InsertSqlstr(void)
 		type_count = sizeof(finlandAuxInputIsNotU16Regs) / sizeof(reg_type_st);
 		zone = sizeof(finlandAuxTableInputAddr) / sizeof(TableAddressStruct);
 	}
-	else if (sys_cfg->projectType == MEASURE_UK)
+	else if ((sys_cfg->projectType == MEASURE_UK_10MW)||(sys_cfg->projectType == MEASURE_UK_5_5MW))
 	{
 		input_addr = ukAuxTableInputAddr;
 		input_type = ukAuxInputIsNotU16Regs;
@@ -3256,7 +3531,10 @@ static int Insert_mv_Table(MYSQL *pmysql)
 	{
 		printf("sqlstr = %s\n", sqlstr);
 		printf("mv mysql_query creat failure!\n");
-		if (faildnum++ > 10)
+		if (!is_uk_history_project(sys_cfg->projectType) &&
+			!is_finland_history_project(sys_cfg->projectType) &&
+			!is_sweden_history_project(sys_cfg->projectType) &&
+			!is_italy_history_project(sys_cfg->projectType) && faildnum++ > 10)
 		{
 			faildnum = 0;
 			bzero_all(sqlstr);
@@ -3594,7 +3872,7 @@ static void fault_InsertSqlstr(void)
 	{
 		return;
 	}
-	for (int z = 0; z < zone; z++)
+	for (int z = 0; z < zone-8; z++)
 	{
 		if(((sys_cfg->singlePcsMaster) == 1) && ((z >= 1) && (z <= 4)))
 		{
@@ -3628,6 +3906,43 @@ static void fault_InsertSqlstr(void)
 			strcat(sqlstr, sqlstrtemp);
 		}
 	}
+	int itemp = 0;
+	for (int i = 0; i < 8; i++)
+	{
+		if ((sys_cfg->singlePcsMaster) == 1)
+		{
+			/* 双bus时，单主机模式仅记录 BMS1、2、5、6 */
+			if (sys_cfg->bmsNum==8)
+			{
+				if(i == 2 || i == 3 || i == 6 || i == 7)
+				{
+					continue;
+				}
+			}
+			else if(sys_cfg->bmsNum==4)/* 单bus时，单主机模式仅记录 BMS1、3 */
+			{
+				if(i == 1 || i == 3)
+				{
+					continue;
+				}
+			}
+		}
+		for (unsigned short add = faultTableInputAddr[zone-8+i].start; add <= faultTableInputAddr[zone-8+i].end; add++)
+		{
+			bzero_all(sqlstrtemp);
+			RegVal.D16 = GET_INPUT(add);
+			sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
+			strcat(sqlstr, sqlstrtemp);
+		}
+		itemp++;
+	}
+	for (int i = 0; (i < 8-itemp)&&(i < 8); i++)
+	{
+		bzero_all(sqlstrtemp);
+		RegVal.D16 = 0;
+		sprintf(sqlstrtemp, ",%d\0", RegVal.D16);
+		strcat(sqlstr, sqlstrtemp);
+	}
 }
 
 /**
@@ -3654,11 +3969,7 @@ static int fault_InsertSqlstrAll(void)
 	uint8_t pcsgroup_flag=0;
 	uint8_t system_flag=0;
 	uint8_t MV_flag=0;
-	uint8_t BMS1_flag=0;
-	uint8_t BMS2_flag=0;
-	uint8_t BMS3_flag=0;
-	uint8_t BMS4_flag=0;
-	uint8_t BMS5_flag=0;
+	uint8_t BMS_flag=0;
 
 	static uint16_t Prev_Input_Val[65535] = {0};
 	//system故障总
@@ -3783,7 +4094,7 @@ static int fault_InsertSqlstrAll(void)
 			RegVal.D16 = GET_INPUT(add);
 		   if (RegVal.D16 != Prev_Input_Val[add]) /* 判断是否发生变化 */
 			{
-				BMS1_flag = 1;                    // 变化标志
+				BMS_flag = 1;                    // 变化标志
 				Prev_Input_Val[add] = RegVal.D16; // 更新历史值
 			}
 			if (RegVal.D16 != 0)
@@ -3792,14 +4103,41 @@ static int fault_InsertSqlstrAll(void)
 				//break;
 			}
 		}
-		WriteBit(faultVal[4], i, flag);
+		int itemp = i;
+		if ((sys_cfg->singlePcsMaster) == 1)
+		{
+			/* 双bus时，单主机模式仅记录 BMS1、2、5、6 */
+			if (sys_cfg->bmsNum==8)
+			{
+				if(i == 2 || i == 3 || i == 6 || i == 7)
+				{
+					continue;
+				}
+				else if(i == 4 || i == 5)
+				{
+					itemp = i - 2;
+				}
+			}
+			else if(sys_cfg->bmsNum==4)/* 单bus时，单主机模式仅记录 BMS1、3 */
+			{
+				if(i == 1 || i == 3)
+				{
+					continue;
+				}
+				else if(i == 2)
+				{
+					itemp = 1;
+				}
+			}
+		}
+		WriteBit(faultVal[4], itemp, flag);
 	}
 	bzero_all(sqlstrtemp);
 	sprintf(sqlstrtemp, ",%d\0", faultVal[4]);
 	strcat(sqlstr, sqlstrtemp);
 
 	// 比较两个数组
-	if ((pcsmodel_flag == 1)||(pcsgroup_flag==1)||(system_flag==1)||(MV_flag==1)||(BMS1_flag==1)||(BMS2_flag==1)||(BMS3_flag==1)||(BMS4_flag==1)||(BMS5_flag==1))
+	if ((pcsmodel_flag == 1)||(pcsgroup_flag==1)||(system_flag==1)||(MV_flag==1)||(BMS_flag==1))
 	{
 
 		// 数组内容存在差异
@@ -3808,12 +4146,7 @@ static int fault_InsertSqlstrAll(void)
 		pcsgroup_flag=0;
 		system_flag=0;
 		MV_flag=0;
-		BMS1_flag=0;
-		BMS2_flag=0;
-	 	BMS3_flag=0;
-	 	BMS4_flag=0;
-	 	BMS5_flag=0;
-
+		BMS_flag=0;
 		
 	}
 	else
@@ -3931,7 +4264,15 @@ static void Del_Expire_Table(MYSQL *pmysql)
 		// sprintf(sqlstr, "select * from Name_Table where DATE_SUB('%04d-%02d-%02d', INTERVAL %d DAY) > date(Time);\0", tm_m.tm_year, tm_m.tm_mon, tm_m.tm_mday, sys_cfg->dbHoldDays);
 		printf("sqlstr = %s\n", sqlstr);
 		res = mysql_query(pmysql, sqlstr);
+		if (res != 0) {
+    		return;   // 查询失败：不取结果集，直接返回
+		}
 		my_res = mysql_store_result(pmysql);
+		if (my_res == NULL) {
+			// 查询失败或无结果集：不能调用 num_rows / fetch_row / free_result
+			printf("Del_Expire_Table: store_result NULL\n");
+			return;
+		}
 		// cols = mysql_num_fields(my_res);
 		rows = mysql_num_rows(my_res);
 		// my_field = mysql_fetch_fields(my_res);
@@ -3962,7 +4303,7 @@ static void Del_Expire_Table(MYSQL *pmysql)
 								my_row[0], mysql_error(pmysql));
 						// 可选：记录失败表名到日志文件
 					}
-					printf(sqlstr);
+					printf("sqlstr = %s\n", sqlstr);
 					usleep(100 * 1000);
 				}
 				printf("\n");
@@ -4043,6 +4384,7 @@ int Deal_database(void)
 	if (mysql_library_init(0, NULL, NULL) != 0) // 初始化mysql数据库
 	{
 		printf("mysql_library_init failure!\n");
+		mysql_close(&mysql);                       // 补：释放连接句柄
 		return 1;
 	}
 	else
@@ -4060,6 +4402,7 @@ int Deal_database(void)
 								   0)) // 与mysql服务器建立连接
 	{
 		printf("mysql_real_connect failure!\n");
+		mysql_close(&mysql);                       // 补：释放连接句柄
 		mysql_library_end();
 		return 1;
 	}
@@ -4203,7 +4546,7 @@ void *power_monitor(void *arg)
     //创建一个netlink socket，协议类型为NETLINK_KOBJECT_UEVENT
     int s = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT);
     if(s < 0)
-        return -1;
+        return NULL;
     setsockopt(s, SOL_SOCKET, SO_RCVBUF, & size, sizeof(size));  //设置接收缓冲区大小
     struct sockaddr_nl  sockaddr; 
     sockaddr.nl_family = AF_NETLINK;   //必须设置为 AF_NETLINK 或者 PF_NETLINK
@@ -4213,14 +4556,14 @@ void *power_monitor(void *arg)
     if(ret < 0)
     {
         close(s);
-        return -1;
+        return NULL;
     }
     fd = open(DEVPATH,O_RDONLY);  //打开供电状态文件
     if(fd < 0)    
     {
         close(s);
         LOG_INFO("供电检测文件打开失败");
-        return -1;
+        return NULL;
     }
     while (1)
     {
@@ -4267,9 +4610,10 @@ void *db_task(void *arg)
 #ifdef USE_DB
 	if( power_flag==1)
 		{
-			return;
+			return NULL;
 		}
 		Deal_database();
 #endif
 	}
+	return NULL;
 }
