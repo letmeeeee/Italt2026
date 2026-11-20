@@ -208,7 +208,8 @@ static void* Server_Handle_Data(void *arg)
         else
         {
             // EMS通讯正常
-      
+            // 将保持寄存器3的远程控制使能状态映射到输入寄存器160
+            SET_INPUT(160, GET_HOLD(3));
             (*ptimecnt) = 0;
 
             // 接收的数据
