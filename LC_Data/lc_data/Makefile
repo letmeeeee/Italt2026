@@ -13,7 +13,7 @@ LIB_OBJ = $(patsubst ../lib/%.c, $(LIB_OBJ_DIR)/%.o, $(LIB_SRC))
 CC = aarch64-linux-gnu-gcc
 
 # 编译选项
-CFLAGS = -I../include -I../include/lib -g -Wall -std=gnu99 -pthread
+CFLAGS = -I../include -I../include/lib -g -Wall -std=gnu99 -pthread -Wno-unused -Wno-format-contains-nul
 LDFLAGS = -L../lib -pthread -lzlog -lm -lmysqlclient -lssl -lcrypto -lrt
 
 # 确保链接顺序正确（需要依赖关系的库放在后面）
@@ -31,6 +31,8 @@ lc_data: $(LOCAL_OBJ) $(LIB_OBJ)
 $(OBJ_DIR)/%.o: ./%.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/db_work.o: history_columns.h uk_history_columns.h finland_history_columns.h sweden_history_columns.h italy_history_columns.h
 
 # 库对象构建规则
 $(LIB_OBJ_DIR)/%.o: ../lib/%.c

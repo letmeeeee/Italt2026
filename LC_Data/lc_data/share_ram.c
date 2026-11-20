@@ -26,45 +26,45 @@
  
  // 共享内存文件路径
  #define LOGGER_SHARE_RAM_PATH "/my_shared_memory_logger"
- #define BBMS_SHARE_RAM_PATH "/my_shared_memory_bms"
+//  #define BBMS_SHARE_RAM_PATH "/my_shared_memory_bms"
  // 全局共享内存指针
  static RegistersModel *Ram_Logger = NULL;
- static RegistersModel *Ram_Bms = NULL;
+//  static RegistersModel *Ram_Bms = NULL;
 
 
  // 互斥锁用于多线程同步
  pthread_mutex_t ram_mutex = PTHREAD_MUTEX_INITIALIZER;
  // 共享内存初始化 - 电芯数据
-void share_Bms_ram_init()
-{
-    int fd;
-    const char *file_path = BBMS_SHARE_RAM_PATH;  // 使用与Python相同的路径
+// void share_Bms_ram_init()
+// {
+//     int fd;
+//     const char *file_path = BBMS_SHARE_RAM_PATH;  // 使用与Python相同的路径
 
-    // 打开共享内存文件（如果文件不存在则创建）
-    fd = shm_open(file_path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-    if (fd == -1) {
-        perror("打开共享内存文件失败");
-        exit(EXIT_FAILURE);
-    }
+//     // 打开共享内存文件（如果文件不存在则创建）
+//     fd = shm_open(file_path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+//     if (fd == -1) {
+//         perror("打开共享内存文件失败");
+//         exit(EXIT_FAILURE);
+//     }
 
-    // 设置共享内存的大小
-    int size = sizeof(RankModel);
-    if (ftruncate(fd, size) == -1) {
-        perror("设置共享内存大小失败");
-        exit(EXIT_FAILURE);
-    }
+//     // 设置共享内存的大小
+//     int size = sizeof(RankModel);
+//     if (ftruncate(fd, size) == -1) {
+//         perror("设置共享内存大小失败");
+//         exit(EXIT_FAILURE);
+//     }
 
-    // 将共享内存映射到当前进程的地址空间
-    void *addrbms = (INT16U *)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addrbms == MAP_FAILED) {
-        perror("共享内存映射失败");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
+//     // 将共享内存映射到当前进程的地址空间
+//     void *addrbms = (INT16U *)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+//     if (addrbms == MAP_FAILED) {
+//         perror("共享内存映射失败");
+//         close(fd);
+//         exit(EXIT_FAILURE);
+//     }
 
-    Ram_Bms = (RankModel *)addrbms;
-    printf("电芯共享内存映射成功\n");
-}
+//     Ram_Bms = (RankModel *)addrbms;
+//     printf("电芯共享内存映射成功\n");
+// }
 
  // 初始化共享内存（日志数据）
  void share_Logger_ram_init(void)
@@ -104,13 +104,13 @@ void share_Bms_ram_init()
  
      // 初始化共享内存
      share_Logger_ram_init();
-     share_Bms_ram_init();
+    //  share_Bms_ram_init();
      // 获取系统配置和寄存器映射指针
      sysPara *sys_cfg = SysConf_GetInfo();
      INT16U *pRamReg = (INT16U *)pRegM;
-     INT16U *pRamRank = (INT16U *)pRankM;
+    //  INT16U *pRamRank = (INT16U *)pRankM;
      int logger_total_lenth = sizeof(RegistersModel) / sizeof(INT16U);
-     int bms_total_lenth=sizeof(RankModel) / sizeof(INT16U);
+    //  int bms_total_lenth=sizeof(RankModel) / sizeof(INT16U);
      while (1) {
          sleep(1);  // 周期性写入
  
@@ -122,12 +122,12 @@ void share_Bms_ram_init()
          pthread_mutex_unlock(&ram_mutex);
 
 
-         pthread_mutex_lock(&ram_mutex);
-         for (int i = 0; i < bms_total_lenth; ++i) {
-              pRamRank[i] = ((INT16U *)Ram_Bms)[i]; //将共享内存中的数据写入到寄存器映射中
-            //  printf("Input[%d] = %d\n", i, pRamRank[i]); // 或用 LOG_INFO
-         }
-         pthread_mutex_unlock(&ram_mutex);
+        //  pthread_mutex_lock(&ram_mutex);
+        //  for (int i = 0; i < bms_total_lenth; ++i) {
+        //       pRamRank[i] = ((INT16U *)Ram_Bms)[i]; //将共享内存中的数据写入到寄存器映射中
+        //     //  printf("Input[%d] = %d\n", i, pRamRank[i]); // 或用 LOG_INFO
+        //  }
+        //  pthread_mutex_unlock(&ram_mutex);
 
 
      }
@@ -137,7 +137,7 @@ void share_Bms_ram_init()
      return Ram_Logger;
  }
 
- RankModel* get_rack_shared_ram()
- {
-     return Ram_Bms;
- }
+//  RankModel* get_rack_shared_ram()
+//  {
+//      return Ram_Bms;
+//  }

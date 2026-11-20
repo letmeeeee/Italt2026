@@ -94,14 +94,24 @@ long GetMSecsSinceEpoch()
 /**
  * @brief 计算时间戳
  */
-long GetMSecsSinceloop()
-{
-    struct timeb timestamp = {};
+// long GetMSecsSinceloop()
+// {
+//     struct timeb timestamp = {};
 
-    if (0 == ftime(&timestamp))
-        return timestamp.time * 1000 + timestamp.millitm;
-    else
+//     if (0 == ftime(&timestamp))
+//         return timestamp.time * 1000 + timestamp.millitm;
+//     else
+//         return 0;
+// }
+long GetMSecsSinceloop(void)
+{
+    struct timespec timestamp;
+
+    if (clock_gettime(CLOCK_REALTIME, &timestamp) != 0)
         return 0;
+
+    return (long)timestamp.tv_sec * 1000L
+         + timestamp.tv_nsec / 1000000L;
 }
 /**
  * @brief 定时任务集合
@@ -129,6 +139,10 @@ void Task_Timed_Work(void)
             TIMEOUT_TIMER[SYSTEM_TIMER] = Timer_GetTick();
             timer = time(NULL);  //直接就是时间戳 time_t timer
             tblock = localtime(&timer); //struct tm *tblock; 变成2022-07-25 17:23:12
+            if (tblock == NULL) {
+                /* 时钟转换失败：保留上一次 ttvalue，本次不刷新 */
+                continue;
+            }
             ttvalue[0] = tblock->tm_year + 1900;
             ttvalue[1] = tblock->tm_mon + 1;
             ttvalue[2] = tblock->tm_mday;

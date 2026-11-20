@@ -156,11 +156,11 @@ static void server_handle_data(void)
                     {
                         RegVal.D16= GET_INPUT(Temp.D16);
                     }
-                    else if((dev_add>=2)&&(dev_add<(2+BANK_SIZE)))
-                    {
-                        int bankN = (dev_add-2);
-                        RegVal.D16= GET_R_INPUT(bankN,Temp.D16);
-                    }
+                    // else if((dev_add>=2)&&(dev_add<(2+BANK_SIZE)))
+                    // {
+                    //     int bankN = (dev_add-2);
+                    //     RegVal.D16= GET_R_INPUT(bankN,Temp.D16);
+                    // }
                     else
                     {
                         break;
