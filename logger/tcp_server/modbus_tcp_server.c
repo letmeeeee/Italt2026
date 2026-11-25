@@ -19,6 +19,7 @@
 #include <netinet/tcp.h>
 #include <pthread.h>
 #include "taida_lc_ems.h"
+#include "blackstart_sys.h"
 extern char *const pIsCheckTime;
 extern INT8U BusType;
  int PCSnum;//用于记录pcs的个数
@@ -468,6 +469,11 @@ static void* Server_Handle_Data(void *arg)
                     RegVal.D8[0] = buffer[14 + i * 2];
 
                     SET_HOLD(Temp.D16, RegVal.D16);
+                    if (sys_cfg->pcs_brand[0] == PCS_Taida && RegVal.D16 == 1 &&
+                        (Temp.D16 == 27021 || Temp.D16 == 27321))
+                    {
+                        SYS_BlackStart_Request_Restart((Temp.D16 - 27021) / 300);
+                    }
                    pcsnum =PCSnum_calculate(Temp.D16); 
                    if (pcsnum < 0)
                    {
@@ -722,6 +728,11 @@ static void* Server_Handle_Data(void *arg)
                     RegVal.D8[1] = buffer[10];
                     RegVal.D8[0] = buffer[11];
                     SET_HOLD(Temp.D16, RegVal.D16);
+                    if (sys_cfg->pcs_brand[0] == PCS_Taida && RegVal.D16 == 1 &&
+                        (Temp.D16 == 27021 || Temp.D16 == 27321))
+                    {
+                        SYS_BlackStart_Request_Restart((Temp.D16 - 27021) / 300);
+                    }
                     // 回包
                     sendbuffer[5]  = buffer[5];
                     sendbuffer[8]  = buffer[8];
@@ -971,6 +982,11 @@ static void* Server_Handle_Data(void *arg)
                     }
                 else if(Temp.D16 == 7)//黑启动模式
                     {
+                        if (RegVal.D16 == 1 && sys_cfg->pcs_brand[0] == PCS_Taida)
+                        {
+                            for (INT8U group = 0; group < sys_cfg->sysNum && group < MAX_SYS_NUM; group++)
+                                SYS_BlackStart_Request_Restart(group);
+                        }
 
                         PcsWriteReq pcsreq;
                         pcsreq.addr     = 27021;

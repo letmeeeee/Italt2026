@@ -4,4 +4,7 @@
 
 void SYS_State_BlackStart_Run(volatile SYS_State_ENUM *state, INT8U sys_num);
 
+/* Queue a per-system reset for the black start state task. */
+void SYS_BlackStart_Request_Restart(INT8U sys_num);
+
 #endif

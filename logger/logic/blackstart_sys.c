@@ -17,6 +17,38 @@ static volatile INT8U Standby_Cmd_Zero_Power[MAX_SYS_NUM] = {0};//MV一体机下
 
 static INT8U  clear_pending[MAX_SYS_NUM] = {0};
 static uint64_t clear_req_ts[MAX_SYS_NUM]  = {0};
+#define ISLAND_CLEAR_MAX_RETRIES 3U
+#define ISLAND_CLEAR_RETRY_MS 1000U
+#define ISLAND_CHECK_TIMEOUT_MS 10000U
+static INT8U island_clear_retry_count[MAX_SYS_NUM] = {0};
+static uint64_t island_clear_last_ts[MAX_SYS_NUM] = {0};
+static uint64_t island_check_start_ts[MAX_SYS_NUM] = {0};
+static INT8U island_check_failed[MAX_SYS_NUM] = {0};
+/* Producers only publish requests; the state task owns all reset operations. */
+static INT8U black_restart_requested[MAX_SYS_NUM] = {0};
+
+void SYS_BlackStart_Request_Restart(INT8U sys_num)
+{
+    if (sys_num >= MAX_SYS_NUM) return;
+    __atomic_store_n(&black_restart_requested[sys_num], 1, __ATOMIC_RELEASE);
+}
+
+static INT8U black_start_apply_restart(volatile SYS_State_ENUM *state, INT8U sys_num)
+{
+    if (!__atomic_exchange_n(&black_restart_requested[sys_num], 0, __ATOMIC_ACQ_REL))
+        return 0;
+
+    Clear_In_Sys(sys_num);
+    Clear_Out_Sys(sys_num);
+    island_check_failed[sys_num] = 0;
+    island_clear_retry_count[sys_num] = 0;
+    island_clear_last_ts[sys_num] = 0;
+    island_check_start_ts[sys_num] = 0;
+    state[sys_num] = SYSInit;
+    LOG_INFO("SYS-%d EMS requested a new black start sequence", sys_num);
+    return 1;
+}
+
 static INT32U last_time[MAX_SYS_NUM]; 
 
 
@@ -126,6 +158,11 @@ static void Event_CMD_Stop_Check_PCS(INT16U *eid, INT8U sys_num, SYS_State_ENUM 
 static void Island_CMD_Send(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
 void Island_CMD_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
 static void Event_SYS_BLACKRUN_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state);
+static void Island_CMD_Failed_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
+{
+    (void)real_state;
+    eid[sys_num] = island_check_failed[sys_num] ? SYS_EVENT_FAULT : 0;
+}
 /* ===================== 状态转移表 ===================== */
 const static StateSYSform state_list[] = {
     /* 当前状态 ************事件 ******************目标状态 ********* 检测函数 **********************************描述 */
@@ -139,6 +176,8 @@ const static StateSYSform state_list[] = {
    
     {SYSBlackStopsetvalue,   SYS_EVENT_ISLAND_CMD,       SYSBlackStopcheckvalue,           Island_CMD_Check,                "黑启动事件：已停机->孤岛参数已下发"},
  
+    {SYSBlackStopsetvalue,  SYS_EVENT_FAULT,            SYSFault,                   Island_CMD_Failed_Check,             "黑启动准备超时->故障停机"},
+
     {SYSBlackStopcheckvalue,        SYS_EVENT_CMD_START,   SYSBLACKSTART,        Event_CMD_Start_Check,              "黑启动命令：已停机->启动中"},
    
   
@@ -247,27 +286,58 @@ static void Event_Fault_Stop_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM re
 void Island_CMD_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
 {
     (void)real_state;
+    int pcs_num = (sys_num != 0) ? 2 : 0;
+    /* The previous stage uses the same event; only fresh success may advance. */
+    eid[sys_num] = 0;
+    if (island_check_failed[sys_num]) return;
 
-    SUB_State_ENUM state;
-    INT8U island_value = false;
-    sysPara *sys_cfg = SysConf_GetInfo();
-
-    if ((GET_HOLD(27000+300*sys_num+111) == 100)&&(GET_HOLD(27000+300*sys_num+112) == 5000))  island_value = true;  
-    if ((island_value == true)) 
+    // if (GET_HOLD(27021 + 300 * sys_num) == 1 &&
+    //     GET_INPUT(17063 + 300 * sys_num) == 2)
+    if (GET_INPUT(17063 + 300 * sys_num) == 2)
     {
+        island_clear_retry_count[sys_num] = 0;
         last_time[sys_num] = Timer_GetTick();
-        *(eid + sys_num)   = SYS_EVENT_ISLAND_CMD;
+        eid[sys_num] = SYS_EVENT_ISLAND_CMD;
+        LOG_INFO("PCS %d is standby, ready send start command", pcs_num);
+        return;
     }
+
+    /* Bound the entire preparation stage, including missing mode feedback. */
+    if (!Soft_Timer(island_check_start_ts[sys_num], ISLAND_CHECK_TIMEOUT_MS) ||
+        (island_clear_retry_count[sys_num] >= ISLAND_CLEAR_MAX_RETRIES &&
+         !Soft_Timer(island_clear_last_ts[sys_num], ISLAND_CLEAR_RETRY_MS)))
+    {
+        island_check_failed[sys_num] = 1;
+        Clear_In_Sys(sys_num);
+        LOG_INFO("PCS %d black start preparation failed after %u retries", pcs_num,
+                 (unsigned)island_clear_retry_count[sys_num]);
+        return;
+    }
+
+    // if (GET_HOLD(27021 + 300 * sys_num) != 1 ||
+    //     GET_INPUT(17063 + 300 * sys_num) == 2 ||
+    //     Soft_Timer(island_clear_last_ts[sys_num], ISLAND_CLEAR_RETRY_MS)) return;
+
+    PcsWriteReq pcsreq = {0};
+    pcsreq.addr = 27001 + 300 * sys_num;
+    pcsreq.value = 1;
+    pcsreq.len = 1;
+    pcsreq.is_multi = false;
+    /* Count attempts even if enqueue fails, so failures cannot loop forever. */
+    island_clear_retry_count[sys_num]++;
+    island_clear_last_ts[sys_num] = Timer_GetTick();
+    bool queued = Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);
+    LOG_INFO("PCS %d clear fault retry %u, queued:%d", pcs_num,
+             (unsigned)island_clear_retry_count[sys_num], queued);
 }
-
-
-
-
 
 
 static void Island_CMD_Send(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
 {
     (void)real_state;
+    eid[sys_num] = 0;
+    /* Keep a failed sequence stopped until black start is entered again. */
+    if (island_check_failed[sys_num]) return;
     int pcs_num=0;
     int pcs_addr=0;
     INT8U  is_Fault = IsNoFault;
@@ -280,32 +350,35 @@ static void Island_CMD_Send(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_stat
 
     if ((is_Fault == IsNoFault) ) 
     {
+        island_clear_retry_count[sys_num] = 0;
+        island_check_start_ts[sys_num] = Timer_GetTick();
+        island_clear_last_ts[sys_num] = island_check_start_ts[sys_num];
         pcs_num = (sys_num!= 0) ? 2 : 0;
         pcs_addr = (sys_num!= 0) ? 1 : 0;
-     if (pcs_num >= 0)
-    {
-        PcsWriteReq pcsreq;
-        pcsreq.addr     = 27000+300*sys_num+111;   //下发孤岛电压比例
-        pcsreq.value    = 100;
-        pcsreq.len      = 1;
-        pcsreq.is_multi = false;
+    //  if (pcs_num >= 0)
+    // {
+    //     PcsWriteReq pcsreq;
+    //     pcsreq.addr     = 27000+300*sys_num+111;   //下发孤岛电压比例
+    //     pcsreq.value    = 100;
+    //     pcsreq.len      = 1;
+    //     pcsreq.is_multi = false;
 
-        // 去重，保留最新值
-        LOG_INFO("addr is %d,num is %d",pcsreq.addr ,pcs_num);
-        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
-    }
-     if (pcs_num >= 0)
-    {
-        PcsWriteReq pcsreq;
-        pcsreq.addr     = 27000+300*sys_num+112;   //下发孤岛频率
-        pcsreq.value    = 5000;//先默认50HZ//后续放到配置文件中进行配置 
-        pcsreq.len      = 1;
-        pcsreq.is_multi = false;
+    //     // 去重，保留最新值
+    //     LOG_INFO("addr is %d,num is %d",pcsreq.addr ,pcs_num);
+    //     Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
+    // }
+    //  if (pcs_num >= 0)
+    // {
+    //     PcsWriteReq pcsreq;
+    //     pcsreq.addr     = 27000+300*sys_num+112;   //下发孤岛频率
+    //     pcsreq.value    = 5000;//先默认50HZ//后续放到配置文件中进行配置 
+    //     pcsreq.len      = 1;
+    //     pcsreq.is_multi = false;
 
-        // 去重，保留最新值
-        LOG_INFO("addr is %d,num is %d",pcsreq.addr ,pcs_num);
-        Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
-    }
+    //     // 去重，保留最新值
+    //     LOG_INFO("addr is %d,num is %d",pcsreq.addr ,pcs_num);
+    //     Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
+    // }
      if (pcs_num >= 0)
     {
         PcsWriteReq pcsreq;
@@ -317,6 +390,8 @@ static void Island_CMD_Send(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_stat
         // 去重，保留最新值
         LOG_INFO("addr is %d,num is %d",pcsreq.addr ,pcs_num);
         Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
+        // Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
+        // Pcs_Write_Enqueue_Dedup_By_Addr(pcs_num, &pcsreq);//放入缓冲区中
     }
 
         last_time[sys_num] = Timer_GetTick();
@@ -1301,10 +1376,23 @@ void SYS_State_BlackStart_Run(volatile SYS_State_ENUM *state, INT8U sys_num)
         Clear_Out_Sys(sys_num);
         event_id[sys_num]  = 0;
         last_time[sys_num] = Timer_GetTick();
+        island_check_failed[sys_num] = 0;
+        island_clear_retry_count[sys_num] = 0;
         state[sys_num] = SYSInit;  
         }
 
 
+    }
+
+    if (black_start_apply_restart(state, sys_num))
+    {
+        event_id[sys_num] = 0;
+        event_in[sys_num] = 0;
+        event_out[sys_num] = 0;
+        event_in_time[sys_num] = 0;
+        event_out_time[sys_num] = 0;
+        last_time[sys_num] = Timer_GetTick();
+        return;
     }
 
     /* 3) 正常推进：先做通信边沿检测 */
