@@ -1099,7 +1099,7 @@ static INT16U taida_summary_input(INT32S address)
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode)==1)) {
+             if (((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode) == 1) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1268,7 +1268,7 @@ static INT16U taida_summary_input(INT32S address)
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
 
-           if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode)==1)||(GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode)==1)) {
+           if (((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode) == 1) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2))||((GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode) == 1) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 2))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1779,7 +1779,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode) ==1)) {
+             if (((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode) == 1) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1953,7 +1953,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
-           if ((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode)==1)||(GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode)==1)) {
+           if (((GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode) == 1) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[0].SystemOperationStatus) == 2))||((GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode) == 1) && (GET_INPUT(PCS_TAIDA_GROUP_INPUT_REG[1].SystemOperationStatus) == 2))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);

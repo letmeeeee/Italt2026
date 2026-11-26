@@ -19,6 +19,7 @@
 #include <netinet/tcp.h>
 #include <pthread.h>
 #include "taida_lc_ems.h"
+#include "blackstart_sys.h"
 /* ============================================================================================
  * 点表地址约定（具体数值见 base/address_map.c）：
  *   台达 PCS (V0.16)  ：PCS_TAIDA_HOLD_REG / PCS_TAIDA_5MW_HOLD_REG /
@@ -508,6 +509,14 @@ static void *Server_Handle_Data(void *arg)
                         RegVal.D8[0] = buffer[14 + i * 2];
 
                         SET_HOLD(Temp.D16, RegVal.D16);
+                        if (sys_cfg->pcs_brand[0] == PCS_Taida && RegVal.D16 == 1)
+                        {
+                            for (INT8U group = 0; group < sys_cfg->sysNum && group < MAX_SYS_NUM; ++group)
+                            {
+                                if (Temp.D16 == PCS_TAIDA_CTRL_REG[group].BlackStartMode)
+                                    SYS_BlackStart_Request_Restart(group);
+                            }
+                        }
                         pcsnum = PCSnum_calculate(Temp.D16);
                         if (pcsnum < 0)
                         {
@@ -518,7 +527,23 @@ static void *Server_Handle_Data(void *arg)
                         //  LOG_INFO("pcsnum=%d,sys_num=%d",pcsnum,sys_num);
                         if (sys_cfg->pcs_brand[0] == PCS_Taida)
                         {
-                            if ((pcsnum >= 0) && ((Temp.D16 < PCS_TAIDA_CTRL_REG[sys_num].MasterBat2DischargePowerCoef) ||
+                            if (Temp.D16 == PCS_TAIDA_CTRL_REG[sys_num].SystemOnOffCmd &&
+                                (GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode) == 1 ||
+                                 GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode) == 1) &&
+                                (RegVal.D16 == 0 || RegVal.D16 == 1))
+                            {
+                                Set_In_Sys(sys_num, RegVal.D16 == 1 ? SYS_EVENT_CMD_START : SYS_EVENT_CMD_STOP);
+                            }
+                            else if (Temp.D16 == PCS_TAIDA_CTRL_REG[sys_num].BlackStartMode)
+                            {
+                                PcsWriteReq pcsreq;
+                                pcsreq.addr = Temp.D16;
+                                pcsreq.value = RegVal.D16;
+                                pcsreq.len = 1;
+                                pcsreq.is_multi = false;
+                                Pcs_Write_Enqueue_Dedup_By_Addr(pcsnum, &pcsreq);
+                            }
+                            else if ((pcsnum >= 0) && ((Temp.D16 < PCS_TAIDA_CTRL_REG[sys_num].MasterBat2DischargePowerCoef) ||
                                                   (Temp.D16 > PCS_TAIDA_CTRL_REG[sys_num].ActivePowerReference)))
                             {
                                 if (((Temp.D16 <= (PCS_TAIDA_CTRL_REG[sys_num].Base + 203)) && (Temp.D16 >= (PCS_TAIDA_CTRL_REG[sys_num].Base + 200))) ||
@@ -762,6 +787,14 @@ static void *Server_Handle_Data(void *arg)
                     RegVal.D8[1] = buffer[10];
                     RegVal.D8[0] = buffer[11];
                     SET_HOLD(Temp.D16, RegVal.D16);
+                    if (sys_cfg->pcs_brand[0] == PCS_Taida && RegVal.D16 == 1)
+                    {
+                        for (INT8U group = 0; group < sys_cfg->sysNum && group < MAX_SYS_NUM; ++group)
+                        {
+                            if (Temp.D16 == PCS_TAIDA_CTRL_REG[group].BlackStartMode)
+                                SYS_BlackStart_Request_Restart(group);
+                        }
+                    }
                     // 回包
                     sendbuffer[5] = buffer[5];
                     sendbuffer[8] = buffer[8];
@@ -1065,6 +1098,12 @@ static void *Server_Handle_Data(void *arg)
                     }
                     else if (Temp.D16 == 7) // 黑启动模式
                     {
+                        if (sys_cfg->pcs_brand[0] == PCS_Taida && RegVal.D16 == 1)
+                        {
+                            for (INT8U group = 0; group < sys_cfg->sysNum && group < MAX_SYS_NUM; ++group)
+                                SYS_BlackStart_Request_Restart(group);
+                        }
+
 
                         PcsWriteReq pcsreq;
                         pcsreq.addr = PCS_TAIDA_CTRL_REG[0].BlackStartMode;
@@ -1313,6 +1352,14 @@ static void *Server_Handle_Data(void *arg)
                                 pcsnum = 3; // 从机2-1
                         }
                     }
+
+                    /* 黑启动启停由状态机统一透传，避免同一 EMS 指令重复入队。 */
+                    if (sys_cfg->pcs_brand[0] == PCS_Taida &&
+                        (GET_HOLD(PCS_TAIDA_CTRL_REG[0].BlackStartMode) == 1 ||
+                         GET_HOLD(PCS_TAIDA_CTRL_REG[1].BlackStartMode) == 1) &&
+                        (Temp.D16 == PCS_TAIDA_CTRL_REG[0].SystemOnOffCmd ||
+                         Temp.D16 == PCS_TAIDA_CTRL_REG[1].SystemOnOffCmd))
+                        pcsnum = -1;
 
                     if (pcsnum >= 0)
                     {
