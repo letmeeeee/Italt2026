@@ -862,6 +862,10 @@ static volatile INT16U g_sys_alarm_latch[MAX_SYS_NUM] = {0}; /* 0 表示未锁�
 static INT8U sys_state_rank(INT16U st)
 {
     switch (st) {
+    case SYSBLACKRun: return 17;
+    case SYSBLACKSTART: return 16;
+    case SYSBlackStopcheckvalue: return 15;
+    case SYSBlackStopsetvalue: return 14;
     case SYSRun:      return 13;   
     case SYSSTARTPQ: return 12;
     case SYSPQMode: return 11;
@@ -881,6 +885,9 @@ static INT8U sys_state_rank(INT16U st)
 static INT8U sys_state_rank_simple(INT16U st)
 {
     switch (st) {
+    case SYSBLACKRun: return 100;
+    case SYSBLACKSTART:
+        return 90;
     case SYSStarting: return 80;
     case SYSRun:      return 70;
 
@@ -949,12 +956,11 @@ static INT8U severity_rank(INT16U st)
  *          - 若为0xF、0x5、0x13或0x7（PCS断连情况），返回SYSInit
  *          - 否则返回ALARM
  *       2. SYSWarnRun状态单独映射为WARN
- *       3. 函数中未处理的输入状态将返回未定义值
+ *       3. 黑启动状态保留原值，未识别的输入状态返回 ALARM
  */
 static INT16U calc_sys_status_out(INT8U sys_num, INT16U now_state)
 {
     (void)sys_num;
-    sysPara *sys_cfg = SysConf_GetInfo();
     switch (now_state) 
     {
     case SYSZWARNINGSTOP:
@@ -1021,6 +1027,15 @@ static INT16U calc_sys_status_out(INT8U sys_num, INT16U now_state)
 
     case SYSZEROPOWER:
         return SYSZEROPOWER;
+
+    case SYSBLACKSTART:
+    case SYSBLACKRun:
+    case SYSBlackStopsetvalue:
+    case SYSBlackStopcheckvalue:
+        return now_state;
+
+    default:
+        return ALARM;
   
     }
 }

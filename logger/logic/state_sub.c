@@ -1013,7 +1013,7 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(27000+300*0+21)==1)) {
+             if ((GET_HOLD(27021) == 1) && (GET_INPUT(17063) == 2)) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1182,7 +1182,8 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
 
-           if ((GET_HOLD(27000+300*0+21)==1)||(GET_HOLD(27000+300*1+21)==1)) {
+           if (((GET_HOLD(27021) == 1) && (GET_INPUT(17063) == 2)) ||
+               ((GET_HOLD(27321) == 1) && (GET_INPUT(17363) == 2))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1690,7 +1691,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(27021 + 0 * 300) ==1)) {
+             if ((GET_HOLD(27021) == 1) && (GET_INPUT(17063) == 2)) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
