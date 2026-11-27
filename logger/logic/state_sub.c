@@ -772,6 +772,11 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     INT32U bmsPerRatedEnergy = sys_cfg->bmsPerRatedEnergy; /* 单台bms电量 */
     INT32U pcsPerRateCapacity = sys_cfg->pcsPerRateCapacity; /* 单台pcs容量 */
     INT16U year, month, day, hour, minute, second;
+    int pcs0_standby = 0, pcs1_standby = 0, pcs2_standby = 0, pcs3_standby = 0;
+    pcs0_standby = GET_INPUT(17060 + 300 * 0) & 0x2;
+    pcs1_standby = GET_INPUT(17062 + 300 * 0) & 0x1;
+    pcs2_standby = GET_INPUT(17060 + 300 * 1) & 0x2;
+    pcs3_standby = GET_INPUT(17062 + 300 * 1) & 0x1;
 //当设备进行切入切出时。通信拓扑会发生变化，然后根据不同设备进行系统赋值
     if (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0x0C) {
 
@@ -1013,7 +1018,7 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(27021) == 1) && (GET_INPUT(17063) == 2)) {
+             if ((GET_HOLD(27021) == 1) && (pcs0_standby && ((single_mode == 1) || pcs1_standby))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1182,8 +1187,8 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
 
-           if (((GET_HOLD(27021) == 1) && (GET_INPUT(17063) == 2)) ||
-               ((GET_HOLD(27321) == 1) && (GET_INPUT(17363) == 2))) {
+           if (((GET_HOLD(27021) == 1) && (pcs0_standby && ((single_mode == 1) || pcs1_standby))) ||
+               ((GET_HOLD(27321) == 1) && (pcs2_standby && ((single_mode == 1) || pcs3_standby)))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1427,6 +1432,11 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
     INT32U bmsPerRatedEnergy = sys_cfg->bmsPerRatedEnergy; /* 单台bms电量 */
     INT32U pcsPerRateCapacity = sys_cfg->pcsPerRateCapacity; /* 单台pcs容量 */
     INT16U year, month, day, hour, minute, second;
+    int pcs0_standby = 0, pcs1_standby = 0, pcs2_standby = 0, pcs3_standby = 0;
+    pcs0_standby = GET_INPUT(17060 + 300 * 0) & 0x2;
+    pcs1_standby = GET_INPUT(17062 + 300 * 0) & 0x1;
+    pcs2_standby = GET_INPUT(17060 + 300 * 1) & 0x2;
+    pcs3_standby = GET_INPUT(17062 + 300 * 1) & 0x1;
 //当设备进行切入切出时。通信拓扑会发生变化，然后根据不同设备进行系统赋值
     if (g_enabled_mask_pcs == 0x0C || g_enabled_mask_bms == 0xF0) {
        INT8U BMS_num =COUNT_BITS_16(GET_INPUT(220));
@@ -1691,7 +1701,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num  );
-             if ((GET_HOLD(27021) == 1) && (GET_INPUT(17063) == 2)) {
+             if ((GET_HOLD(27021) == 1) && (pcs0_standby && ((single_mode == 1) || pcs1_standby))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);
@@ -1865,7 +1875,7 @@ static void Event_Reset_Pass_Check(INT16U *eid, INT8U sys_num, INT8U sub_num, SU
                 }
             }
             SET_INPUT(NUMBER_OF_RUNNING_BMSs, running_bms_num );
-           if (((GET_HOLD(27000+300*0+21)==1) && (GET_INPUT(17000+300*0+63)==2))||((GET_HOLD(27000+300*1+21)==1) && (GET_INPUT(17000+300*1+63)==2))) {
+           if (((GET_HOLD(27000+300*0+21)==1) && (pcs0_standby && ((single_mode == 1) || pcs1_standby)))||((GET_HOLD(27000+300*1+21)==1) && (pcs2_standby && ((single_mode == 1) || pcs3_standby)))) {
                 SET_INPUT(Blackstart_mode, 1);
             } else {
                 SET_INPUT(Blackstart_mode, 0);

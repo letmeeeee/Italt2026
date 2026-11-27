@@ -469,11 +469,11 @@ static void* Server_Handle_Data(void *arg)
                     RegVal.D8[0] = buffer[14 + i * 2];
 
                     SET_HOLD(Temp.D16, RegVal.D16);
-                    if (sys_cfg->pcs_brand[0] == PCS_Taida && RegVal.D16 == 1 &&
-                        (Temp.D16 == 27021 || Temp.D16 == 27321))
-                    {
-                        SYS_BlackStart_Request_Restart((Temp.D16 - 27021) / 300);
-                    }
+                    // if (sys_cfg->pcs_brand[0] == PCS_Taida && RegVal.D16 == 1 &&
+                    //     (Temp.D16 == 27021 || Temp.D16 == 27321))
+                    // {
+                    //     SYS_BlackStart_Request_Restart((Temp.D16 - 27021) / 300);
+                    // }
                    pcsnum =PCSnum_calculate(Temp.D16); 
                    if (pcsnum < 0)
                    {

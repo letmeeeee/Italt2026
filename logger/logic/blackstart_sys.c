@@ -287,13 +287,17 @@ void Island_CMD_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
 {
     (void)real_state;
     int pcs_num = (sys_num != 0) ? 2 : 0;
+    INT8U single_mode = SysConf_GetInfo()->singlePcsMaster;
+    int pcs_master_standby = 0, pcs_slave_standby = 0;
+    pcs_master_standby = GET_INPUT(17060 + 300 * sys_num) & 0x2;
+    pcs_slave_standby = GET_INPUT(17062 + 300 * sys_num) & 0x1;
     /* The previous stage uses the same event; only fresh success may advance. */
     eid[sys_num] = 0;
     if (island_check_failed[sys_num]) return;
 
     // if (GET_HOLD(27021 + 300 * sys_num) == 1 &&
     //     GET_INPUT(17063 + 300 * sys_num) == 2)
-    if (GET_INPUT(17063 + 300 * sys_num) == 2)
+    if (pcs_master_standby && ((single_mode == 1) || pcs_slave_standby))
     {
         island_clear_retry_count[sys_num] = 0;
         last_time[sys_num] = Timer_GetTick();
@@ -313,10 +317,6 @@ void Island_CMD_Check(INT16U *eid, INT8U sys_num, SYS_State_ENUM real_state)
                  (unsigned)island_clear_retry_count[sys_num]);
         return;
     }
-
-    // if (GET_HOLD(27021 + 300 * sys_num) != 1 ||
-    //     GET_INPUT(17063 + 300 * sys_num) == 2 ||
-    //     Soft_Timer(island_clear_last_ts[sys_num], ISLAND_CLEAR_RETRY_MS)) return;
 
     PcsWriteReq pcsreq = {0};
     pcsreq.addr = 27001 + 300 * sys_num;
