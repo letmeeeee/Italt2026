@@ -574,11 +574,13 @@ static uint16_t PCS_Status_To_RegValue(INT32S status)
     /* 测控通信断联：清测控相关点位 */
     if (measu_comm_fault)
     {
-        for (int i = 25030; i < 27050; i++) SET_INPUT(i, 0);
-        for (int i = 25300; i < 25400; i++) SET_INPUT(i, 0);
-        for (int i = 25000; i < 26000; i++) SET_INPUT(i, 0);
-        for (int i = 25850; i < 25822; i++) SET_INPUT(i, 0);
-        for (int i = 27100; i < 27800; i++) SET_INPUT(i, 0);
+        //变压器温度和测控接的辅变电表
+        for (int i = 25000; i < 25400; i++) SET_INPUT(i, 0);
+        //综保
+        for (int i = 25800; i < 26000; i++) SET_INPUT(i, 0);
+        //测控
+        for (int i = 27600; i < 28000; i++) SET_INPUT(i, 0);
+        
         INT16U measureval = (INT16U)GET_INPUT(STATUS_WORD2);
         measureval &= (INT16U)~(1u << 8);
         SET_INPUT(STATUS_WORD2, measureval);
